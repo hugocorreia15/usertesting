@@ -8,10 +8,16 @@ import {
   Users,
   ClipboardList,
   BarChart3,
+  ChevronRight,
   Menu,
   LogOut,
-  UserPen,
+  User,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -23,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
@@ -32,6 +38,90 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ClipboardList,
   BarChart3,
 };
+
+function CollapsibleNavGroup({
+  item,
+  Icon,
+  anyChildActive,
+  onNavigate,
+  layoutId,
+  pathname,
+}: {
+  item: NavItem;
+  Icon: React.ComponentType<{ className?: string }> | undefined;
+  anyChildActive: boolean;
+  onNavigate?: () => void;
+  layoutId: string;
+  pathname: string;
+}) {
+  const [open, setOpen] = useState(anyChildActive);
+
+  // Auto-open when a child becomes active
+  useEffect(() => {
+    if (anyChildActive) setOpen(true);
+  }, [anyChildActive]);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger
+        className={cn(
+          "flex w-full items-center rounded-md text-sm font-medium transition-colors duration-200",
+          "gap-3 px-3 py-2",
+          anyChildActive
+            ? "text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/70 hover:bg-accent/50 hover:text-sidebar-accent-foreground",
+        )}
+      >
+        {Icon && <Icon className="h-4 w-4 shrink-0" />}
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronRight
+          className={cn(
+            "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+            open && "rotate-90",
+          )}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-0.5 space-y-0.5">
+          {item.children!.map((child) => {
+            const childActive =
+              child.href === "/"
+                ? pathname === "/"
+                : pathname === child.href ||
+                  pathname === child.href + "/";
+
+            return (
+              <Link
+                key={child.href}
+                to={child.href}
+                onClick={onNavigate}
+                className={cn(
+                  "relative flex items-center rounded-md py-1.5 pl-9 pr-3 text-sm transition-colors duration-200",
+                  childActive
+                    ? "text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-accent/50 hover:text-sidebar-accent-foreground",
+                )}
+              >
+                {childActive && (
+                  <motion.div
+                    layoutId={layoutId}
+                    className="absolute inset-0 rounded-md border-l-2 border-primary bg-sidebar-accent shadow-[inset_0_0_12px_rgba(99,102,241,0.08)]"
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 30,
+                    }}
+                  />
+                )}
+                <span className="relative z-10">{child.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 function NavGroup({
   item,
@@ -51,6 +141,27 @@ function NavGroup({
       ? location.pathname === "/"
       : location.pathname.startsWith(item.href);
 
+  // If item has children and sidebar is expanded, render collapsible
+  if (item.children && !collapsed) {
+    const anyChildActive = item.children.some((child) =>
+      child.href === "/"
+        ? location.pathname === "/"
+        : location.pathname.startsWith(child.href),
+    );
+
+    return (
+      <CollapsibleNavGroup
+        item={item}
+        Icon={Icon}
+        anyChildActive={anyChildActive}
+        onNavigate={onNavigate}
+        layoutId={layoutId}
+        pathname={location.pathname}
+      />
+    );
+  }
+
+  // Collapsed sidebar with children: render as plain icon link to parent
   return (
     <Link
       to={item.href}
@@ -132,8 +243,8 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
-            <UserPen className="h-4 w-4" />
-            Edit Profile
+            <User className="h-4 w-4" />
+            View Profile
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => signOut()}>
             <LogOut className="h-4 w-4" />
@@ -159,12 +270,14 @@ function NavContent({
       {/* Logo header */}
       <div className="border-b border-sidebar-border px-4 py-4">
         <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3")}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-teal-400">
-            <ClipboardList className="h-4 w-4 text-white" />
-          </div>
+          <img
+            src="/logo.svg"
+            alt="Avalux"
+            className="h-8 w-8 shrink-0"
+          />
           {!collapsed && (
             <h1 className="text-lg font-bold gradient-text">
-              UX Testing
+              Avalux
             </h1>
           )}
         </div>

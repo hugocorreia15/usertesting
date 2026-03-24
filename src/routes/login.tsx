@@ -5,8 +5,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
-import { ThemeProvider } from "@/hooks/use-theme";
-import { AnimatedBackground } from "@/components/layout/animated-background";
 import {
   Card,
   CardContent,
@@ -19,8 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Toaster } from "@/components/ui/sonner";
-import { ClipboardCheck, Github, Mail } from "lucide-react";
+import { Github } from "lucide-react";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -56,16 +53,16 @@ function LoginPage() {
   };
 
   return (
-    <ThemeProvider>
-      <AnimatedBackground />
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="flex pt-24 items-center justify-center p-4">
         <Card className="w-full max-w-md border-border/50 bg-card/80 backdrop-blur-xl shadow-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-teal-400">
-              <ClipboardCheck className="h-6 w-6 text-white" />
-            </div>
-            <CardTitle className="bg-gradient-to-r from-indigo-500 to-teal-400 bg-clip-text text-2xl font-bold text-transparent">
-              UX Testing
+            <img
+              src="/logo_name.svg"
+              alt="Avalux"
+              className="mx-auto mb-2 h-24"
+            />
+            <CardTitle className="sr-only">
+              Avalux
             </CardTitle>
             <CardDescription>
               Sign in to manage your testing sessions
@@ -151,8 +148,6 @@ function LoginPage() {
           </CardContent>
         </Card>
       </div>
-      <Toaster />
-    </ThemeProvider>
   );
 }
 
