@@ -93,12 +93,20 @@ export function ParticipantForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
-              <Input
-                id="gender"
+              <Label>Gender</Label>
+              <Select
                 value={form.gender}
-                onChange={(e) => set("gender", e.target.value)}
-              />
+                onValueChange={(v) => set("gender", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="occupation">Occupation</Label>

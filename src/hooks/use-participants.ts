@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { Participant } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
 
 async function getCurrentUserId() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -15,6 +16,7 @@ export function useParticipants() {
       const { data, error } = await supabase
         .from("participants")
         .select("*")
+        .eq("is_anonymous", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Participant[];
@@ -38,7 +40,7 @@ export function useParticipant(id: string | undefined) {
   });
 }
 
-type CreateParticipantInput = Omit<Participant, "id" | "created_at" | "user_id">;
+type CreateParticipantInput = Omit<Participant, "id" | "created_at" | "user_id" | "auth_user_id" | "is_anonymous">;
 
 export function useCreateParticipant() {
   const qc = useQueryClient();
@@ -86,5 +88,19 @@ export function useDeleteParticipant() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["participants"] }),
+  });
+}
+
+export function useInviteParticipant() {
+  const qc = useQueryClient();
+  const { inviteParticipant } = useAuth();
+  return useMutation({
+    mutationFn: async (input: { email: string; participantId: string; name: string }) => {
+      return inviteParticipant(input.email, input.participantId, input.name);
+    },
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["participants"] });
+      qc.invalidateQueries({ queryKey: ["participants", vars.participantId] });
+    },
   });
 }
