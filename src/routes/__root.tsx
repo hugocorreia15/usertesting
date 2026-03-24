@@ -3,6 +3,7 @@ import {
   Outlet,
   redirect,
   useNavigate,
+  useLocation,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 import type { QueryClient } from "@tanstack/react-query";
@@ -18,7 +19,6 @@ import { AnimatedBackground } from "@/components/layout/animated-background";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import ClickSpark from "@/components/ClickSpark";
 import { supabase } from "@/lib/supabase";
-import { updateCurrentUserProfile } from "@/lib/update-profile";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -29,7 +29,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session && location.pathname !== "/login") {
+    if (!session && location.pathname !== "/login" && !location.pathname.startsWith("/join")) {
       throw redirect({
         to: "/login",
         search: { redirect: location.href },
@@ -44,24 +44,49 @@ function RootLayout() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isJoinPage = location.pathname.startsWith("/join");
+  const isLoginPage = location.pathname === "/login";
+  const isCompleteProfilePage = location.pathname === "/complete-profile";
+  const isBarePage = isJoinPage || isLoginPage || isCompleteProfilePage;
 
   useEffect(() => {
-    if (!session) {
+    if (!session && !isBarePage) {
       queryClient.clear();
       navigate({ to: "/login" });
     }
-  }, [session, queryClient, navigate]);
+  }, [session, queryClient, navigate, isBarePage]);
 
-  // TODO: Remove after first run — one-time profile migration
+  // Redirect to complete-profile if OAuth user is missing required fields
   useEffect(() => {
-    if (session?.user && !session.user.user_metadata?.first_name) {
-      updateCurrentUserProfile();
+    if (
+      session?.user &&
+      !isCompleteProfilePage &&
+      !isLoginPage &&
+      !session.user.user_metadata?.first_name
+    ) {
+      navigate({ to: "/complete-profile" });
     }
-  }, [session]);
+  }, [session, isCompleteProfilePage, isLoginPage, navigate]);
+
+
+  if (isBarePage) {
+    return (
+      <ThemeProvider>
+        <AnimatedBackground />
+        <main className="min-h-screen p-4 md:p-6">
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
+        </main>
+        <Toaster />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>
-      <SidebarProvider>
       <ClickSpark
         sparkColor="#14b8a6"
         sparkSize={10}
@@ -72,20 +97,21 @@ function RootLayout() {
         extraScale={1}
       >
         <AnimatedBackground />
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6">
-              <ErrorBoundary>
-                <Outlet />
-              </ErrorBoundary>
-            </main>
+        <SidebarProvider>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <Header />
+              <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                <ErrorBoundary>
+                  <Outlet />
+                </ErrorBoundary>
+              </main>
+            </div>
           </div>
-        </div>
+        </SidebarProvider>
         <Toaster />
       </ClickSpark>
-      </SidebarProvider>
     </ThemeProvider>
   );
 }

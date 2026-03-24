@@ -18,6 +18,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   updateProfile: (data: { first_name: string; last_name: string; phone: string; avatar_url?: string }) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  inviteParticipant: (email: string, participantId: string, name: string) => Promise<{ email: string; password: string }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -59,7 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithOAuth = async (provider: "google" | "github") => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
     if (error) throw error;
   };
 
@@ -79,6 +85,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const inviteParticipant = async (email: string, participantId: string, name: string) => {
+    const password = generatePassword();
+
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: name,
+        },
+      },
+    });
+    if (signUpError) throw signUpError;
+
+    const newUserId = signUpData.user?.id;
+    if (!newUserId) throw new Error("Failed to create participant account");
+
+    // Link auth account to participant record
+    const { error: updateError } = await supabase
+      .from("participants")
+      .update({ auth_user_id: newUserId })
+      .eq("id", participantId);
+    if (updateError) throw updateError;
+
+    return { email, password };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -91,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         updateProfile,
         deleteAccount,
+        inviteParticipant,
       }}
     >
       {children}
@@ -102,4 +136,11 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
+}
+
+function generatePassword(length = 12): string {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%";
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, (b) => chars[b % chars.length]).join("");
 }
