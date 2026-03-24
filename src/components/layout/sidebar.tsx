@@ -329,7 +329,7 @@ export function Sidebar() {
           <SheetContent side="left" className="w-56 p-0 backdrop-blur-md bg-sidebar-background/60">
             <NavContent
               collapsed={false}
-              onNavigate={() => setMobileOpen(false)}
+              onNavigate={() => setTimeout(() => setMobileOpen(false), 100)}
               id="mobile"
             />
           </SheetContent>

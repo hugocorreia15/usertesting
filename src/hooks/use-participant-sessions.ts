@@ -105,20 +105,27 @@ export interface ParticipantLiveSession {
   status: string;
   user_id: string;
   join_code: string | null;
+  template_id: string;
   task_results: ParticipantLiveTaskResult[];
   sus_answers: { id: string; question_number: number; score: number }[];
+  interview_answers: { id: string; question_id: string; answer_text: string | null }[];
+  templates: {
+    template_questions: { id: string; question_text: string; sort_order: number }[];
+  };
 }
 
 async function fetchParticipantSession(sessionId: string) {
   const { data, error } = await supabase
     .from("test_sessions")
     .select(
-      `id, status, user_id, join_code,
+      `id, status, user_id, join_code, template_id,
+       templates(template_questions(id, question_text, sort_order)),
        task_results(
          id, sort_order, seq_rating, completion_status,
          template_tasks(id, name, description, task_questions(*)),
          task_question_answers(*)
        ),
+       interview_answers(id, question_id, answer_text),
        sus_answers(id, question_number, score)`,
     )
     .eq("id", sessionId)
@@ -227,6 +234,24 @@ export function useCreateParticipantSusAnswers() {
             score: a.score,
           })),
         );
+      if (error) throw error;
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["participant-live"] }),
+  });
+}
+
+export function useUpdateParticipantInterviewAnswer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: { session_id: string; question_id: string; answer_text: string },
+    ) => {
+      const { error } = await supabase
+        .from("interview_answers")
+        .update({ answer_text: input.answer_text })
+        .eq("session_id", input.session_id)
+        .eq("question_id", input.question_id);
       if (error) throw error;
     },
     onSuccess: () =>

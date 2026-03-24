@@ -20,6 +20,7 @@ import { useInvitationByCode, useJoinSession } from "@/hooks/use-invitations";
 import { useSessionByJoinCode } from "@/hooks/use-participant-sessions";
 import { ParticipantLiveView } from "@/components/participant/participant-live-view";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/join/$code")({
   component: JoinPage,
@@ -151,6 +152,9 @@ function JoinPage() {
         params: { code: session.join_code! },
         replace: true,
       });
+    } catch (err: any) {
+      console.error("Join session failed:", err);
+      toast.error(err?.message || "Failed to join session. Please try again.");
     } finally {
       setSaving(false);
     }

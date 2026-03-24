@@ -13,6 +13,7 @@ import {
   useParticipantLiveSession,
   useSubmitParticipantAnswers,
   useCreateParticipantSusAnswers,
+  useUpdateParticipantInterviewAnswer,
   type ParticipantLiveTaskResult,
 } from "@/hooks/use-participant-sessions";
 import type { TaskQuestion } from "@/types";
@@ -25,10 +26,12 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   const { data: session, isLoading } = useParticipantLiveSession(sessionId);
   const submitAnswers = useSubmitParticipantAnswers();
   const createSusAnswers = useCreateParticipantSusAnswers();
+  const updateInterviewAnswer = useUpdateParticipantInterviewAnswer();
   const [answeredTaskIds, setAnsweredTaskIds] = useState<Set<string>>(
     new Set(),
   );
   const [susSubmitted, setSusSubmitted] = useState(false);
+  const [interviewDone, setInterviewDone] = useState(false);
 
   if (isLoading || !session) {
     return (
@@ -123,11 +126,18 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     setAnsweredTaskIds((prev) => new Set(prev).add(taskResult.id));
   };
 
-  // Only show SUS after observer has marked the session as completed
+  // Only show interview/SUS after observer has marked the session as completed
   const sessionCompleted = session.status === "completed";
-  const allQuestionsAnswered = !pendingTask && sessionCompleted;
+  const allTaskQuestionsAnswered = !pendingTask && sessionCompleted;
   const hasSusAnswers = (session.sus_answers?.length ?? 0) > 0 || susSubmitted;
-  const shouldShowSus = allQuestionsAnswered && !hasSusAnswers;
+
+  // Interview questions
+  const interviewQuestions = [...(session.templates?.template_questions ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
+  const interviewAnswers = session.interview_answers ?? [];
+  const hasInterviewQuestions = interviewQuestions.length > 0;
+  const allInterviewAnswered = interviewAnswers.every((a) => a.answer_text) || interviewDone;
 
   const handleSusSubmit = async (
     answers: { question_number: number; score: number }[],
@@ -155,8 +165,21 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       );
     }
 
-    // All tasks + questions done → show SUS
-    if (shouldShowSus) {
+    // All task questions done → show interview questions (if any and not yet answered)
+    if (allTaskQuestionsAnswered && hasInterviewQuestions && !allInterviewAnswered) {
+      return (
+        <InterviewQuestionsForm
+          sessionId={sessionId}
+          questions={interviewQuestions}
+          existingAnswers={interviewAnswers}
+          onSubmit={() => setInterviewDone(true)}
+          updateAnswer={updateInterviewAnswer}
+        />
+      );
+    }
+
+    // Interview done (or no interview questions) → show SUS
+    if (allTaskQuestionsAnswered && (allInterviewAnswered || !hasInterviewQuestions) && !hasSusAnswers) {
       return (
         <SusQuestionnaire
           onSubmit={handleSusSubmit}
@@ -432,6 +455,97 @@ function QuestionField({
           storagePath={storagePath}
         />
       )}
+    </div>
+  );
+}
+
+// ── Interview questions form ──
+
+function InterviewQuestionsForm({
+  sessionId,
+  questions,
+  existingAnswers,
+  onSubmit,
+  updateAnswer,
+}: {
+  sessionId: string;
+  questions: { id: string; question_text: string; sort_order: number }[];
+  existingAnswers: { id: string; question_id: string; answer_text: string | null }[];
+  onSubmit: () => void;
+  updateAnswer: ReturnType<typeof import("@/hooks/use-participant-sessions").useUpdateParticipantInterviewAnswer>;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const q of questions) {
+      const existing = existingAnswers.find((a) => a.question_id === q.id);
+      init[q.id] = existing?.answer_text ?? "";
+    }
+    return init;
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      for (const q of questions) {
+        if (answers[q.id]?.trim()) {
+          await updateAnswer.mutateAsync({
+            session_id: sessionId,
+            question_id: q.id,
+            answer_text: answers[q.id].trim(),
+          });
+        }
+      }
+      onSubmit();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div className="text-center">
+        <h2 className="text-xl font-bold">Interview Questions</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Please answer the following questions about your experience.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {questions.map((q, i) => (
+          <Card key={q.id} className="bg-transparent backdrop-blur-md">
+            <CardContent className="space-y-2 pt-4 pb-3">
+              <Label className="text-sm font-medium">
+                {i + 1}. {q.question_text}
+              </Label>
+              <Textarea
+                placeholder="Your answer..."
+                value={answers[q.id] ?? ""}
+                onChange={(e) =>
+                  setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                }
+                rows={3}
+              />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Button
+        className="w-full"
+        size="lg"
+        disabled={submitting}
+        onClick={handleSubmit}
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Submitting...
+          </>
+        ) : (
+          "Continue"
+        )}
+      </Button>
     </div>
   );
 }
