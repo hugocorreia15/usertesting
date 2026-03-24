@@ -1,20 +1,16 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SUS_QUESTIONS, SUS_SCALE_LABELS } from "@/lib/sus";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface SusQuestionnaireProps {
-  open: boolean;
   onSubmit: (answers: { question_number: number; score: number }[]) => void;
+  submitting?: boolean;
 }
 
-export function SusQuestionnaire({ open, onSubmit }: SusQuestionnaireProps) {
+export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps) {
   const [ratings, setRatings] = useState<Record<number, number>>({});
 
   const allAnswered = SUS_QUESTIONS.every((_, i) => ratings[i + 1] != null);
@@ -28,24 +24,21 @@ export function SusQuestionnaire({ open, onSubmit }: SusQuestionnaireProps) {
   };
 
   return (
-    <Dialog open={open}>
-      <DialogContent
-        className="sm:max-w-2xl max-h-[85vh] overflow-y-auto"
-        onPointerDownOutside={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>System Usability Scale (SUS)</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div className="text-center">
+        <h2 className="text-xl font-bold">System Usability Scale (SUS)</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Please rate your agreement with each statement on a scale of 1
           (Strongly Disagree) to 5 (Strongly Agree).
         </p>
+      </div>
 
-        <div className="space-y-4 py-2">
-          {SUS_QUESTIONS.map((question, i) => {
-            const qNum = i + 1;
-            return (
-              <div key={qNum} className="rounded-lg border p-3 space-y-2">
+      <div className="space-y-3">
+        {SUS_QUESTIONS.map((question, i) => {
+          const qNum = i + 1;
+          return (
+            <Card key={qNum} className="bg-transparent backdrop-blur-md">
+              <CardContent className="space-y-3 pt-4 pb-3">
                 <p className="text-sm font-medium">
                   {qNum}. {question}
                 </p>
@@ -72,21 +65,29 @@ export function SusQuestionnaire({ open, onSubmit }: SusQuestionnaireProps) {
                   <span>{SUS_SCALE_LABELS[0]}</span>
                   <span>{SUS_SCALE_LABELS[4]}</span>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-        <Button
-          className="w-full"
-          disabled={!allAnswered}
-          onClick={handleSubmit}
-        >
-          {allAnswered
-            ? "Submit SUS Questionnaire"
-            : `Answer all questions (${Object.keys(ratings).length}/10)`}
-        </Button>
-      </DialogContent>
-    </Dialog>
+      <Button
+        className="w-full"
+        size="lg"
+        disabled={!allAnswered || submitting}
+        onClick={handleSubmit}
+      >
+        {submitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Submitting...
+          </>
+        ) : allAnswered ? (
+          "Submit SUS Questionnaire"
+        ) : (
+          `Answer all questions (${Object.keys(ratings).length}/10)`
+        )}
+      </Button>
+    </div>
   );
 }

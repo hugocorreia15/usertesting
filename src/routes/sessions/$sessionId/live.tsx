@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useCallback } from "react";
-import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useUpdateSession, useCreateSusAnswers } from "@/hooks/use-sessions";
+import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer } from "@/hooks/use-sessions";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
 import { TaskNavigator } from "@/components/live/task-navigator";
@@ -9,7 +10,10 @@ import { ActionCounter } from "@/components/live/action-counter";
 import { ErrorLogger } from "@/components/live/error-logger";
 import { HesitationLogger } from "@/components/live/hesitation-logger";
 import { SeqRating } from "@/components/live/seq-rating";
-import { SusQuestionnaire } from "@/components/live/sus-questionnaire";
+import { TaskQuestionsDialog, type TaskQuestionAnswerData } from "@/components/live/task-questions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, ClipboardCheck, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import type { CompletionStatus } from "@/lib/constants";
 
@@ -20,6 +24,7 @@ export const Route = createFileRoute("/sessions/$sessionId/live")({
 function LiveSessionPage() {
   const { sessionId } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { data: session, isLoading } = useSession(sessionId);
   const { data: template } = useTemplate(session?.template_id);
 
@@ -28,23 +33,88 @@ function LiveSessionPage() {
   const createErrorLog = useCreateErrorLog();
   const createHesitationLog = useCreateHesitationLog();
   const updateSession = useUpdateSession();
-  const createSusAnswers = useCreateSusAnswers();
-
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [actionCount, setActionCount] = useState(0);
   const [errorCounts, setErrorCounts] = useState<Record<string, number>>({});
   const [hesitationCount, setHesitationCount] = useState(0);
   const [showSeq, setShowSeq] = useState(false);
-  const [showSus, setShowSus] = useState(false);
+  const [showTaskQuestions, setShowTaskQuestions] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<CompletionStatus | null>(null);
+  const [waitingForSus, setWaitingForSus] = useState(false);
+  const upsertTaskQuestionAnswer = useUpsertTaskQuestionAnswer();
+
+  // Auto-start session when observer opens live page
+  const hasAutoStarted = useRef(false);
+  useEffect(() => {
+    if (session && session.status === "planned" && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
+      updateSession.mutate({
+        id: session.id,
+        status: "in_progress",
+        started_at: new Date().toISOString(),
+      });
+    }
+  }, [session, updateSession]);
+
+  // Poll for SUS completion when waiting
+  const susCompleted = (session?.sus_answers?.length ?? 0) >= 10;
+
+  useEffect(() => {
+    if (!waitingForSus || susCompleted) return;
+    // Poll session every 3 seconds to detect SUS completion
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["sessions", sessionId] });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [waitingForSus, susCompleted, qc, sessionId]);
+
+  // When SUS is completed while waiting, navigate to session detail
+  useEffect(() => {
+    if (waitingForSus && susCompleted) {
+      toast.success("SUS questionnaire completed! Session finished.");
+      navigate({ to: "/sessions/$sessionId", params: { sessionId } });
+    }
+  }, [waitingForSus, susCompleted, navigate, sessionId]);
 
   if (isLoading || !session || !template) {
     return <p className="p-6 text-muted-foreground">Loading session...</p>;
   }
 
-  const tasks = template.template_tasks;
+  // Show waiting screen after all tasks are done
+  if (waitingForSus && !susCompleted) {
+    return (
+      <div className="mx-auto max-w-md p-4 pt-20">
+        <Card className="bg-transparent backdrop-blur-md">
+          <CardContent className="flex flex-col items-center gap-5 pt-8 pb-8">
+            <ClipboardCheck className="h-14 w-14 text-primary" />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl font-bold">All Tasks Completed</h2>
+              <p className="text-sm text-muted-foreground">
+                Waiting for the participant to complete the SUS questionnaire...
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Listening for responses</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast.success("Session completed!");
+                navigate({ to: "/sessions/$sessionId", params: { sessionId } });
+              }}
+            >
+              Skip waiting
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const taskResults = session.task_results?.sort(
-    (a, b) => a.template_tasks.sort_order - b.template_tasks.sort_order,
+    (a, b) => a.sort_order - b.sort_order,
   ) ?? [];
 
   const currentTaskResult = taskResults[currentTaskIndex];
@@ -82,14 +152,43 @@ function LiveSessionPage() {
         seq_rating: rating,
       });
     }
+    // If session has a join_code, participant answers questions on their side
+    if (session.join_code) {
+      advanceToNext();
+      return;
+    }
+    // Otherwise (direct mode), show task questions to the observer
+    const taskQuestions = currentTaskResult?.template_tasks?.task_questions ?? [];
+    if (taskQuestions.length > 0) {
+      setShowTaskQuestions(true);
+    } else {
+      advanceToNext();
+    }
+  };
+
+  const handleTaskQuestionsSubmit = async (answers: TaskQuestionAnswerData[]) => {
+    setShowTaskQuestions(false);
+    if (currentTaskResult) {
+      for (const answer of answers) {
+        await upsertTaskQuestionAnswer.mutateAsync({
+          task_result_id: currentTaskResult.id,
+          ...answer,
+        });
+      }
+    }
     advanceToNext();
   };
 
   const advanceToNext = () => {
     const nextIndex = currentTaskIndex + 1;
-    if (nextIndex >= tasks.length) {
-      // All tasks done — show SUS questionnaire before completing
-      setShowSus(true);
+    if (nextIndex >= taskResults.length) {
+      // All tasks done — mark completed, wait for participant SUS
+      updateSession.mutate({
+        id: sessionId,
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      });
+      setWaitingForSus(true);
       return;
     }
     setCurrentTaskIndex(nextIndex);
@@ -98,23 +197,6 @@ function LiveSessionPage() {
     setHesitationCount(0);
     setPendingStatus(null);
     timer.reset();
-  };
-
-  const handleSusSubmit = async (
-    answers: { question_number: number; score: number }[],
-  ) => {
-    setShowSus(false);
-    await createSusAnswers.mutateAsync({
-      session_id: sessionId,
-      answers,
-    });
-    updateSession.mutate({
-      id: sessionId,
-      status: "completed",
-      completed_at: new Date().toISOString(),
-    });
-    toast.success("Session completed!");
-    navigate({ to: "/sessions/$sessionId", params: { sessionId } });
   };
 
   const handleLogError = (errorTypeId: string) => {
@@ -143,12 +225,12 @@ function LiveSessionPage() {
     }
   };
 
-  const currentTask = tasks[currentTaskIndex];
+  const currentTask = currentTaskResult?.template_tasks;
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
       <TaskNavigator
-        tasks={tasks}
+        tasks={taskResults.map((tr) => tr.template_tasks)}
         currentIndex={currentTaskIndex}
         onComplete={handleComplete}
         onSkip={handleSkip}
@@ -186,7 +268,12 @@ function LiveSessionPage() {
       </div>
 
       <SeqRating open={showSeq} onSelect={handleSeqSelect} />
-      <SusQuestionnaire open={showSus} onSubmit={handleSusSubmit} />
+      <TaskQuestionsDialog
+        open={showTaskQuestions}
+        questions={currentTaskResult?.template_tasks?.task_questions ?? []}
+        storagePath={`${session.user_id}/${sessionId}/${currentTaskResult?.id}`}
+        onSubmit={handleTaskQuestionsSubmit}
+      />
     </div>
   );
 }
