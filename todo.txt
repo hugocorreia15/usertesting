@@ -1,0 +1,3 @@
+mudar o template para nao ser so tasks complexas e simples que isso nao faz sentido, basta tasks
+
+anonimazação dos dados por sessoes, etc...

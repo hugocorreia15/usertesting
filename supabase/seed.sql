@@ -9,12 +9,16 @@
 INSERT INTO templates (id, name, description, user_id, is_public) VALUES
   ('a1000000-0000-0000-0000-000000000001', 'E-commerce Checkout Flow', 'Usability test for the checkout process on our online store, covering product search through order confirmation.', 'd213cf55-c734-4821-9f57-cec36a62a3b1', false);
 
-INSERT INTO template_tasks (id, template_id, sort_order, name, description, complexity, optimal_time_seconds, optimal_actions) VALUES
-  ('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 0, 'Find a product', 'Use the search bar to find "wireless headphones" and open the product page.', 'simple', 20, 3),
-  ('b1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 1, 'Add to cart', 'Select size/color options and add the product to your cart.', 'simple', 15, 4),
-  ('b1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000001', 2, 'Apply a discount code', 'Navigate to the cart and apply the code SAVE10.', 'simple', 25, 5),
-  ('b1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000001', 3, 'Complete checkout', 'Fill in shipping details, select payment method, and place the order.', 'complex', 90, 12),
-  ('b1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000001', 4, 'Track the order', 'After placing the order, find the order tracking page and verify the status.', 'complex', 40, 6);
+INSERT INTO task_groups (id, template_id, name, sort_order) VALUES
+  ('a1100000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'Simple', 0),
+  ('a1100000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'Complex', 1);
+
+INSERT INTO template_tasks (id, template_id, group_id, sort_order, name, description, optimal_time_seconds, optimal_actions) VALUES
+  ('b1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'a1100000-0000-0000-0000-000000000001', 0, 'Find a product', 'Use the search bar to find "wireless headphones" and open the product page.', 20, 3),
+  ('b1000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000001', 'a1100000-0000-0000-0000-000000000001', 1, 'Add to cart', 'Select size/color options and add the product to your cart.', 15, 4),
+  ('b1000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000001', 'a1100000-0000-0000-0000-000000000001', 2, 'Apply a discount code', 'Navigate to the cart and apply the code SAVE10.', 25, 5),
+  ('b1000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000001', 'a1100000-0000-0000-0000-000000000002', 3, 'Complete checkout', 'Fill in shipping details, select payment method, and place the order.', 90, 12),
+  ('b1000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000001', 'a1100000-0000-0000-0000-000000000002', 4, 'Track the order', 'After placing the order, find the order tracking page and verify the status.', 40, 6);
 
 INSERT INTO template_error_types (id, template_id, code, label) VALUES
   ('c1000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000001', 'E1', 'Navigation error'),
@@ -33,13 +37,17 @@ INSERT INTO template_questions (id, template_id, sort_order, question_text) VALU
 INSERT INTO templates (id, name, description, user_id, is_public) VALUES
   ('a1000000-0000-0000-0000-000000000002', 'Mobile Banking App', 'Usability evaluation of core banking tasks including transfers, bill payments, and account management.', 'd213cf55-c734-4821-9f57-cec36a62a3b1', true);
 
-INSERT INTO template_tasks (id, template_id, sort_order, name, description, complexity, optimal_time_seconds, optimal_actions) VALUES
-  ('b2000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002', 0, 'Check account balance', 'Log in and find your current checking account balance.', 'simple', 10, 2),
-  ('b2000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 1, 'Transfer money', 'Transfer €50 from checking to savings account.', 'simple', 30, 6),
-  ('b2000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 2, 'Pay a bill', 'Navigate to bill pay and schedule a payment of €120 to "Electric Company" for next Friday.', 'complex', 60, 8),
-  ('b2000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 3, 'View transaction history', 'Filter transaction history for the last 30 days and find the largest expense.', 'complex', 35, 5),
-  ('b2000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000002', 4, 'Update personal info', 'Change your phone number in account settings.', 'simple', 25, 5),
-  ('b2000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 5, 'Set up a recurring payment', 'Create a monthly recurring payment of €30 to "Gym Membership".', 'complex', 70, 10);
+INSERT INTO task_groups (id, template_id, name, sort_order) VALUES
+  ('a2200000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002', 'Simple', 0),
+  ('a2200000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'Complex', 1);
+
+INSERT INTO template_tasks (id, template_id, group_id, sort_order, name, description, optimal_time_seconds, optimal_actions) VALUES
+  ('b2000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000001', 0, 'Check account balance', 'Log in and find your current checking account balance.', 10, 2),
+  ('b2000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000001', 1, 'Transfer money', 'Transfer €50 from checking to savings account.', 30, 6),
+  ('b2000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000002', 2, 'Pay a bill', 'Navigate to bill pay and schedule a payment of €120 to "Electric Company" for next Friday.', 60, 8),
+  ('b2000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000002', 3, 'View transaction history', 'Filter transaction history for the last 30 days and find the largest expense.', 35, 5),
+  ('b2000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000001', 4, 'Update personal info', 'Change your phone number in account settings.', 25, 5),
+  ('b2000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000002', 'a2200000-0000-0000-0000-000000000002', 5, 'Set up a recurring payment', 'Create a monthly recurring payment of €30 to "Gym Membership".', 70, 10);
 
 INSERT INTO template_error_types (id, template_id, code, label) VALUES
   ('c2000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000002', 'E1', 'Navigation error'),
@@ -99,16 +107,16 @@ INSERT INTO interview_answers (session_id, question_id, answer_text) VALUES
 
 -- SUS answers for Session 1 (Alice — mostly positive, SUS ≈ 75)
 INSERT INTO sus_answers (session_id, question_number, score) VALUES
-  ('f1000000-0000-0000-0000-000000000001', 1, 4),   -- Would use frequently
-  ('f1000000-0000-0000-0000-000000000001', 2, 2),   -- Unnecessarily complex (disagree)
-  ('f1000000-0000-0000-0000-000000000001', 3, 4),   -- Easy to use
-  ('f1000000-0000-0000-0000-000000000001', 4, 2),   -- Need tech support (disagree)
-  ('f1000000-0000-0000-0000-000000000001', 5, 4),   -- Well integrated
-  ('f1000000-0000-0000-0000-000000000001', 6, 2),   -- Too much inconsistency (disagree)
-  ('f1000000-0000-0000-0000-000000000001', 7, 4),   -- Most people would learn quickly
-  ('f1000000-0000-0000-0000-000000000001', 8, 2),   -- Cumbersome (disagree)
-  ('f1000000-0000-0000-0000-000000000001', 9, 3),   -- Felt confident
-  ('f1000000-0000-0000-0000-000000000001', 10, 2);  -- Needed to learn a lot (disagree)
+  ('f1000000-0000-0000-0000-000000000001', 1, 4),
+  ('f1000000-0000-0000-0000-000000000001', 2, 2),
+  ('f1000000-0000-0000-0000-000000000001', 3, 4),
+  ('f1000000-0000-0000-0000-000000000001', 4, 2),
+  ('f1000000-0000-0000-0000-000000000001', 5, 4),
+  ('f1000000-0000-0000-0000-000000000001', 6, 2),
+  ('f1000000-0000-0000-0000-000000000001', 7, 4),
+  ('f1000000-0000-0000-0000-000000000001', 8, 2),
+  ('f1000000-0000-0000-0000-000000000001', 9, 3),
+  ('f1000000-0000-0000-0000-000000000001', 10, 2);
 
 -- ==================
 -- SESSION 2: Completed — Mobile Banking + Bob
@@ -151,16 +159,16 @@ INSERT INTO interview_answers (session_id, question_id, answer_text) VALUES
 
 -- SUS answers for Session 2 (Bob — mixed experience, SUS ≈ 52.5)
 INSERT INTO sus_answers (session_id, question_number, score) VALUES
-  ('f1000000-0000-0000-0000-000000000002', 1, 3),   -- Would use frequently (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 2, 3),   -- Unnecessarily complex (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 3, 3),   -- Easy to use (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 4, 3),   -- Need tech support (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 5, 4),   -- Well integrated
-  ('f1000000-0000-0000-0000-000000000002', 6, 4),   -- Too much inconsistency (agree — negative)
-  ('f1000000-0000-0000-0000-000000000002', 7, 3),   -- Most people would learn quickly (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 8, 3),   -- Cumbersome (neutral)
-  ('f1000000-0000-0000-0000-000000000002', 9, 2),   -- Felt confident (disagree)
-  ('f1000000-0000-0000-0000-000000000002', 10, 4);  -- Needed to learn a lot (agree — negative)
+  ('f1000000-0000-0000-0000-000000000002', 1, 3),
+  ('f1000000-0000-0000-0000-000000000002', 2, 3),
+  ('f1000000-0000-0000-0000-000000000002', 3, 3),
+  ('f1000000-0000-0000-0000-000000000002', 4, 3),
+  ('f1000000-0000-0000-0000-000000000002', 5, 4),
+  ('f1000000-0000-0000-0000-000000000002', 6, 4),
+  ('f1000000-0000-0000-0000-000000000002', 7, 3),
+  ('f1000000-0000-0000-0000-000000000002', 8, 3),
+  ('f1000000-0000-0000-0000-000000000002', 9, 2),
+  ('f1000000-0000-0000-0000-000000000002', 10, 4);
 
 -- ==================
 -- SESSION 3: Planned — E-commerce + Emma
@@ -186,21 +194,25 @@ INSERT INTO interview_answers (session_id, question_id) VALUES
 INSERT INTO templates (id, name, description, user_id, is_public) VALUES
   ('a1000000-0000-0000-0000-000000000003', 'Bosch Seamless Panel Usability Test', 'Observation sheet for usability testing of the Bosch Seamless Touch Panel water heater controller. Covers simple identification/control tasks (S1-S7) and complex multi-step tasks (C1-C7).', 'd213cf55-c734-4821-9f57-cec36a62a3b1', true);
 
-INSERT INTO template_tasks (id, template_id, sort_order, name, description, complexity, optimal_time_seconds, optimal_actions) VALUES
-  ('b3000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000003', 0, 'S1: Wake Up the Panel', 'Wake up the panel from standby/sleep mode.', 'simple', NULL, 1),
-  ('b3000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000003', 1, 'S2: Identify Current Time', 'Identify the current time displayed on the panel.', 'simple', NULL, 0),
-  ('b3000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', 2, 'S3: Identify All Buttons', 'Identify all buttons/touch areas on the panel. Exploratory task — no fixed optimal action count.', 'simple', NULL, NULL),
-  ('b3000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000003', 3, 'S4: Button Responsibilities', 'Describe what each button/touch area does.', 'simple', NULL, 5),
-  ('b3000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000003', 4, 'S5: Increase Temp +1°C', 'Increase the temperature by exactly 1°C from the current setting.', 'simple', NULL, 1),
-  ('b3000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000003', 5, 'S6: Return to Previous', 'Return to the previous screen or state.', 'simple', NULL, 1),
-  ('b3000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000003', 6, 'S7: Turn Off Panel', 'Turn off the panel completely.', 'simple', NULL, 1),
-  ('b3000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000003', 7, 'C1: Set Temp to 40°C', 'Set the water temperature to exactly 40°C. Optimal actions = 3 + delta-T (depends on current temp).', 'complex', NULL, NULL),
-  ('b3000000-0000-0000-0000-000000000009', 'a1000000-0000-0000-0000-000000000003', 8, 'C2: Change Clock to 08:30', 'Navigate to clock settings and change the time to 08:30. Approximately 8 optimal actions.', 'complex', NULL, 8),
-  ('b3000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000003', 9, 'C3: Change Language', 'Navigate to settings and change the display language. Approximately 7 optimal actions.', 'complex', NULL, 7),
-  ('b3000000-0000-0000-0000-000000000011', 'a1000000-0000-0000-0000-000000000003', 10, 'C4: Explore Menu Structure', 'Explore and describe the full menu structure. Exploratory task — no fixed optimal action count.', 'complex', NULL, NULL),
-  ('b3000000-0000-0000-0000-000000000012', 'a1000000-0000-0000-0000-000000000003', 11, 'C5: Set 35°C + Return', 'Set temperature to 35°C and return to the home screen. Optimal actions = 5 + delta-T (depends on current temp).', 'complex', NULL, NULL),
-  ('b3000000-0000-0000-0000-000000000013', 'a1000000-0000-0000-0000-000000000003', 12, 'C6: Check Device Info', 'Navigate to device information/about screen.', 'complex', NULL, 5),
-  ('b3000000-0000-0000-0000-000000000014', 'a1000000-0000-0000-0000-000000000003', 13, 'C7: Error Recovery', 'Recover from an error state or unexpected screen.', 'complex', NULL, 3);
+INSERT INTO task_groups (id, template_id, name, sort_order) VALUES
+  ('a3300000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000003', 'Simple', 0),
+  ('a3300000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000003', 'Complex', 1);
+
+INSERT INTO template_tasks (id, template_id, group_id, sort_order, name, description, optimal_time_seconds, optimal_actions) VALUES
+  ('b3000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 0, 'S1: Wake Up the Panel', 'Wake up the panel from standby/sleep mode.', NULL, 1),
+  ('b3000000-0000-0000-0000-000000000002', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 1, 'S2: Identify Current Time', 'Identify the current time displayed on the panel.', NULL, 0),
+  ('b3000000-0000-0000-0000-000000000003', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 2, 'S3: Identify All Buttons', 'Identify all buttons/touch areas on the panel. Exploratory task — no fixed optimal action count.', NULL, NULL),
+  ('b3000000-0000-0000-0000-000000000004', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 3, 'S4: Button Responsibilities', 'Describe what each button/touch area does.', NULL, 5),
+  ('b3000000-0000-0000-0000-000000000005', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 4, 'S5: Increase Temp +1°C', 'Increase the temperature by exactly 1°C from the current setting.', NULL, 1),
+  ('b3000000-0000-0000-0000-000000000006', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 5, 'S6: Return to Previous', 'Return to the previous screen or state.', NULL, 1),
+  ('b3000000-0000-0000-0000-000000000007', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000001', 6, 'S7: Turn Off Panel', 'Turn off the panel completely.', NULL, 1),
+  ('b3000000-0000-0000-0000-000000000008', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 7, 'C1: Set Temp to 40°C', 'Set the water temperature to exactly 40°C. Optimal actions = 3 + delta-T (depends on current temp).', NULL, NULL),
+  ('b3000000-0000-0000-0000-000000000009', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 8, 'C2: Change Clock to 08:30', 'Navigate to clock settings and change the time to 08:30. Approximately 8 optimal actions.', NULL, 8),
+  ('b3000000-0000-0000-0000-000000000010', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 9, 'C3: Change Language', 'Navigate to settings and change the display language. Approximately 7 optimal actions.', NULL, 7),
+  ('b3000000-0000-0000-0000-000000000011', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 10, 'C4: Explore Menu Structure', 'Explore and describe the full menu structure. Exploratory task — no fixed optimal action count.', NULL, NULL),
+  ('b3000000-0000-0000-0000-000000000012', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 11, 'C5: Set 35°C + Return', 'Set temperature to 35°C and return to the home screen. Optimal actions = 5 + delta-T (depends on current temp).', NULL, NULL),
+  ('b3000000-0000-0000-0000-000000000013', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 12, 'C6: Check Device Info', 'Navigate to device information/about screen.', NULL, 5),
+  ('b3000000-0000-0000-0000-000000000014', 'a1000000-0000-0000-0000-000000000003', 'a3300000-0000-0000-0000-000000000002', 13, 'C7: Error Recovery', 'Recover from an error state or unexpected screen.', NULL, 3);
 
 INSERT INTO template_error_types (id, template_id, code, label) VALUES
   ('c3000000-0000-0000-0000-000000000001', 'a1000000-0000-0000-0000-000000000003', 'WB', 'Wrong button'),

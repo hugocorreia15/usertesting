@@ -11,18 +11,23 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CompleteProfileRouteImport } from './routes/complete-profile'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
 import { Route as ParticipantsIndexRouteImport } from './routes/participants/index'
+import { Route as MyTemplatesIndexRouteImport } from './routes/my-templates/index'
+import { Route as MySessionsIndexRouteImport } from './routes/my-sessions/index'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as TemplatesNewRouteImport } from './routes/templates/new'
 import { Route as SessionsNewRouteImport } from './routes/sessions/new'
 import { Route as ParticipantsNewRouteImport } from './routes/participants/new'
 import { Route as ParticipantsParticipantIdRouteImport } from './routes/participants/$participantId'
+import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as TemplatesTemplateIdIndexRouteImport } from './routes/templates/$templateId/index'
 import { Route as SessionsSessionIdIndexRouteImport } from './routes/sessions/$sessionId/index'
+import { Route as MySessionsSessionIdIndexRouteImport } from './routes/my-sessions/$sessionId/index'
 import { Route as SessionsSessionIdLiveRouteImport } from './routes/sessions/$sessionId/live'
 import { Route as SessionsSessionIdEditRouteImport } from './routes/sessions/$sessionId/edit'
 
@@ -34,6 +39,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompleteProfileRoute = CompleteProfileRouteImport.update({
+  id: '/complete-profile',
+  path: '/complete-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -59,6 +69,16 @@ const SessionsIndexRoute = SessionsIndexRouteImport.update({
 const ParticipantsIndexRoute = ParticipantsIndexRouteImport.update({
   id: '/participants/',
   path: '/participants/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyTemplatesIndexRoute = MyTemplatesIndexRouteImport.update({
+  id: '/my-templates/',
+  path: '/my-templates/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MySessionsIndexRoute = MySessionsIndexRouteImport.update({
+  id: '/my-sessions/',
+  path: '/my-sessions/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsIndexRoute = AnalyticsIndexRouteImport.update({
@@ -87,6 +107,11 @@ const ParticipantsParticipantIdRoute =
     path: '/participants/$participantId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const JoinCodeRoute = JoinCodeRouteImport.update({
+  id: '/join/$code',
+  path: '/join/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesTemplateIdIndexRoute =
   TemplatesTemplateIdIndexRouteImport.update({
     id: '/templates/$templateId/',
@@ -98,6 +123,12 @@ const SessionsSessionIdIndexRoute = SessionsSessionIdIndexRouteImport.update({
   path: '/sessions/$sessionId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MySessionsSessionIdIndexRoute =
+  MySessionsSessionIdIndexRouteImport.update({
+    id: '/my-sessions/$sessionId/',
+    path: '/my-sessions/$sessionId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SessionsSessionIdLiveRoute = SessionsSessionIdLiveRouteImport.update({
   id: '/sessions/$sessionId/live',
   path: '/sessions/$sessionId/live',
@@ -112,36 +143,46 @@ const SessionsSessionIdEditRoute = SessionsSessionIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics/': typeof AnalyticsIndexRoute
+  '/my-sessions/': typeof MySessionsIndexRoute
+  '/my-templates/': typeof MyTemplatesIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/my-sessions/$sessionId/': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId/': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId/': typeof TemplatesTemplateIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics': typeof AnalyticsIndexRoute
+  '/my-sessions': typeof MySessionsIndexRoute
+  '/my-templates': typeof MyTemplatesIndexRoute
   '/participants': typeof ParticipantsIndexRoute
   '/sessions': typeof SessionsIndexRoute
   '/templates': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/my-sessions/$sessionId': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId': typeof TemplatesTemplateIdIndexRoute
 }
@@ -149,18 +190,23 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics/': typeof AnalyticsIndexRoute
+  '/my-sessions/': typeof MySessionsIndexRoute
+  '/my-templates/': typeof MyTemplatesIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/my-sessions/$sessionId/': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId/': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId/': typeof TemplatesTemplateIdIndexRoute
 }
@@ -169,54 +215,69 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$'
+    | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
     | '/templates/new'
     | '/analytics/'
+    | '/my-sessions/'
+    | '/my-templates/'
     | '/participants/'
     | '/sessions/'
     | '/templates/'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/my-sessions/$sessionId/'
     | '/sessions/$sessionId/'
     | '/templates/$templateId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$'
+    | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
     | '/templates/new'
     | '/analytics'
+    | '/my-sessions'
+    | '/my-templates'
     | '/participants'
     | '/sessions'
     | '/templates'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/my-sessions/$sessionId'
     | '/sessions/$sessionId'
     | '/templates/$templateId'
   id:
     | '__root__'
     | '/'
     | '/$'
+    | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
     | '/templates/new'
     | '/analytics/'
+    | '/my-sessions/'
+    | '/my-templates/'
     | '/participants/'
     | '/sessions/'
     | '/templates/'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/my-sessions/$sessionId/'
     | '/sessions/$sessionId/'
     | '/templates/$templateId/'
   fileRoutesById: FileRoutesById
@@ -224,18 +285,23 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  CompleteProfileRoute: typeof CompleteProfileRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  JoinCodeRoute: typeof JoinCodeRoute
   ParticipantsParticipantIdRoute: typeof ParticipantsParticipantIdRoute
   ParticipantsNewRoute: typeof ParticipantsNewRoute
   SessionsNewRoute: typeof SessionsNewRoute
   TemplatesNewRoute: typeof TemplatesNewRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
+  MySessionsIndexRoute: typeof MySessionsIndexRoute
+  MyTemplatesIndexRoute: typeof MyTemplatesIndexRoute
   ParticipantsIndexRoute: typeof ParticipantsIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   SessionsSessionIdEditRoute: typeof SessionsSessionIdEditRoute
   SessionsSessionIdLiveRoute: typeof SessionsSessionIdLiveRoute
+  MySessionsSessionIdIndexRoute: typeof MySessionsSessionIdIndexRoute
   SessionsSessionIdIndexRoute: typeof SessionsSessionIdIndexRoute
   TemplatesTemplateIdIndexRoute: typeof TemplatesTemplateIdIndexRoute
 }
@@ -254,6 +320,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/complete-profile': {
+      id: '/complete-profile'
+      path: '/complete-profile'
+      fullPath: '/complete-profile'
+      preLoaderRoute: typeof CompleteProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -291,6 +364,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticipantsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-templates/': {
+      id: '/my-templates/'
+      path: '/my-templates'
+      fullPath: '/my-templates/'
+      preLoaderRoute: typeof MyTemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-sessions/': {
+      id: '/my-sessions/'
+      path: '/my-sessions'
+      fullPath: '/my-sessions/'
+      preLoaderRoute: typeof MySessionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics/': {
       id: '/analytics/'
       path: '/analytics'
@@ -326,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticipantsParticipantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$code': {
+      id: '/join/$code'
+      path: '/join/$code'
+      fullPath: '/join/$code'
+      preLoaderRoute: typeof JoinCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/$templateId/': {
       id: '/templates/$templateId/'
       path: '/templates/$templateId'
@@ -338,6 +432,13 @@ declare module '@tanstack/react-router' {
       path: '/sessions/$sessionId'
       fullPath: '/sessions/$sessionId/'
       preLoaderRoute: typeof SessionsSessionIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-sessions/$sessionId/': {
+      id: '/my-sessions/$sessionId/'
+      path: '/my-sessions/$sessionId'
+      fullPath: '/my-sessions/$sessionId/'
+      preLoaderRoute: typeof MySessionsSessionIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sessions/$sessionId/live': {
@@ -360,18 +461,23 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  CompleteProfileRoute: CompleteProfileRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  JoinCodeRoute: JoinCodeRoute,
   ParticipantsParticipantIdRoute: ParticipantsParticipantIdRoute,
   ParticipantsNewRoute: ParticipantsNewRoute,
   SessionsNewRoute: SessionsNewRoute,
   TemplatesNewRoute: TemplatesNewRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
+  MySessionsIndexRoute: MySessionsIndexRoute,
+  MyTemplatesIndexRoute: MyTemplatesIndexRoute,
   ParticipantsIndexRoute: ParticipantsIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   SessionsSessionIdEditRoute: SessionsSessionIdEditRoute,
   SessionsSessionIdLiveRoute: SessionsSessionIdLiveRoute,
+  MySessionsSessionIdIndexRoute: MySessionsSessionIdIndexRoute,
   SessionsSessionIdIndexRoute: SessionsSessionIdIndexRoute,
   TemplatesTemplateIdIndexRoute: TemplatesTemplateIdIndexRoute,
 }
