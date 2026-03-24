@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useSessions, useDeleteSession } from "@/hooks/use-sessions";
+import { useSessions, useDeleteSession, useSessionsRealtime } from "@/hooks/use-sessions";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useViewMode } from "@/hooks/use-view-mode";
@@ -50,6 +50,7 @@ const statusStyles: Record<string, string> = {
 
 function SessionsPage() {
   const { data: sessions, isLoading } = useSessions();
+  useSessionsRealtime();
   const deleteSession = useDeleteSession();
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useTemplate, useDeleteTemplate } from "@/hooks/use-templates";
-import { useSessionsByTemplateWithRelations } from "@/hooks/use-sessions";
+import { useSessionsByTemplateWithRelations, useSessionsRealtime } from "@/hooks/use-sessions";
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
 import { exportReportPdf } from "@/lib/export-report-pdf";
 import { TemplateOverviewTab } from "@/components/templates/template-overview-tab";
@@ -17,15 +17,20 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/templates/$templateId/")({
   component: TemplateDetailPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: (search.tab as string) || undefined,
+  }),
 });
 
 function TemplateDetailPage() {
   const { templateId } = Route.useParams();
+  const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const { data: template, isLoading: templateLoading } =
     useTemplate(templateId);
   const { data: sessions, isLoading: sessionsLoading } =
     useSessionsByTemplateWithRelations(templateId);
+  useSessionsRealtime();
   const deleteTemplate = useDeleteTemplate();
 
   const [exportingReport, setExportingReport] = useState(false);
@@ -80,7 +85,7 @@ function TemplateDetailPage() {
         </>
       }
     >
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue={tab || "overview"}>
         <div className="flex items-center justify-between gap-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

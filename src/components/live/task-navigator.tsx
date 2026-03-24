@@ -11,6 +11,7 @@ import type { TemplateTask } from "@/types";
 
 interface TaskNavigatorProps {
   tasks: TemplateTask[];
+  groupName?: string;
   currentIndex: number;
   onComplete: (status: "success" | "partial" | "failure") => void;
   onSkip: () => void;
@@ -18,6 +19,7 @@ interface TaskNavigatorProps {
 
 export function TaskNavigator({
   tasks,
+  groupName,
   currentIndex,
   onComplete,
   onSkip,
@@ -32,9 +34,11 @@ export function TaskNavigator({
           <CardTitle className="text-base">
             Task {currentIndex + 1} of {tasks.length}
           </CardTitle>
-          <Badge variant="secondary" className="capitalize">
-            {task.complexity}
-          </Badge>
+          {groupName && (
+            <Badge variant="secondary" className="capitalize">
+              {groupName}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -84,6 +84,9 @@ function TemplatesPage() {
                 <Badge variant="secondary">
                   {new Date(t.created_at).toLocaleDateString()}
                 </Badge>
+                <Badge variant={t.is_public ? "default" : "outline"}>
+                  {t.is_public ? "Public" : "Private"}
+                </Badge>
               </div>
             </CardContent>
             <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100">

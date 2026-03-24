@@ -14,17 +14,22 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   useSession,
   useUpdateTaskResult,
   useUpdateInterviewAnswer,
   useUpdateSession,
   useUpsertSusAnswer,
+  useUpsertTaskQuestionAnswer,
 } from "@/hooks/use-sessions";
 import { COMPLETION_STATUS, SEQ_SCALE } from "@/lib/constants";
 import { SUS_QUESTIONS } from "@/lib/sus";
 import { toast } from "sonner";
 import { ChevronDown, ChevronRight, Save } from "lucide-react";
+import { MediaCapture } from "@/components/live/media-capture";
+import type { TaskQuestion, TaskQuestionAnswer } from "@/types";
 
 export const Route = createFileRoute("/sessions/$sessionId/edit")({
   component: SessionEditPage,
@@ -37,6 +42,7 @@ function SessionEditPage() {
   const updateInterviewAnswer = useUpdateInterviewAnswer();
   const updateSession = useUpdateSession();
   const upsertSusAnswer = useUpsertSusAnswer();
+  const upsertTaskQuestionAnswer = useUpsertTaskQuestionAnswer();
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -45,7 +51,7 @@ function SessionEditPage() {
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
 
   const taskResults = session.task_results?.sort(
-    (a, b) => a.template_tasks.sort_order - b.template_tasks.sort_order,
+    (a, b) => a.sort_order - b.sort_order,
   ) ?? [];
 
   const toggle = (id: string) =>
@@ -105,6 +111,13 @@ function SessionEditPage() {
             expanded={!!expanded[tr.id]}
             onToggle={() => toggle(tr.id)}
             onSave={(updates) => handleSaveTask(tr.id, updates)}
+            onSaveQuestionAnswer={(questionId, data) =>
+              upsertTaskQuestionAnswer.mutateAsync({
+                task_result_id: tr.id,
+                question_id: questionId,
+                ...data,
+              })
+            }
           />
         ))}
       </div>
@@ -170,12 +183,22 @@ function TaskResultEditor({
   expanded,
   onToggle,
   onSave,
+  onSaveQuestionAnswer,
 }: {
   index: number;
   taskResult: any;
   expanded: boolean;
   onToggle: () => void;
   onSave: (updates: any) => Promise<void>;
+  onSaveQuestionAnswer: (
+    questionId: string,
+    data: {
+      answer_text?: string | null;
+      selected_options?: string[] | null;
+      rating_value?: number | null;
+      media_url?: string | null;
+    },
+  ) => Promise<void>;
 }) {
   const [status, setStatus] = useState(taskResult.completion_status || "");
   const [time, setTime] = useState(
@@ -186,6 +209,9 @@ function TaskResultEditor({
   );
   const [seq, setSeq] = useState(taskResult.seq_rating?.toString() ?? "");
   const [notes, setNotes] = useState(taskResult.notes ?? "");
+
+  const taskQuestions: TaskQuestion[] = taskResult.template_tasks?.task_questions ?? [];
+  const questionAnswers: TaskQuestionAnswer[] = taskResult.task_question_answers ?? [];
 
   return (
     <Card className="bg-transparent backdrop-blur-md">
@@ -265,6 +291,24 @@ function TaskResultEditor({
               rows={2}
             />
           </div>
+
+          {taskQuestions.length > 0 && (
+            <div className="space-y-3 border-t pt-4">
+              <Label className="text-sm font-semibold">Task Questions</Label>
+              {[...taskQuestions]
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((q) => (
+                  <EditableQuestionAnswer
+                    key={q.id}
+                    question={q}
+                    existing={questionAnswers.find((a) => a.question_id === q.id)}
+                    storagePath={`${taskResult.session_id}/${taskResult.id}/${q.id}`}
+                    onSave={(data) => onSaveQuestionAnswer(q.id, data)}
+                  />
+                ))}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Button
               size="sm"
@@ -284,6 +328,145 @@ function TaskResultEditor({
         </CardContent>
       )}
     </Card>
+  );
+}
+
+function EditableQuestionAnswer({
+  question,
+  existing,
+  storagePath,
+  onSave,
+}: {
+  question: TaskQuestion;
+  existing?: TaskQuestionAnswer;
+  storagePath: string;
+  onSave: (data: {
+    answer_text?: string | null;
+    selected_options?: string[] | null;
+    rating_value?: number | null;
+    media_url?: string | null;
+  }) => Promise<void>;
+}) {
+  const [text, setText] = useState(existing?.answer_text ?? "");
+  const [selected, setSelected] = useState<string[]>(
+    (existing?.selected_options as string[]) ?? [],
+  );
+  const [rating, setRating] = useState<number | null>(existing?.rating_value ?? null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(existing?.media_url ?? null);
+  const options = (question.options as string[]) ?? [];
+  const isMedia = question.question_type === "audio" || question.question_type === "video" || question.question_type === "photo";
+
+  const save = (data: {
+    answer_text?: string | null;
+    selected_options?: string[] | null;
+    rating_value?: number | null;
+    media_url?: string | null;
+  }) => {
+    onSave(data);
+  };
+
+  return (
+    <div className="space-y-2 rounded-md border p-3">
+      <Label className="text-sm">{question.question_text}</Label>
+
+      {question.question_type === "open" && (
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          onBlur={() => {
+            if (text !== (existing?.answer_text ?? "")) {
+              save({ answer_text: text });
+            }
+          }}
+        />
+      )}
+
+      {question.question_type === "single_choice" && (
+        <RadioGroup
+          value={selected[0] ?? ""}
+          onValueChange={(v) => {
+            setSelected([v]);
+            save({ selected_options: [v] });
+          }}
+        >
+          {options.map((opt) => (
+            <div key={opt} className="flex items-center gap-2">
+              <RadioGroupItem value={opt} id={`edit-${question.id}-${opt}`} />
+              <Label htmlFor={`edit-${question.id}-${opt}`} className="font-normal text-sm">
+                {opt}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      )}
+
+      {question.question_type === "multiple_choice" && (
+        <div className="space-y-2">
+          {options.map((opt) => {
+            const checked = selected.includes(opt);
+            return (
+              <div key={opt} className="flex items-center gap-2">
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(c) => {
+                    const next = c
+                      ? [...selected, opt]
+                      : selected.filter((o) => o !== opt);
+                    setSelected(next);
+                    save({ selected_options: next });
+                  }}
+                  id={`edit-${question.id}-${opt}`}
+                />
+                <Label htmlFor={`edit-${question.id}-${opt}`} className="font-normal text-sm">
+                  {opt}
+                </Label>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {question.question_type === "rating" && (
+        <div className="flex gap-1">
+          {(() => {
+            const min = question.rating_min ?? 1;
+            const max = question.rating_max ?? 5;
+            const buttons = [];
+            for (let i = min; i <= max; i++) {
+              buttons.push(
+                <Button
+                  key={i}
+                  type="button"
+                  variant={rating === i ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8"
+                  onClick={() => {
+                    setRating(i);
+                    save({ rating_value: i });
+                  }}
+                >
+                  {i}
+                </Button>,
+              );
+            }
+            return buttons;
+          })()}
+        </div>
+      )}
+
+      {isMedia && (
+        <MediaCapture
+          type={question.question_type as "audio" | "video" | "photo"}
+          value={mediaUrl}
+          onChange={(url) => {
+            setMediaUrl(url);
+            save({ media_url: url });
+          }}
+          storagePath={storagePath}
+        />
+      )}
+    </div>
   );
 }
 

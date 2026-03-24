@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type {
@@ -30,6 +31,17 @@ export function useSessions() {
   });
 }
 
+/** Poll for session changes so the list auto-updates when participants join. */
+export function useSessionsRealtime() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [qc]);
+}
+
 export function useSessionsByTemplate(templateId: string | undefined) {
   return useQuery({
     queryKey: ["sessions", "by-template", templateId],
@@ -57,7 +69,7 @@ export function useSessionsByTemplateWithRelations(
         .from("test_sessions")
         .select(
           `*, templates(*), participants(*),
-           task_results(*, template_tasks(*), error_logs(*), hesitation_logs(*)),
+           task_results(*, template_tasks(*, task_questions(*)), error_logs(*), hesitation_logs(*), task_question_answers(*)),
            interview_answers(*), sus_answers(*)`,
         )
         .eq("template_id", templateId!)
@@ -77,7 +89,7 @@ export function useSession(id: string | undefined) {
         .from("test_sessions")
         .select(
           `*, templates(*), participants(*),
-           task_results(*, template_tasks(*), error_logs(*), hesitation_logs(*)),
+           task_results(*, template_tasks(*, task_questions(*)), error_logs(*), hesitation_logs(*), task_question_answers(*)),
            interview_answers(*), sus_answers(*)`,
         )
         .eq("id", id!)
@@ -93,6 +105,7 @@ interface CreateSessionInput {
   participant_id: string;
   evaluator_name: string;
   status?: "planned" | "in_progress";
+  selected_task_ids?: string[];
 }
 
 export function useCreateSession() {
@@ -116,20 +129,34 @@ export function useCreateSession() {
       if (error) throw error;
 
       // Create task_results skeleton
-      const { data: tasks } = await supabase
-        .from("template_tasks")
-        .select("id")
-        .eq("template_id", input.template_id)
-        .order("sort_order");
-
-      if (tasks && tasks.length > 0) {
+      if (input.selected_task_ids && input.selected_task_ids.length > 0) {
+        // Use selected task IDs with custom sort order from array index
         const { error: trErr } = await supabase.from("task_results").insert(
-          tasks.map((t) => ({
+          input.selected_task_ids.map((taskId, index) => ({
             session_id: data.id,
-            task_id: t.id,
+            task_id: taskId,
+            sort_order: index,
           })),
         );
         if (trErr) throw trErr;
+      } else {
+        // Default: all tasks with sort_order from template
+        const { data: tasks } = await supabase
+          .from("template_tasks")
+          .select("id, sort_order")
+          .eq("template_id", input.template_id)
+          .order("sort_order");
+
+        if (tasks && tasks.length > 0) {
+          const { error: trErr } = await supabase.from("task_results").insert(
+            tasks.map((t) => ({
+              session_id: data.id,
+              task_id: t.id,
+              sort_order: t.sort_order,
+            })),
+          );
+          if (trErr) throw trErr;
+        }
       }
 
       // Create interview_answers skeleton
@@ -285,6 +312,36 @@ export function useUpsertSusAnswer() {
             score: input.score,
           },
           { onConflict: "session_id,question_number" },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
+export function useUpsertTaskQuestionAnswer() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      task_result_id: string;
+      question_id: string;
+      answer_text?: string | null;
+      selected_options?: string[] | null;
+      rating_value?: number | null;
+      media_url?: string | null;
+    }) => {
+      const { error } = await supabase
+        .from("task_question_answers")
+        .upsert(
+          {
+            task_result_id: input.task_result_id,
+            question_id: input.question_id,
+            answer_text: input.answer_text ?? null,
+            selected_options: input.selected_options ?? null,
+            rating_value: input.rating_value ?? null,
+            media_url: input.media_url ?? null,
+          },
+          { onConflict: "task_result_id,question_id" },
         );
       if (error) throw error;
     },

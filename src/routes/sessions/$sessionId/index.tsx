@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,8 +32,18 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { COLORS, PIE_COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
-import { useSession } from "@/hooks/use-sessions";
-import { PenLine, Play } from "lucide-react";
+import { useSession, useDeleteSession } from "@/hooks/use-sessions";
+import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SUS_QUESTIONS, calculateSusScore, getSusLabel } from "@/lib/sus";
 
@@ -58,13 +69,14 @@ function seqColor(rating: number | null) {
 
 function SessionDetailPage() {
   const { sessionId } = Route.useParams();
+  const navigate = useNavigate();
   const { data: session, isLoading } = useSession(sessionId);
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
 
   const taskResults = session.task_results?.sort(
-    (a, b) => a.template_tasks.sort_order - b.template_tasks.sort_order,
+    (a, b) => a.sort_order - b.sort_order,
   ) ?? [];
 
   return (
@@ -93,9 +105,17 @@ function SessionDetailPage() {
               Edit Data
             </Link>
           </Button>
+          <DeleteSessionDialog
+            sessionId={sessionId}
+            onDeleted={() => navigate({ to: "/sessions" })}
+          />
         </div>
       }
     >
+      {session.join_code && (
+        <JoinCodeBanner joinCode={session.join_code} />
+      )}
+
       <div className="flex gap-2">
         <Badge variant="secondary" className="capitalize">
           {session.status.replace("_", " ")}
@@ -115,6 +135,7 @@ function SessionDetailPage() {
       <Tabs defaultValue="tasks">
         <TabsList>
           <TabsTrigger value="tasks">Task Results</TabsTrigger>
+          <TabsTrigger value="questions">Questions</TabsTrigger>
           <TabsTrigger value="errors">Error Log</TabsTrigger>
           <TabsTrigger value="hesitations">Hesitations</TabsTrigger>
           <TabsTrigger value="interview">Interview</TabsTrigger>
@@ -171,6 +192,79 @@ function SessionDetailPage() {
 
             <SessionCharts taskResults={taskResults} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="questions">
+          <Card className="bg-transparent backdrop-blur-md">
+            <CardContent>
+              {taskResults.every(
+                (tr) => (tr.task_question_answers?.length ?? 0) === 0,
+              ) ? (
+                <p className="text-muted-foreground">No question answers recorded yet.</p>
+              ) : (
+                <div className="space-y-6">
+                  {taskResults
+                    .filter((tr) => (tr.task_question_answers?.length ?? 0) > 0)
+                    .map((tr) => (
+                      <div key={tr.id} className="space-y-2">
+                        <p className="text-sm font-semibold">
+                          {tr.template_tasks.name}
+                        </p>
+                        {[...(tr.template_tasks.task_questions ?? [])]
+                          .sort((a, b) => a.sort_order - b.sort_order)
+                          .map((q) => {
+                            const answer = tr.task_question_answers?.find(
+                              (a) => a.question_id === q.id,
+                            );
+                            if (!answer) return null;
+                            return (
+                              <div
+                                key={q.id}
+                                className="rounded-md border p-3"
+                              >
+                                <p className="text-sm font-medium">
+                                  {q.question_text}
+                                </p>
+                                <div className="mt-1 text-sm text-muted-foreground">
+                                  {q.question_type === "open" &&
+                                    (answer.answer_text || "No answer")}
+                                  {(q.question_type === "single_choice" ||
+                                    q.question_type === "multiple_choice") &&
+                                    ((answer.selected_options as string[]) ?? []).join(
+                                      ", ",
+                                    )}
+                                  {q.question_type === "rating" &&
+                                    (answer.rating_value != null
+                                      ? `${answer.rating_value} / ${q.rating_max ?? 5}`
+                                      : "No rating")}
+                                  {q.question_type === "audio" &&
+                                    (answer.media_url ? (
+                                      <audio src={answer.media_url} controls className="mt-1 h-10 w-full" />
+                                    ) : (
+                                      "No audio recorded"
+                                    ))}
+                                  {q.question_type === "video" &&
+                                    (answer.media_url ? (
+                                      <video src={answer.media_url} controls className="mt-1 w-full max-h-48 rounded-md bg-black" />
+                                    ) : (
+                                      "No video recorded"
+                                    ))}
+                                  {q.question_type === "photo" &&
+                                    (answer.media_url ? (
+                                      <img src={answer.media_url} alt="Captured" className="mt-1 w-full max-h-48 rounded-md object-cover" />
+                                    ) : (
+                                      "No photo captured"
+                                    ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="errors">
@@ -325,6 +419,96 @@ function SessionDetailPage() {
         </TabsContent>
       </Tabs>
     </PageWrapper>
+  );
+}
+
+function JoinCodeBanner({ joinCode }: { joinCode: string }) {
+  const [copied, setCopied] = useState(false);
+  const joinUrl = `${window.location.origin}/join/${joinCode}`;
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(joinUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Card className="bg-transparent backdrop-blur-md border-primary/30">
+      <CardContent className="flex items-center gap-3 py-3">
+        <div className="flex-1">
+          <p className="text-xs font-medium text-muted-foreground">
+            Participant Join Link
+          </p>
+          <p className="text-sm font-mono truncate">{joinUrl}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleCopy}>
+          {copied ? (
+            <Check className="mr-1 h-3 w-3" />
+          ) : (
+            <Copy className="mr-1 h-3 w-3" />
+          )}
+          {copied ? "Copied" : "Copy"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DeleteSessionDialog({
+  sessionId,
+  onDeleted,
+}: {
+  sessionId: string;
+  onDeleted: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const deleteSession = useDeleteSession();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="destructive" size="icon">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Session</DialogTitle>
+          <DialogDescription>
+            This will permanently delete this session and all its data (task
+            results, answers, logs). This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={deleteSession.isPending}
+            onClick={async () => {
+              try {
+                await deleteSession.mutateAsync(sessionId);
+                toast.success("Session deleted");
+                setOpen(false);
+                onDeleted();
+              } catch {
+                toast.error("Failed to delete session");
+              }
+            }}
+          >
+            {deleteSession.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
