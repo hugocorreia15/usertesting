@@ -8,13 +8,21 @@ export interface Template {
   updated_at: string;
 }
 
+export interface TaskGroup {
+  id: string;
+  template_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface TemplateTask {
   id: string;
   template_id: string;
+  group_id: string | null;
   sort_order: number;
   name: string;
   description: string | null;
-  complexity: "simple" | "complex";
   optimal_time_seconds: number | null;
   optimal_actions: number | null;
   created_at: string;
@@ -46,6 +54,8 @@ export interface Participant {
   tech_proficiency: "low" | "medium" | "high" | null;
   notes: string | null;
   user_id: string | null;
+  auth_user_id: string | null;
+  is_anonymous: boolean;
   created_at: string;
 }
 
@@ -59,6 +69,7 @@ export interface TestSession {
   completed_at: string | null;
   notes: string | null;
   user_id: string | null;
+  join_code: string | null;
   created_at: string;
 }
 
@@ -72,6 +83,7 @@ export interface TaskResult {
   error_count: number;
   hesitation_count: number;
   seq_rating: number | null;
+  sort_order: number;
   notes: string | null;
   created_at: string;
 }
@@ -109,8 +121,47 @@ export interface SusAnswer {
   created_at: string;
 }
 
+export interface TaskQuestion {
+  id: string;
+  task_id: string;
+  sort_order: number;
+  question_text: string;
+  question_type: "open" | "single_choice" | "multiple_choice" | "rating" | "audio" | "video" | "photo";
+  options: string[] | null;
+  rating_min: number | null;
+  rating_max: number | null;
+  created_at: string;
+}
+
+export interface TaskQuestionAnswer {
+  id: string;
+  task_result_id: string;
+  question_id: string;
+  answer_text: string | null;
+  selected_options: string[] | null;
+  rating_value: number | null;
+  media_url: string | null;
+  created_at: string;
+}
+
+export interface SessionInvitation {
+  id: string;
+  code: string;
+  template_id: string;
+  user_id: string;
+  evaluator_name: string;
+  selected_task_ids: string[];
+  collected_fields: string[];
+  is_active: boolean;
+  max_responses: number | null;
+  response_count: number;
+  created_at: string;
+  expires_at: string | null;
+}
+
 // Extended types with relations
 export interface TemplateWithRelations extends Template {
+  task_groups: TaskGroup[];
   template_tasks: TemplateTask[];
   template_error_types: TemplateErrorType[];
   template_questions: TemplateQuestion[];
@@ -124,8 +175,13 @@ export interface TestSessionWithRelations extends TestSession {
   sus_answers: SusAnswer[];
 }
 
+export interface TemplateTaskWithQuestions extends TemplateTask {
+  task_questions: TaskQuestion[];
+}
+
 export interface TaskResultWithRelations extends TaskResult {
-  template_tasks: TemplateTask;
+  template_tasks: TemplateTaskWithQuestions;
   error_logs: ErrorLog[];
   hesitation_logs: HesitationLog[];
+  task_question_answers: TaskQuestionAnswer[];
 }

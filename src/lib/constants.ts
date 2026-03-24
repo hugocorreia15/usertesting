@@ -7,14 +7,27 @@ export type NavItem = {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "LayoutDashboard" },
-  { label: "Templates", href: "/templates", icon: "FileText" },
+  {
+    label: "Templates",
+    href: "/templates",
+    icon: "FileText",
+    children: [
+      { label: "All Templates", href: "/templates" },
+      { label: "My Templates", href: "/my-templates" },
+    ],
+  },
   { label: "Participants", href: "/participants", icon: "Users" },
-  { label: "Sessions", href: "/sessions", icon: "ClipboardList" },
+  {
+    label: "Sessions",
+    href: "/sessions",
+    icon: "ClipboardList",
+    children: [
+      { label: "All Sessions", href: "/sessions" },
+      { label: "My Sessions", href: "/my-sessions" },
+    ],
+  },
   { label: "Analytics", href: "/analytics", icon: "BarChart3" },
 ];
-
-export const TASK_COMPLEXITY = ["simple", "complex"] as const;
-export type TaskComplexity = (typeof TASK_COMPLEXITY)[number];
 
 export const COMPLETION_STATUS = ["success", "partial", "failure", "skipped"] as const;
 export type CompletionStatus = (typeof COMPLETION_STATUS)[number];
