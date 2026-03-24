@@ -84,12 +84,17 @@ export function exportTemplatePdf(template: TemplateWithRelations) {
   y += 8;
 
   // --- Task Tables ---
-  const simpleTasks = template.template_tasks.filter((t) => t.complexity === "simple");
-  const complexTasks = template.template_tasks.filter((t) => t.complexity === "complex");
+  const groupMap = new Map((template.task_groups ?? []).map((g) => [g.id, g.name]));
+  const groupedTasks = new Map<string, typeof template.template_tasks>();
+  for (const task of template.template_tasks) {
+    const groupName = task.group_id ? groupMap.get(task.group_id) ?? "Ungrouped" : "Ungrouped";
+    if (!groupedTasks.has(groupName)) groupedTasks.set(groupName, []);
+    groupedTasks.get(groupName)!.push(task);
+  }
 
   const taskColumns = ["#", "Task", "Comp.", "Time", "Actions", "Optimal", "Errors", "Hesit.", "SEQ"];
 
-  function renderTaskTable(title: string, tasks: typeof simpleTasks) {
+  function renderTaskTable(title: string, tasks: typeof template.template_tasks) {
     if (tasks.length === 0) return;
 
     // Check if we need a new page
@@ -138,8 +143,9 @@ export function exportTemplatePdf(template: TemplateWithRelations) {
     y = (doc as any).lastAutoTable.finalY + 6;
   }
 
-  renderTaskTable("Simple Tasks", simpleTasks);
-  renderTaskTable("Complex Tasks", complexTasks);
+  for (const [groupName, tasks] of groupedTasks) {
+    renderTaskTable(`${groupName} Tasks`, tasks);
+  }
 
   // --- Error Types Legend ---
   if (template.template_error_types.length > 0) {
