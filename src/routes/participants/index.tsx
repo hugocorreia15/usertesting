@@ -272,7 +272,7 @@ function ParticipantsPage() {
             </div>
           </DialogHeader>
           <Separator />
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm break-words sm:grid-cols-2">
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
                 Age

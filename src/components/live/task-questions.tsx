@@ -153,7 +153,7 @@ function QuestionField({
       )}
 
       {question.question_type === "rating" && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {(() => {
             const min = question.rating_min ?? 1;
             const max = question.rating_max ?? 5;
@@ -165,7 +165,7 @@ function QuestionField({
                   type="button"
                   variant={value.rating_value === i ? "default" : "outline"}
                   size="sm"
-                  className="h-9 w-9"
+                  className="h-11 w-11"
                   onClick={() => onChange({ rating_value: i })}
                 >
                   {i}

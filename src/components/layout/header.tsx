@@ -8,7 +8,8 @@ export function Header() {
   const { collapsed, toggleCollapsed } = useSidebar();
 
   return (
-    <header className="flex h-14 items-center gap-2 border-b border-border/50 backdrop-blur-md bg-transparent px-2">
+    // pl-14 clears the fixed mobile hamburger from the sidebar
+    <header className="flex h-14 items-center gap-2 border-b border-border/50 backdrop-blur-md bg-transparent pl-14 pr-2 md:px-2">
       <Button
         variant="ghost"
         size="icon"

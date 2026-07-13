@@ -34,6 +34,11 @@ import {
   Star,
 } from "lucide-react";
 import { COLORS, PIE_COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
+import {
+  TASK_AXIS_PROPS,
+  CHART_MARGIN,
+  TOP_LEGEND_PROPS,
+} from "@/components/charts/chart-axis";
 
 export const Route = createFileRoute("/analytics/")({
   component: AnalyticsPage,
@@ -182,20 +187,14 @@ function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics.taskCompletion}>
+                <BarChart data={analytics.taskCompletion} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis
-                    dataKey="taskName"
-                    tick={{ fontSize: 11 }}
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
-                  />
+                  <XAxis {...TASK_AXIS_PROPS} />
                   <YAxis allowDecimals={false} />
                   <Tooltip
                     contentStyle={CHART_TOOLTIP_STYLE}
                   />
-                  <Legend />
+                  <Legend {...TOP_LEGEND_PROPS} />
                   <Bar
                     dataKey="success"
                     stackId="a"
@@ -229,24 +228,12 @@ function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analytics.timeEfficiency}>
+                  <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis
-                      dataKey="taskName"
-                      tick={{ fontSize: 10 }}
-                      angle={-30}
-                      textAnchor="end"
-                      height={80}
-                    />
+                    <XAxis {...TASK_AXIS_PROPS} />
                     <YAxis />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--color-card)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Legend {...TOP_LEGEND_PROPS} />
                     <Bar
                       dataKey="avgTime"
                       fill={COLORS.primary}
@@ -270,24 +257,12 @@ function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analytics.timeEfficiency}>
+                  <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis
-                      dataKey="taskName"
-                      tick={{ fontSize: 10 }}
-                      angle={-30}
-                      textAnchor="end"
-                      height={80}
-                    />
+                    <XAxis {...TASK_AXIS_PROPS} />
                     <YAxis />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--color-card)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                    <Legend {...TOP_LEGEND_PROPS} />
                     <Bar
                       dataKey="avgActions"
                       fill={COLORS.tertiary}
@@ -335,13 +310,7 @@ function AnalyticsPage() {
                           />
                         ))}
                       </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "var(--color-card)",
-                          border: "1px solid var(--color-border)",
-                          borderRadius: "8px",
-                        }}
-                      />
+                      <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -354,23 +323,11 @@ function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analytics.errorsByTask}>
+                  <BarChart data={analytics.errorsByTask} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis
-                      dataKey="taskName"
-                      tick={{ fontSize: 10 }}
-                      angle={-30}
-                      textAnchor="end"
-                      height={80}
-                    />
+                    <XAxis {...TASK_AXIS_PROPS} />
                     <YAxis allowDecimals={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "var(--color-card)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: "8px",
-                      }}
-                    />
+                    <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     <Bar
                       dataKey="errorCount"
                       fill={COLORS.failure}

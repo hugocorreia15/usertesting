@@ -86,8 +86,8 @@ function TemplateDetailPage() {
       }
     >
       <Tabs defaultValue={tab || "overview"}>
-        <div className="flex items-center justify-between gap-4">
-          <TabsList>
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+          <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sessions">
               Sessions ({sessionCount})

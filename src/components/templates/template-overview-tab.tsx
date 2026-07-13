@@ -4,6 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTemplateAnalytics } from "@/hooks/use-analytics";
 import { COLORS, PIE_COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
 import {
+  TASK_AXIS_PROPS,
+  CHART_MARGIN,
+  TOP_LEGEND_PROPS,
+} from "@/components/charts/chart-axis";
+import {
   BarChart,
   Bar,
   XAxis,
@@ -131,18 +136,12 @@ export function TemplateOverviewTab({ templateId }: TemplateOverviewTabProps) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={analytics.taskCompletion}>
+            <BarChart data={analytics.taskCompletion} margin={CHART_MARGIN}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-              <XAxis
-                dataKey="taskName"
-                tick={{ fontSize: 11 }}
-                angle={-30}
-                textAnchor="end"
-                height={80}
-              />
+              <XAxis {...TASK_AXIS_PROPS} />
               <YAxis allowDecimals={false} />
               <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-              <Legend />
+              <Legend {...TOP_LEGEND_PROPS} />
               <Bar
                 dataKey="success"
                 stackId="a"
@@ -176,18 +175,12 @@ export function TemplateOverviewTab({ templateId }: TemplateOverviewTabProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.timeEfficiency}>
+              <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Bar
                   dataKey="avgTime"
                   fill={COLORS.primary}
@@ -211,18 +204,12 @@ export function TemplateOverviewTab({ templateId }: TemplateOverviewTabProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.timeEfficiency}>
+              <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Bar
                   dataKey="avgActions"
                   fill={COLORS.tertiary}
@@ -283,15 +270,9 @@ export function TemplateOverviewTab({ templateId }: TemplateOverviewTabProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.errorsByTask}>
+              <BarChart data={analytics.errorsByTask} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis allowDecimals={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 <Bar

@@ -8,6 +8,7 @@ import {
   Users,
   ClipboardList,
   BarChart3,
+  BookOpen,
   ChevronRight,
   Menu,
   LogOut,
@@ -37,6 +38,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users,
   ClipboardList,
   BarChart3,
+  BookOpen,
 };
 
 function CollapsibleNavGroup({

@@ -168,7 +168,7 @@ export function TemplateForm({
               rows={3}
             />
           </div>
-          <div className="flex items-center justify-between rounded-md border px-4 py-3">
+          <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3">
             <div className="space-y-0.5">
               <Label htmlFor="is_public">Visibility</Label>
               <p className="text-sm text-muted-foreground">

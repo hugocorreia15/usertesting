@@ -32,6 +32,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { COLORS, PIE_COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
+import {
+  TASK_AXIS_PROPS,
+  CHART_MARGIN,
+  TOP_LEGEND_PROPS,
+  PolarTick,
+} from "@/components/charts/chart-axis";
 import { useSession, useDeleteSession } from "@/hooks/use-sessions";
 import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
 import {
@@ -134,7 +140,7 @@ function SessionDetailPage() {
       </div>
 
       <Tabs defaultValue="tasks">
-        <TabsList>
+        <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
           <TabsTrigger value="tasks">Task Results</TabsTrigger>
           <TabsTrigger value="questions">Questions</TabsTrigger>
           <TabsTrigger value="errors">Error Log</TabsTrigger>
@@ -645,7 +651,7 @@ function SessionCharts({
                   {completionPieData.map((entry, i) => {
                     const colorMap: Record<string, string> = {
                       Success: COLORS.success,
-                      Partial: COLORS.secondary,
+                      Partial: COLORS.partial,
                       Failure: COLORS.failure,
                       Skipped: "#94a3b8",
                       Pending: "#64748b",
@@ -671,15 +677,9 @@ function SessionCharts({
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={seqData}>
+                <BarChart data={seqData} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis
-                    dataKey="taskName"
-                    tick={{ fontSize: 10 }}
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
-                  />
+                  <XAxis {...TASK_AXIS_PROPS} />
                   <YAxis domain={[0, 7]} />
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Bar
@@ -703,18 +703,12 @@ function SessionCharts({
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={timeData}>
+              <BarChart data={timeData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Bar
                   dataKey="actual"
                   fill={COLORS.primary}
@@ -738,18 +732,12 @@ function SessionCharts({
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={actionData}>
+              <BarChart data={actionData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis allowDecimals={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Bar
                   dataKey="actual"
                   fill={COLORS.tertiary}
@@ -776,18 +764,12 @@ function SessionCharts({
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={issuesData}>
+              <BarChart data={issuesData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis
-                  dataKey="taskName"
-                  tick={{ fontSize: 10 }}
-                  angle={-30}
-                  textAnchor="end"
-                  height={80}
-                />
+                <XAxis {...TASK_AXIS_PROPS} />
                 <YAxis allowDecimals={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Bar
                   dataKey="errors"
                   fill={COLORS.failure}
@@ -819,15 +801,10 @@ function SessionCharts({
                       taskName: tr.template_tasks.name,
                       errorCount: tr.error_count,
                     }))}
+                  margin={CHART_MARGIN}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis
-                    dataKey="taskName"
-                    tick={{ fontSize: 10 }}
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
-                  />
+                  <XAxis {...TASK_AXIS_PROPS} />
                   <YAxis allowDecimals={false} />
                   <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                   <Bar
@@ -855,7 +832,7 @@ function SessionCharts({
             <ResponsiveContainer width="100%" height={400}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="var(--color-border)" />
-                <PolarAngleAxis dataKey="task" tick={{ fontSize: 10 }} />
+                <PolarAngleAxis dataKey="task" tick={<PolarTick />} />
                 <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 9 }} />
                 <Radar
                   name="Time Efficiency"
@@ -885,7 +862,7 @@ function SessionCharts({
                   fill={COLORS.failure}
                   fillOpacity={0.1}
                 />
-                <Legend />
+                <Legend {...TOP_LEGEND_PROPS} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </RadarChart>
             </ResponsiveContainer>

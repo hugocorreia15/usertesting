@@ -19,6 +19,7 @@ import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
 import { Route as ParticipantsIndexRouteImport } from './routes/participants/index'
 import { Route as MyTemplatesIndexRouteImport } from './routes/my-templates/index'
 import { Route as MySessionsIndexRouteImport } from './routes/my-sessions/index'
+import { Route as HelpIndexRouteImport } from './routes/help/index'
 import { Route as AnalyticsIndexRouteImport } from './routes/analytics/index'
 import { Route as TemplatesNewRouteImport } from './routes/templates/new'
 import { Route as SessionsNewRouteImport } from './routes/sessions/new'
@@ -79,6 +80,11 @@ const MyTemplatesIndexRoute = MyTemplatesIndexRouteImport.update({
 const MySessionsIndexRoute = MySessionsIndexRouteImport.update({
   id: '/my-sessions/',
   path: '/my-sessions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpIndexRoute = HelpIndexRouteImport.update({
+  id: '/help/',
+  path: '/help/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsIndexRoute = AnalyticsIndexRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics/': typeof AnalyticsIndexRoute
+  '/help/': typeof HelpIndexRoute
   '/my-sessions/': typeof MySessionsIndexRoute
   '/my-templates/': typeof MyTemplatesIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics': typeof AnalyticsIndexRoute
+  '/help': typeof HelpIndexRoute
   '/my-sessions': typeof MySessionsIndexRoute
   '/my-templates': typeof MyTemplatesIndexRoute
   '/participants': typeof ParticipantsIndexRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/sessions/new': typeof SessionsNewRoute
   '/templates/new': typeof TemplatesNewRoute
   '/analytics/': typeof AnalyticsIndexRoute
+  '/help/': typeof HelpIndexRoute
   '/my-sessions/': typeof MySessionsIndexRoute
   '/my-templates/': typeof MyTemplatesIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/templates/new'
     | '/analytics/'
+    | '/help/'
     | '/my-sessions/'
     | '/my-templates/'
     | '/participants/'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/templates/new'
     | '/analytics'
+    | '/help'
     | '/my-sessions'
     | '/my-templates'
     | '/participants'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/sessions/new'
     | '/templates/new'
     | '/analytics/'
+    | '/help/'
     | '/my-sessions/'
     | '/my-templates/'
     | '/participants/'
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   SessionsNewRoute: typeof SessionsNewRoute
   TemplatesNewRoute: typeof TemplatesNewRoute
   AnalyticsIndexRoute: typeof AnalyticsIndexRoute
+  HelpIndexRoute: typeof HelpIndexRoute
   MySessionsIndexRoute: typeof MySessionsIndexRoute
   MyTemplatesIndexRoute: typeof MyTemplatesIndexRoute
   ParticipantsIndexRoute: typeof ParticipantsIndexRoute
@@ -376,6 +389,13 @@ declare module '@tanstack/react-router' {
       path: '/my-sessions'
       fullPath: '/my-sessions/'
       preLoaderRoute: typeof MySessionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help/': {
+      id: '/help/'
+      path: '/help'
+      fullPath: '/help/'
+      preLoaderRoute: typeof HelpIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics/': {
@@ -470,6 +490,7 @@ const rootRouteChildren: RootRouteChildren = {
   SessionsNewRoute: SessionsNewRoute,
   TemplatesNewRoute: TemplatesNewRoute,
   AnalyticsIndexRoute: AnalyticsIndexRoute,
+  HelpIndexRoute: HelpIndexRoute,
   MySessionsIndexRoute: MySessionsIndexRoute,
   MyTemplatesIndexRoute: MyTemplatesIndexRoute,
   ParticipantsIndexRoute: ParticipantsIndexRoute,

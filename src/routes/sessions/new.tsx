@@ -191,7 +191,7 @@ function NewSessionPage() {
           )}
 
           <Tabs defaultValue="direct" className="pt-2">
-            <TabsList>
+            <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
               <TabsTrigger value="direct">Direct</TabsTrigger>
               <TabsTrigger value="personal">Personal Link</TabsTrigger>
               <TabsTrigger value="shared">Shared Link</TabsTrigger>

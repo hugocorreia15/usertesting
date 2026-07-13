@@ -42,7 +42,7 @@ function ParticipantSessionDetail() {
   return (
     <PageWrapper title={templateName} description={`Status: ${session.status.replace("_", " ")}`}>
       <Tabs defaultValue="tasks">
-        <TabsList>
+        <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="interview">
             Interview

@@ -1,6 +1,8 @@
+// success/partial are semantic (green/amber) and must stay distinct from
+// the brand series colors below — several charts legend both kinds at once.
 export const COLORS = {
-  success: "#6366f1",
-  partial: "#14b8a6",
+  success: "#22c55e",
+  partial: "#f59e0b",
   failure: "#ef4444",
   primary: "#6366f1",
   secondary: "#14b8a6",

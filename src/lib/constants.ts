@@ -27,6 +27,7 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: "Analytics", href: "/analytics", icon: "BarChart3" },
+  { label: "Help", href: "/help", icon: "BookOpen" },
 ];
 
 export const COMPLETION_STATUS = ["success", "partial", "failure", "skipped"] as const;

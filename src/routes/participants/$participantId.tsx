@@ -135,15 +135,15 @@ function ParticipantDetailPage() {
                 key={s.id}
                 to="/sessions/$sessionId"
                 params={{ sessionId: s.id }}
-                className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted"
+                className="flex items-center justify-between gap-2 rounded-md border p-3 transition-colors hover:bg-muted"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium">{s.templates?.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {new Date(s.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <Badge variant="secondary" className="capitalize">
+                <Badge variant="secondary" className="shrink-0 capitalize">
                   {s.status}
                 </Badge>
               </Link>
@@ -164,10 +164,10 @@ function ParticipantDetailPage() {
           {credentials && (
             <div className="space-y-4">
               <div className="rounded-lg border p-4 space-y-3 bg-muted/50">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="font-mono text-sm">{credentials.email}</p>
+                    <p className="break-all font-mono text-sm">{credentials.email}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -180,10 +180,10 @@ function ParticipantDetailPage() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Password</p>
-                    <p className="font-mono text-sm">{credentials.password}</p>
+                    <p className="break-all font-mono text-sm">{credentials.password}</p>
                   </div>
                   <Button
                     variant="ghost"

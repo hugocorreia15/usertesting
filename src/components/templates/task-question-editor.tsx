@@ -80,13 +80,13 @@ export function TaskQuestionEditor({ questions, onChange }: TaskQuestionEditorPr
       <p className="text-xs font-medium text-muted-foreground">Task Questions</p>
       {questions.map((q, idx) => (
         <div key={q.key} className="space-y-2 rounded-md border p-3 bg-muted/20">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="mt-2 text-xs text-muted-foreground">{idx + 1}.</span>
             <Input
               placeholder="Question text"
               value={q.question_text}
               onChange={(e) => update(q.key, "question_text", e.target.value)}
-              className="flex-1"
+              className="min-w-[10rem] flex-1"
             />
             <Select
               value={q.question_type}

@@ -307,7 +307,7 @@ function SignUpForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="signup-first-name">First Name</Label>
           <Input

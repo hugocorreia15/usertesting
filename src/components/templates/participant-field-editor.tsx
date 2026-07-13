@@ -66,12 +66,12 @@ export function ParticipantFieldEditor({
           key={item.key}
           className="space-y-2 rounded-md border p-3"
         >
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input
               placeholder="Field label (e.g. Department)"
               value={item.label}
               onChange={(e) => update(item.key, { label: e.target.value })}
-              className="flex-1"
+              className="min-w-[10rem] flex-1"
             />
             <Select
               value={item.field_type}

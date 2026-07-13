@@ -207,8 +207,8 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       if (activeTask) {
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">
                   Task {activeTask.sort_order + 1} of {totalTasks}
                 </p>
@@ -221,7 +221,7 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
                   </p>
                 )}
               </div>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="shrink-0">
                 {completedByObserver}/{totalTasks} done
               </Badge>
             </div>
@@ -269,8 +269,8 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
           <p className="text-xs text-muted-foreground">
             Task {pendingTask.sort_order + 1} of {totalTasks}
           </p>
@@ -283,7 +283,7 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
             </p>
           )}
         </div>
-        <Badge variant="secondary">
+        <Badge variant="secondary" className="shrink-0">
           {completedByObserver}/{totalTasks} tasks done
         </Badge>
       </div>
@@ -472,7 +472,7 @@ function QuestionField({
       )}
 
       {question.question_type === "rating" && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {(() => {
             const min = question.rating_min ?? 1;
             const max = question.rating_max ?? 5;
@@ -486,7 +486,7 @@ function QuestionField({
                     value.rating_value === i ? "default" : "outline"
                   }
                   size="sm"
-                  className="h-9 w-9"
+                  className="h-11 w-11"
                   onClick={() => onChange({ rating_value: i })}
                 >
                   {i}

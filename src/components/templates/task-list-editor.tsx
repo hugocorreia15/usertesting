@@ -234,9 +234,10 @@ function TaskRow({
       <div className="flex gap-3">
         <GripVertical className="mt-2 h-4 w-4 shrink-0 text-muted-foreground" />
         <div className="flex-1 space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input
               placeholder="Task name"
+              className="min-w-[12rem] flex-1"
               value={task.name}
               onChange={(e) => onUpdate("name", e.target.value)}
             />

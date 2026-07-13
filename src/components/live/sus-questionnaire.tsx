@@ -42,14 +42,14 @@ export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps
                 <p className="text-sm font-medium">
                   {qNum}. {question}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {[1, 2, 3, 4, 5].map((score) => (
                     <Button
                       key={score}
                       variant={ratings[qNum] === score ? "default" : "outline"}
                       size="sm"
                       className={cn(
-                        "h-9 min-w-9 transition-all duration-200",
+                        "h-11 min-w-11 transition-all duration-200",
                         ratings[qNum] === score &&
                           "ring-2 ring-primary ring-offset-2",
                       )}
