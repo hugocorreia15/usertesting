@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{tikz}
@@ -28,7 +29,8 @@ Moderated usability testing remains the reference method for discovering
 interaction problems, yet its instrumentation is fragmented: evaluators
 juggle stopwatches, spreadsheets, questionnaire tools, and manual report
 assembly, while commercial platforms focus on unmoderated remote studies
-and treat moderated sessions as video to be coded afterwards. We present
+whose moderated modes capture video and free-form notes rather than
+structured per-task metrics. We present
 Avalux, an open, self-hostable web platform that integrates the complete
 moderated-testing pipeline: reusable test protocols (tasks with optimal-path
 baselines, typed error taxonomies, per-task questions including in-browser
@@ -44,10 +46,12 @@ and a semi-structured interview, and export to a self-contained PDF report.
 We describe the architecture---a React single-page application over a
 Postgres backend with row-level security---and report two case studies:
 a four-participant evaluation of a household touch-panel controller
-(mean SUS 28.1) and a four-participant evaluation of an eye-tracking
-analysis dashboard (mean SUS 80), demonstrating that the platform supports
-end-to-end studies and discriminates sharply between designs of different
-quality.
+(mean SUS 28.1) and a two-participant evaluation of an eye-tracking
+analysis dashboard (SUS 80). The studies show that the platform
+carries complete, realistic evaluations end to end---including a physical
+device beyond the reach of browser-based instrumentation---while
+producing diagnostic task-level detail alongside the standard summary
+metrics.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -90,8 +94,10 @@ the moderated-testing pipeline end to end. Its contributions are:
   while the participant is still answering the previous task's questions;
   \item \textbf{two case studies}---a household touch-panel controller and
   an eye-tracking analysis dashboard---run entirely on the platform,
-  showing that it supports realistic studies and yields sharply
-  discriminating results (mean SUS 28.1 vs.\ 80).
+  showing that it carries realistic studies end to end, including a
+  physical device beyond browser instrumentation, and that its task-level
+  instruments localize the problems behind widely differing outcomes
+  (mean SUS 28.1 vs.\ 80).
 \end{itemize}
 
 Avalux is deployed at \url{https://avalux.pt}; its schema, protocol
@@ -109,10 +115,11 @@ row-level security (RLS) policies (Fig.~\ref{fig:arch}). Three backend
 primitives carry the design: (i)~\emph{RLS dual-role security}: evaluator
 rows are scoped to their authenticated account, while participants operate
 anonymously, authorized per session through unguessable join codes checked
-inside the policies themselves; (ii)~\emph{realtime channels}: both clients
-subscribe to Postgres change streams over WebSockets, so every mutation
-(task advanced, answer submitted) propagates to the other role without
-polling; (iii)~\emph{storage buckets} hold media answers captured in the
+inside the policies themselves; (ii)~\emph{realtime channels}: the participant client subscribes to
+Postgres change streams over WebSockets and follows the evaluator's
+mutations (task advanced, status changed) without polling, while the
+evaluator's cockpit refreshes the participant-progress gate by
+short-interval polling of the same persisted state; (iii)~\emph{storage buckets} hold media answers captured in the
 participant's browser via \texttt{getUserMedia}. There is no custom
 application server, which keeps the platform self-hostable on free tiers
 of commodity services.
@@ -167,13 +174,76 @@ them aloud. When the evaluator marks a task complete, its questions unlock
 on the participant's device; conversely, the evaluator's
 success/partial/failure controls are \emph{disabled} while the participant
 is still answering the previous task's questions, with a notification when
-they finish---a two-way gate that keeps both roles aligned without verbal
-coordination. The evaluator can step back one task without destroying
+they finish---a two-way gate designed to keep both roles aligned without
+requiring verbal coordination (Fig.~\ref{fig:seq}). Both directions of the gate are
+computed from persisted state (the task pointer and the ratio of answers
+to questions per completed task), not from ephemeral messages, so either
+client can reload or lose connectivity mid-session and rejoin in a
+consistent state. The evaluator can step back one task without destroying
 recorded data, or explicitly reset a task (clearing its metrics, logs, and
 answers) after confirmation. After the last task the participant completes
 the interview and the SUS questionnaire on their own device; scores are
 computed and banded automatically~\cite{bangor2009determining,
 sauro2011practical}.
+
+\begin{figure}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\scriptsize,
+  lane/.style={draw, rounded corners=1pt, fill=gray!8, minimum width=17mm,
+               minimum height=5mm, font=\scriptsize\bfseries},
+  msg/.style={-{Stealth[length=1.8mm]}, thick},
+  note/.style={font=\tiny, align=center}
+]
+\node[lane] (E) {Evaluator};
+\node[lane, right=24mm of E] (DB) {Backend};
+\node[lane, right=24mm of DB] (P) {Participant};
+\draw[gray!60] (E.south) -- ++(0,-4.35);
+\draw[gray!60] (DB.south) -- ++(0,-4.35);
+\draw[gray!60] (P.south) -- ++(0,-4.35);
+% task advance
+\draw[msg] ($(E.south)+(0,-0.45)$) -- node[above, note]{complete task $i$\\(status, time, SEQ)} ($(DB.south)+(0,-0.45)$);
+\draw[msg] ($(DB.south)+(0,-0.85)$) -- node[above, note]{change stream (WS)} ($(P.south)+(0,-0.85)$);
+\node[note, anchor=east] at ($(P.south)+(0.3,-1.25)$) {questions for task $i$ unlock;\\task $i{+}1$ instructions shown};
+% gate on
+\draw[msg] ($(P.south)+(0,-1.9)$) -- node[above, note]{answering\ldots} ($(DB.south)+(0,-1.9)$);
+\draw[msg] ($(DB.south)+(0,-2.3)$) -- node[above, note]{state poll: unanswered $>$ 0} ($(E.south)+(0,-2.3)$);
+\node[note, anchor=west] at ($(E.south)+(-0.3,-2.7)$) {advance controls\\\emph{disabled}};
+% gate off
+\draw[msg] ($(P.south)+(0,-3.35)$) -- node[above, note]{submit answers} ($(DB.south)+(0,-3.35)$);
+\draw[msg] ($(DB.south)+(0,-3.75)$) -- node[above, note]{state poll: all answered} ($(E.south)+(0,-3.75)$);
+\node[note, anchor=west] at ($(E.south)+(-0.3,-4.15)$) {gate released\\(notification)};
+\end{tikzpicture}%
+}
+\caption{Two-way gating during a moderated session. The participant
+follows the evaluator over a realtime channel; the evaluator's gate is
+refreshed by short-interval polling of the same persisted state, so
+either client can reload mid-session and rejoin consistently.}
+\label{fig:seq}
+\end{figure}
+
+\subsection{Measures}
+For each task $i$ the platform records completion status
+$s_i \in \{\text{success},\text{partial},\text{failure},\text{skipped}\}$,
+time on task $t_i$, evaluator-counted actions $a_i$, categorized error and
+hesitation events with within-task timestamps, and the SEQ rating
+$q_i \in [1,7]$. Templates supply per-task baselines $t^{*}_i$ (optimal
+time) and $a^{*}_i$ (optimal action count), following the
+optimal-path-referenced efficiency measures recommended in the
+measurement literature~\cite{albert2022measuring,sauro2016quantifying}.
+Session-level indicators are the completion-status distribution, mean
+time and action efficiency
+$\frac{1}{|A|}\sum_{i \in A} t^{*}_i / t_i$ (and analogously for
+actions), where $A$ contains only \emph{attempted} tasks with
+$t_i > 0$---skipped tasks are excluded rather than scored as zero-time
+successes, an aggregation rule we adopted after observing that including
+them produces unbounded efficiency values---and the SUS score with its
+adjective band~\cite{brooke1996sus,bangor2009determining}. Distributions,
+efficiency ratios, and SUS scores are computed at display time from the
+stored task results; per-task error, hesitation, and action counts are
+persisted when the task completes, alongside the individual timestamped
+log entries they summarize.
 
 \begin{figure}[t]
 \centering
@@ -214,6 +284,21 @@ sessions. A one-click export renders a self-contained PDF report
 answers, and SUS breakdown with cross-session comparison), replacing the
 manual assembly step that typically follows moderated studies.
 
+\subsection{Design Notes}
+Two design decisions proved more consequential than expected. First,
+\emph{logging must not compete with observation}: every evaluator action
+during a task---counting an action, categorizing an error, marking a
+hesitation---is a single tap on a persistently visible control, sized to
+mobile touch-target guidelines so the cockpit is operable on a tablet
+held in the lap while watching the participant. Instruments that require
+navigation or typing (task questions, notes) are deferred to task
+boundaries. Second, \emph{the protocol is an artifact, not
+configuration}: because a template fully encodes tasks, baselines,
+taxonomies, and instruments, it can be reviewed before the study like a
+questionnaire, reused across sessions unchanged, exported as printable
+observation sheets when a study must run entirely on paper, and---as in
+study~2---seeded from a written protocol document under version control.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/ui-session-detail.png}
@@ -224,11 +309,21 @@ against the template's optimal baselines.}
 \end{figure}
 
 \section{Case Studies}
-Two studies were run end to end on the platform. Both used in-person
-moderated sessions in which the participant handled the system under test
-while the evaluator logged performance in Avalux; study~2 additionally
-used the participant's own device for questions, interview, and SUS via
-join links.
+Two studies were run end to end on the platform. Both used in-person,
+co-located moderated sessions in which the participant handled the system
+under test while the evaluator logged performance in Avalux. Study~1 used
+the evaluator client alone; study~2 additionally used the participant's
+own device for questions, interview, and SUS via join links, so the
+synchronization and gating mechanism of
+Section~III-C was exercised only in study~2's co-located
+sessions---its validation with a non-co-located moderator remains future
+work. Participants in both studies were volunteers recruited from the
+authors' university environment, were informed about the study's purpose
+and the data collected (including, in study~2, browser-captured
+screenshots and recordings), and consented to participate;
+\textbf{[complete before submission: ethics approval or exemption
+statement per the responsible institution, compensation, and consent
+procedure details.]}
 
 \subsection{Study 1: Household Touch-Panel Controller}
 Four participants (ages 20--23, two female, three of low and one of high
@@ -236,8 +331,9 @@ self-rated technical proficiency) attempted 14 tasks---seven simple
 (e.g.\ wake the panel, read the time, adjust temperature) and seven
 complex (e.g.\ set the clock, change language, recover from an error
 state)---on a commercial water-heater touch panel. Sessions averaged
-15~minutes. Aggregate completion was 70\% success, 20\% partial, and 11\%
-failure. SUS scores were 25.0, 40.0, 17.5, and 30.0 (mean 28.1,
+15~minutes. Aggregate completion across the $4\times14$ task attempts was
+approximately 70\% success, 20\% partial, and 11\% failure (percentages
+independently rounded). SUS scores were 25.0, 40.0, 17.5, and 30.0 (mean 28.1,
 ``Poor''~\cite{bangor2009determining}, far below the benchmark mean of
 68~\cite{sauro2011practical}); notably the high-proficiency participant
 produced the \emph{lowest} score, indicating problems not attributable to
@@ -245,21 +341,23 @@ inexperience. Task-level metrics located the failures precisely
 (Table~\ref{tab:bosch}): the undiscoverable wake-up gesture (SEQ 1.8, all
 participants struggled), error recovery without any error feedback (SEQ
 2.5, participants resorted to power cycling), and clock adjustment
-(43.6~s and 10 actions against an optimal 8). The typed error taxonomy
-attributed most errors to inconsistent button semantics across screens,
-which became the study's principal design recommendation.
+(43.6~s and 10 actions against an optimal 8). Participants' reports of
+buttons changing function across screens figured among the study's
+principal design recommendations, alongside a persistently visible entry
+point to settings and explicit error feedback.
 
 \begin{table}[t]
 \caption{Study 1: selected task-level results ($N{=}4$).}
 \label{tab:bosch}
 \centering
 \footnotesize
-\begin{tabular}{lccc}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccl@{}}
 \toprule
 Task & Mean SEQ & Mean time (s) & Note\\
 \midrule
-Wake up panel & 1.8 & --- & all participants struggled\\
-Recover from error & 2.5 & --- & no error feedback shown\\
+Wake up panel & 1.8 & --- & all struggled\\
+Recover from error & 2.5 & --- & no error feedback\\
 Set clock to 08:30 & --- & 43.6 & 10 actions vs.\ 8 optimal\\
 Read current time & 7.0 & 2.7 & 100\% success\\
 \bottomrule
@@ -268,19 +366,43 @@ Read current time & 7.0 & 2.7 & 100\% success\\
 
 \subsection{Study 2: Eye-Tracking Analysis Dashboard}
 The second study evaluated BEHOLD, a post-hoc analysis dashboard for
-Tobii Pro Glasses~3 recordings, with four participants (ages 21--23,
+Tobii Pro Glasses~3 recordings, with two participants (ages 22--23,
 students, low technical proficiency). The protocol exercised the
-platform's richer features: 20 tasks in eight groups following the
-analyst's journey (study ingestion, data browsing, areas of interest,
-times of interest, visualizations, participant comparison, metrics
-exploration, export), a 19-item error taxonomy, media question types
-(screenshots, screen recordings, audio narration), and custom participant
-fields (handedness, vision correction, device, location). Task success
-was near-universal (96\% of task attempts) with one consistent exception:
-configuring a fixation metric in the metrics explorer failed for
-participants across the cohort, isolating the dashboard's least intuitive
-workflow. SUS scores were 80, 80, 82.5, and 77.5 (mean 80, ``Good'',
-approaching ``Excellent''~\cite{bangor2009determining}). Open answers
+platform's richer features: 21 tasks in eight groups following the
+analyst's journey (Table~\ref{tab:behold}), of which each session ran
+20, a 19-item error taxonomy, media question types (screenshots, screen
+recordings, audio narration), and custom participant fields (handedness,
+vision correction, device, location).
+
+\begin{table}[t]
+\caption{Study 2: protocol structure (task groups and per-task
+question instruments).}
+\label{tab:behold}
+\centering
+\footnotesize
+\begin{tabular}{@{}lcl@{}}
+\toprule
+Task group & Tasks & Question instruments\\
+\midrule
+Study ingestion & 2 & choice, open, rating, photo\\
+Data browsing & 2 & choice, open, rating\\
+Areas of interest (AOI) & 4 & choice, rating, open, video, photo\\
+Times of interest (TOI) & 4 & choice, rating, open, video, photo\\
+Visualizations & 1 & choice, photo\\
+Participant comparison & 2 & choice, open, rating, photo\\
+Metrics explorer & 5 & choice, rating, open, audio\\
+Export & 1 & choice, rating, audio\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Task success was near-universal, with one consistent exception: the
+fixation-metric configuration task in the metrics explorer failed for
+both participants, isolating the dashboard's least intuitive workflow;
+every other task was completed successfully by both participants (one
+task was skipped in one session). Both participants scored the system at
+SUS 80 (``Good'', approaching
+``Excellent''~\cite{bangor2009determining}). Open answers
 converged on three concrete defects---an auto-track feature hidden in an
 overflow menu, participant IDs shown instead of names in comparisons, and
 truncated axis labels---each traceable to a specific task's logs and
@@ -289,7 +411,7 @@ answers in the report.
 \subsection{Cross-Study Reading}
 Fig.~\ref{fig:sus} contrasts the per-participant SUS scores of both
 studies against the industry benchmark. The two cohorts are comparable
-(students in their early twenties, predominantly low technical
+(young adults in their early twenties, predominantly low technical
 proficiency), yet the platform separates the two designs by more than
 fifty SUS points with non-overlapping ranges, and its task-level
 instruments explain \emph{where} each design earns its score. We take
@@ -302,11 +424,11 @@ protocol-as-template design meant the second study's considerably richer
 instrumentation (19 error codes, media questions, custom participant
 attributes) cost setup effort once rather than per session, and both
 study reports---including all charts and per-task appendices---were
-generated without manual assembly. The same integration surfaced
-platform defects the studies would otherwise have hidden: participants'
-own difficulty reports (truncated chart labels, identifier-only
-comparisons) doubled as usability feedback \emph{on the testing platform
-itself} and were fixed between studies.
+generated without manual assembly. Running real studies also stress-tested
+the platform itself: study operation exposed a row-level-security gap in
+the anonymous invitation-counter update (Section~III-D) and showed that
+evaluators under load can leave action counters untracked, both of which
+fed fixes and roadmap items back into the platform.
 
 \begin{figure}[t]
 \centering
@@ -316,42 +438,72 @@ itself} and were fixed between studies.
   ybar, bar width=7pt,
   ymin=0, ymax=100,
   ylabel={SUS score}, ylabel near ticks,
-  symbolic x coords={P1,P2,P3,P4},
+  symbolic x coords={S1-P1,S1-P2,S1-P3,S1-P4,S2-P1,S2-P2},
   xtick=data,
-  enlarge x limits=0.18,
+  xticklabels={P1,P2,P3,P4,P1,P2},
+  enlarge x limits=0.12,
   legend style={font=\scriptsize, at={(0.5,1.02)}, anchor=south,
                 legend columns=-1, draw=none},
   tick label style={font=\scriptsize},
   label style={font=\scriptsize},
 ]
-\addplot[fill=red!60] coordinates {(P1,25) (P2,40) (P3,17.5) (P4,30)};
-\addplot[fill=green!60!black] coordinates {(P1,80) (P2,80) (P3,82.5) (P4,77.5)};
+\addplot[ybar, fill=red!60]
+  coordinates {(S1-P1,25) (S1-P2,40) (S1-P3,17.5) (S1-P4,30)};
+\addplot[ybar, fill=green!60!black]
+  coordinates {(S2-P1,80) (S2-P2,80)};
 \draw[dashed, thick, gray]
-  (axis cs:P1,68) -- (axis cs:P4,68)
-  node[pos=0.03, above, font=\tiny, gray] {benchmark 68};
+  (axis cs:S1-P1,68) -- (axis cs:S2-P2,68)
+  node[pos=0.05, above, font=\tiny, gray] {benchmark 68};
 \legend{Study 1 (touch panel), Study 2 (BEHOLD)}
 \end{axis}
 \end{tikzpicture}
 \caption{Per-participant SUS scores in both case studies against the
-industry benchmark mean of 68~\cite{sauro2011practical}.}
+industry benchmark mean of 68~\cite{sauro2011practical}. Participant
+indices are per study; the two cohorts are unrelated.}
 \label{fig:sus}
 \end{figure}
 
 \section{Discussion and Limitations}
-Both studies used four participants---adequate for problem discovery
-\cite{virzi1992refining,nielsen1993mathematical} but not for statistical
-generalization of the metric values. Action and error counts are logged
-by the evaluator rather than instrumented automatically; this keeps the
-platform applicable to physical devices (study~1 evaluated hardware no
-browser can instrument) at the cost of observer load and potential
-undercounting during fast interaction bursts. SEQ and SUS are self-report
-instruments with known ceiling effects. We have not yet run a controlled
-comparison of evaluator effort against an ad-hoc toolchain or a commercial
-moderated platform; the case studies demonstrate feasibility and output
-quality, not superiority. Finally, the anonymous-participant security
-model trades open link joins for RLS policies keyed on unguessable codes;
-a formal audit of that policy surface (one gap in invitation-counter
-updates was found and fixed during study operation) is ongoing work.
+\subsection*{Construct validity}
+Action and error counts are logged by the evaluator rather than
+instrumented automatically; this keeps the platform applicable to physical
+devices (study~1 evaluated hardware no browser can instrument) at the cost
+of observer load and potential undercounting during fast interaction
+bursts, and single-observer categorization of errors has unmeasured
+inter-rater reliability. SEQ and SUS are self-report instruments with
+known ceiling effects. The optimal-path baselines that anchor the
+efficiency measures are themselves author-defined and inherit the
+protocol designer's assumptions.
+
+\subsection*{Internal validity}
+Both studies were run by a single evaluator who is also the platform's
+author; observer bias in logging and status judgments cannot be excluded.
+The two case-study cohorts, while demographically similar, attempted
+different systems with different protocols, so the cross-study SUS
+contrast (Fig.~\ref{fig:sus}) should be read as discriminative range, not
+as a controlled comparison.
+
+\subsection*{External validity}
+The samples (four participants in study~1, two in study~2) are in line
+with problem-discovery practice
+\cite{virzi1992refining,nielsen1993mathematical} but far too small for
+statistical generalization of the metric values---study~2's two
+participants in particular make its aggregate figures illustrative
+only---and both cohorts were young adults in their early twenties. More importantly for a tool paper, we have not yet
+run a controlled comparison of evaluator effort and data quality against
+an ad-hoc toolchain or a commercial moderated platform; the case studies
+demonstrate feasibility and output quality, not superiority. That
+comparison---several evaluators logging the same scripted session with
+Avalux and with a stopwatch-and-spreadsheet baseline, measured for setup
+time, logging completeness, report latency, and workload---is the
+designed next study, together with an inter-rater reliability measurement
+of the live-logging instrument.
+
+\subsection*{Security surface}
+The anonymous-participant model trades open link joins for RLS policies
+keyed on unguessable codes; a formal audit of that policy surface (one
+gap in invitation-counter updates was found and fixed during study
+operation) is ongoing work.
 
 A further practical consideration is where a hybrid design like this sits
 between the lab and the fully remote setting. Because the participant
@@ -374,17 +526,32 @@ Avalux integrates protocol definition, live moderated logging,
 participant-side questioning on the participant's own device, standardized
 instruments, analytics, and reporting into one open platform, and carried
 two complete usability studies whose results discriminated sharply between
-a poorly and a well-received design. Planned work includes a more flexible
-task model (removing the fixed simple/complex dichotomy), per-session data
-anonymization for privacy-sensitive studies, optional automatic event
-capture when the system under test is browser-based, and multi-evaluator
-observation of a single live session.
+a poorly and a well-received design.
+
+Future work proceeds on two tracks. The \emph{evaluation} track validates
+the tool itself: a counterbalanced evaluator study against a
+stopwatch-and-spreadsheet baseline (setup time, logging completeness,
+report latency, SUS and workload on the toolchain), an inter-rater
+reliability study of the live-logging instrument, and---for browser-based
+systems under test---an optional auto-instrumentation snippet whose event
+counts can be correlated against evaluator-logged counts to bound manual
+logging error. The \emph{platform} track ships features the studies
+motivated: temporal views that plot the already-timestamped error and
+hesitation events along each task's timeline, raw CSV/JSON export for
+external statistical analysis, a more flexible task model,
+\emph{retroactive} anonymization of already-collected sessions
+(complementing the prospective identity-field omission the platform
+ships today), multi-evaluator observation of a single live session, and
+localization of the participant client, whose users in both studies
+preferred answering in their native language.
 
 \section*{Availability}
-The platform is deployed at \url{https://avalux.pt}. Its database schema
-(31 SQL migrations), the seeded protocol of study~2, the in-application
-tutorial, and the report generator are versioned together with the
-application source.
+The platform is deployed at \url{https://avalux.pt}. Its source---the
+application, the database schema (31 SQL migrations), the seeded protocol
+of study~2, the in-application tutorial, and the report generator---is
+available at \textbf{[repository URL and license to be inserted before
+submission]}. Anonymized session data from the case studies is available
+on request within the limits of the participants' consent.
 
 \balance
 \bibliographystyle{IEEEtran}
