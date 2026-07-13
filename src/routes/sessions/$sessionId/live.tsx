@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer } from "@/hooks/use-sessions";
+import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
 import { TaskNavigator } from "@/components/live/task-navigator";
@@ -20,6 +21,21 @@ import type { CompletionStatus } from "@/lib/constants";
 export const Route = createFileRoute("/sessions/$sessionId/live")({
   component: LiveSessionPage,
 });
+
+// In join-code mode the participant answers each task's questions on
+// their own device after the evaluator marks it complete. True while
+// any completed task still has unanswered participant questions.
+function participantStillAnswering(
+  session: ReturnType<typeof useSession>["data"],
+): boolean {
+  if (!session?.join_code) return false;
+  return (session.task_results ?? []).some((tr) => {
+    if (!tr.completion_status) return false;
+    const qs = tr.template_tasks?.task_questions ?? [];
+    if (qs.length === 0) return false;
+    return (tr.task_question_answers?.length ?? 0) < qs.length;
+  });
+}
 
 function LiveSessionPage() {
   const { sessionId } = Route.useParams();
@@ -41,7 +57,20 @@ function LiveSessionPage() {
   const [showTaskQuestions, setShowTaskQuestions] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<CompletionStatus | null>(null);
   const [waitingForSus, setWaitingForSus] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const upsertTaskQuestionAnswer = useUpsertTaskQuestionAnswer();
+  const resetTaskResult = useResetTaskResult();
+
+  // Resume at the evaluator's persisted task pointer (once, on load)
+  const hasInitIndex = useRef(false);
+  useEffect(() => {
+    if (session && !hasInitIndex.current) {
+      hasInitIndex.current = true;
+      if (typeof session.current_task_index === "number") {
+        setCurrentTaskIndex(session.current_task_index);
+      }
+    }
+  }, [session]);
 
   // Auto-start session when observer opens live page
   const hasAutoStarted = useRef(false);
@@ -55,6 +84,30 @@ function LiveSessionPage() {
       });
     }
   }, [session, updateSession]);
+
+  // Block advancing while the participant is still answering a prior
+  // task's questions; poll so we notice the moment they finish.
+  const blockedForParticipant = participantStillAnswering(session);
+
+  useEffect(() => {
+    if (!blockedForParticipant) return;
+    const interval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["sessions", sessionId] });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [blockedForParticipant, qc, sessionId]);
+
+  const prevBlocked = useRef(false);
+  useEffect(() => {
+    if (blockedForParticipant && !prevBlocked.current) {
+      toast.info(
+        "Participant is answering the previous task's questions — please wait.",
+      );
+    } else if (!blockedForParticipant && prevBlocked.current) {
+      toast.success("Participant is ready — you can continue to the next task.");
+    }
+    prevBlocked.current = blockedForParticipant;
+  }, [blockedForParticipant]);
 
   // Poll for SUS completion when waiting
   const susCompleted = (session?.sus_answers?.length ?? 0) >= 10;
@@ -120,12 +173,14 @@ function LiveSessionPage() {
   const currentTaskResult = taskResults[currentTaskIndex];
 
   const handleComplete = (status: CompletionStatus) => {
+    if (blockedForParticipant) return;
     timer.pause();
     setPendingStatus(status);
     setShowSeq(true);
   };
 
   const handleSkip = async () => {
+    if (blockedForParticipant) return;
     timer.pause();
     if (currentTaskResult) {
       await updateTaskResult.mutateAsync({
@@ -192,11 +247,41 @@ function LiveSessionPage() {
       return;
     }
     setCurrentTaskIndex(nextIndex);
+    updateSession.mutate({ id: sessionId, current_task_index: nextIndex });
     setActionCount(0);
     setErrorCounts({});
     setHesitationCount(0);
     setPendingStatus(null);
     timer.reset();
+  };
+
+  const resetLiveCounters = () => {
+    setActionCount(0);
+    setErrorCounts({});
+    setHesitationCount(0);
+    setPendingStatus(null);
+    setShowSeq(false);
+    setShowTaskQuestions(false);
+    timer.reset();
+  };
+
+  // Go back one task. The previous task's saved result and answers
+  // are preserved in the DB; only the live counters start fresh.
+  const handlePrevious = () => {
+    const prevIndex = Math.max(0, currentTaskIndex - 1);
+    if (prevIndex === currentTaskIndex) return;
+    setCurrentTaskIndex(prevIndex);
+    updateSession.mutate({ id: sessionId, current_task_index: prevIndex });
+    resetLiveCounters();
+  };
+
+  // Wipe the current task back to unattempted (metrics, answers, logs).
+  const handleReset = async () => {
+    if (currentTaskResult) {
+      await resetTaskResult.mutateAsync(currentTaskResult.id);
+    }
+    resetLiveCounters();
+    toast.success("Task reset");
   };
 
   const handleLogError = (errorTypeId: string) => {
@@ -234,6 +319,9 @@ function LiveSessionPage() {
         currentIndex={currentTaskIndex}
         onComplete={handleComplete}
         onSkip={handleSkip}
+        onPrevious={handlePrevious}
+        onReset={() => setShowResetConfirm(true)}
+        blocked={blockedForParticipant}
       />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -266,6 +354,15 @@ function LiveSessionPage() {
           onLog={handleLogHesitation}
         />
       </div>
+
+      <ConfirmDialog
+        open={showResetConfirm}
+        onOpenChange={setShowResetConfirm}
+        title="Reset this task?"
+        description="This permanently clears the timer, action/error/hesitation counts, SEQ rating and any answers for this task. This cannot be undone."
+        confirmLabel="Reset Task"
+        onConfirm={handleReset}
+      />
 
       <SeqRating open={showSeq} onSelect={handleSeqSelect} />
       <TaskQuestionsDialog

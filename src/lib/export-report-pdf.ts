@@ -350,17 +350,113 @@ export function exportReportPdf(
         ]),
         theme: "grid",
         margin: { left: margin, right: margin },
-        styles: { fontSize: 7, cellPadding: 2 },
+        tableWidth: pageWidth - margin * 2,
+        styles: { fontSize: 7, cellPadding: 2, overflow: "linebreak" },
         headStyles: { fillColor: [60, 60, 60] },
-        columnStyles: { 0: { cellWidth: 45 } },
+        columnStyles: {
+          0: { cellWidth: 42 },
+          1: { cellWidth: 18 },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 16 },
+          6: { cellWidth: 16 },
+          7: { cellWidth: 16 },
+        },
       });
       y = (doc as any).lastAutoTable.finalY + 6;
 
+      // ── Task Questions & Answers (two-column layout) ──
+      const hasAnyAnswers = sortedResults.some((r) => r.task_question_answers.length > 0);
+      if (hasAnyAnswers) {
+        y = ensureSpace(doc, y, 30);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Task Questions & Answers", margin, y);
+        y += 6;
+
+        const colGap = 6;
+        const colW = (pageWidth - margin * 2 - colGap) / 2;
+        const colX = [margin, margin + colW + colGap];
+        let colY = [y, y]; // track y per column
+        let col = 0; // current column (0 = left, 1 = right)
+
+        for (const tr of sortedResults) {
+          if (tr.task_question_answers.length === 0) continue;
+          const questions = tr.template_tasks.task_questions ?? [];
+          if (questions.length === 0) continue;
+
+          // Estimate block height: task name + questions
+          const sortedQ = [...questions].sort((a, b) => a.sort_order - b.sort_order);
+          const answeredQ = sortedQ.filter((q) => tr.task_question_answers.find((a) => a.question_id === q.id));
+          if (answeredQ.length === 0) continue;
+
+          // Rough height estimate: title (5) + per question (8–10)
+          const estimatedH = 5 + answeredQ.length * 10;
+
+          // If current column doesn't fit, try the other column
+          const pageH = doc.internal.pageSize.getHeight() - 12;
+          if (colY[col] + estimatedH > pageH) {
+            // Try other column
+            const otherCol = 1 - col;
+            if (colY[otherCol] + estimatedH <= pageH) {
+              col = otherCol;
+            } else {
+              // Both full — new page, reset both columns
+              doc.addPage();
+              colY = [15, 15];
+              col = 0;
+            }
+          }
+
+          // Draw task name
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(99, 102, 241); // indigo accent
+          doc.text(tr.template_tasks.name, colX[col], colY[col], { maxWidth: colW });
+          colY[col] += 4;
+          doc.setTextColor(0, 0, 0);
+
+          for (const q of answeredQ) {
+            const answer = tr.task_question_answers.find((a) => a.question_id === q.id)!;
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "bold");
+            const qLines = doc.splitTextToSize(q.question_text, colW - 2);
+            doc.text(qLines, colX[col] + 1, colY[col]);
+            colY[col] += qLines.length * 3 + 0.5;
+
+            doc.setFont("helvetica", "normal");
+            let answerText = "—";
+            if (q.question_type === "rating" && answer.rating_value != null) {
+              answerText = `${answer.rating_value} / ${q.rating_max ?? 5}`;
+            } else if ((q.question_type === "single_choice" || q.question_type === "multiple_choice") && answer.selected_options) {
+              answerText = answer.selected_options.join(", ");
+            } else if (answer.answer_text) {
+              answerText = answer.answer_text;
+            } else if (q.question_type === "audio" || q.question_type === "video" || q.question_type === "photo") {
+              answerText = answer.media_url ? "[Media attached]" : "—";
+            }
+
+            const aLines = doc.splitTextToSize(answerText, colW - 2);
+            doc.text(aLines, colX[col] + 1, colY[col]);
+            colY[col] += aLines.length * 3 + 3;
+          }
+
+          colY[col] += 2; // gap between tasks
+          // Alternate columns for next task
+          col = 1 - col;
+          // But if the other column is way ahead, stay on the shorter one
+          if (colY[col] > colY[1 - col] + 15) {
+            col = 1 - col;
+          }
+        }
+
+        y = Math.max(colY[0], colY[1]) + 4;
+      }
+
       // ── Individual session charts ──
-      renderSessionCharts(doc, sortedResults, margin, pageWidth);
-      // Charts used their own page(s); start a fresh page for remaining content
-      doc.addPage();
-      y = 15;
+      y = renderSessionCharts(doc, sortedResults, margin, pageWidth, y);
     }
 
     // Error logs
@@ -511,9 +607,17 @@ function renderSessionCharts(
   taskResults: TaskResultWithRelations[],
   margin: number,
   pageWidth: number,
-) {
-  doc.addPage();
-  let y = 15;
+  startY?: number,
+): number {
+  // Need ~160mm for all charts; start new page only if not enough space
+  const needed = 170;
+  let y: number;
+  if (startY != null && startY + needed <= doc.internal.pageSize.getHeight() - 10) {
+    y = startY;
+  } else {
+    doc.addPage();
+    y = 15;
+  }
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
@@ -587,6 +691,7 @@ function renderSessionCharts(
 
   y = ensureSpace(doc, y, 80);
   drawPieChart(doc, margin + halfW / 2, y + 45, 25, pieData, "Task Completion Status");
+  return y + 80;
 }
 
 // ── Overall summary charts ──────────────────────────────────────

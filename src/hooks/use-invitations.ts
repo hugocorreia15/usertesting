@@ -67,7 +67,9 @@ export function useInvitationByCode(code: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("session_invitations")
-        .select("*, templates(*, template_tasks(*))")
+        .select(
+          "*, templates(*, template_tasks(*), template_participant_fields(*))",
+        )
         .eq("code", code!)
         .eq("is_active", true)
         .single();
@@ -90,13 +92,14 @@ interface JoinSessionInput {
     tech_proficiency?: "low" | "medium" | "high";
     notes?: string;
   };
+  custom_field_values?: { field_id: string; value: string }[];
 }
 
 export function useJoinSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: JoinSessionInput) => {
-      const { invitation, participant } = input;
+      const { invitation, participant, custom_field_values } = input;
 
       const collectsName = invitation.collected_fields.includes("name");
       const isAnonymous = !collectsName;
@@ -116,6 +119,23 @@ export function useJoinSession() {
         .select()
         .single();
       if (pErr) throw pErr;
+
+      // 1b. Persist custom template-defined participant field values
+      const filledCustom = (custom_field_values ?? []).filter(
+        (v) => v.value.trim() !== "",
+      );
+      if (filledCustom.length > 0) {
+        const { error: cfErr } = await supabase
+          .from("participant_field_values")
+          .insert(
+            filledCustom.map((v) => ({
+              participant_id: newParticipant.id,
+              field_id: v.field_id,
+              value: v.value,
+            })),
+          );
+        if (cfErr) throw cfErr;
+      }
 
       // 2. Create test session with unique join code
       const joinCode = crypto.randomUUID().slice(0, 8);

@@ -125,11 +125,11 @@ function VideoRecorder({
   const startPreview = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     streamRef.current = stream;
+    setPreviewing(true);
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
     }
-    setPreviewing(true);
   }, []);
 
   const startRecording = useCallback(() => {
@@ -175,13 +175,12 @@ function VideoRecorder({
         </div>
       ) : (
         <>
-          {previewing && (
-            <video
-              ref={videoRef}
-              muted
-              className="w-full max-h-48 rounded-md bg-black"
-            />
-          )}
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            className={`w-full max-h-48 rounded-md bg-black ${previewing ? "" : "hidden"}`}
+          />
           <div className="flex gap-2">
             {!previewing && !uploading && (
               <Button type="button" variant="outline" size="sm" onClick={startPreview}>
@@ -230,11 +229,11 @@ function PhotoCapture({
   const startPreview = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     streamRef.current = stream;
+    setPreviewing(true);
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
-      videoRef.current.play();
+      videoRef.current.play().catch(() => {});
     }
-    setPreviewing(true);
   }, []);
 
   const capture = useCallback(async () => {
@@ -272,13 +271,12 @@ function PhotoCapture({
         </div>
       ) : (
         <>
-          {previewing && (
-            <video
-              ref={videoRef}
-              muted
-              className="w-full max-h-48 rounded-md bg-black"
-            />
-          )}
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            className={`w-full max-h-48 rounded-md bg-black ${previewing ? "" : "hidden"}`}
+          />
           <div className="flex gap-2">
             {!previewing && !uploading && (
               <Button type="button" variant="outline" size="sm" onClick={startPreview}>

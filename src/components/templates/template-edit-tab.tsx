@@ -56,6 +56,18 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
         questions: data.questions
           .filter((q) => q.question_text.trim())
           .map((q, i) => ({ question_text: q.question_text, sort_order: i })),
+        participant_fields: data.participant_fields
+          .filter((f) => f.label.trim())
+          .map((f, i) => ({
+            id: f.key,
+            label: f.label.trim(),
+            field_type: f.field_type,
+            options:
+              f.field_type === "select" && f.options.length > 0
+                ? f.options
+                : null,
+            sort_order: i,
+          })),
       });
       toast.success("Template updated");
     } catch (err: unknown) {

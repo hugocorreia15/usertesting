@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel ls *)",
+      "Bash(grep -n \"media_url\\\\|questions\\\\|photo\\\\|<img\\\\|question_type\" src/routes/sessions/\\\\$sessionId/index.tsx | head -30)",
+      "Read(//home/kernaite/documents/usertesting/src/routes/sessions/$sessionId/**)",
+      "Bash(grep -n \"^import\\\\|^function\\\\|const \\\\[.*useState\" src/routes/sessions/\\\\$sessionId/index.tsx | head -25)",
+      "Bash(grep -n \"</PageWrapper>\\\\|^}\" src/routes/sessions/\\\\$sessionId/index.tsx | head -10)"
+    ]
+  }
+}

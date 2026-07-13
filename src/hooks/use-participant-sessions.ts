@@ -106,6 +106,7 @@ export interface ParticipantLiveSession {
   user_id: string;
   join_code: string | null;
   template_id: string;
+  current_task_index: number;
   task_results: ParticipantLiveTaskResult[];
   sus_answers: { id: string; question_number: number; score: number }[];
   interview_answers: { id: string; question_id: string; answer_text: string | null }[];
@@ -118,7 +119,7 @@ async function fetchParticipantSession(sessionId: string) {
   const { data, error } = await supabase
     .from("test_sessions")
     .select(
-      `id, status, user_id, join_code, template_id,
+      `id, status, user_id, join_code, template_id, current_task_index,
        templates(template_questions(id, question_text, sort_order)),
        task_results(
          id, sort_order, seq_rating, completion_status,
@@ -247,12 +248,27 @@ export function useUpdateParticipantInterviewAnswer() {
     mutationFn: async (
       input: { session_id: string; question_id: string; answer_text: string },
     ) => {
-      const { error } = await supabase
+      // Try to update the skeleton row created at join time. If it's not
+      // there (older session, or skeleton insert previously failed under
+      // RLS), .update().eq() silently affects 0 rows — answers would be
+      // lost. Detect that and insert instead.
+      const { data: updated, error: uErr } = await supabase
         .from("interview_answers")
         .update({ answer_text: input.answer_text })
         .eq("session_id", input.session_id)
-        .eq("question_id", input.question_id);
-      if (error) throw error;
+        .eq("question_id", input.question_id)
+        .select("id");
+      if (uErr) throw uErr;
+      if (!updated || updated.length === 0) {
+        const { error: iErr } = await supabase
+          .from("interview_answers")
+          .insert({
+            session_id: input.session_id,
+            question_id: input.question_id,
+            answer_text: input.answer_text,
+          });
+        if (iErr) throw iErr;
+      }
     },
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["participant-live"] }),

@@ -224,6 +224,47 @@ export function useUpdateTaskResult() {
   });
 }
 
+// Reset a task result back to its initial (unattempted) state:
+// clears metrics, deletes its answers and error/hesitation logs.
+export function useResetTaskResult() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (taskResultId: string) => {
+      const { error: aErr } = await supabase
+        .from("task_question_answers")
+        .delete()
+        .eq("task_result_id", taskResultId);
+      if (aErr) throw aErr;
+
+      const { error: eErr } = await supabase
+        .from("error_logs")
+        .delete()
+        .eq("task_result_id", taskResultId);
+      if (eErr) throw eErr;
+
+      const { error: hErr } = await supabase
+        .from("hesitation_logs")
+        .delete()
+        .eq("task_result_id", taskResultId);
+      if (hErr) throw hErr;
+
+      const { error } = await supabase
+        .from("task_results")
+        .update({
+          completion_status: null,
+          time_seconds: null,
+          action_count: null,
+          error_count: 0,
+          hesitation_count: 0,
+          seq_rating: null,
+        })
+        .eq("id", taskResultId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
 export function useCreateErrorLog() {
   const qc = useQueryClient();
   return useMutation({

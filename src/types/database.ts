@@ -44,6 +44,24 @@ export interface TemplateQuestion {
   created_at: string;
 }
 
+export interface TemplateParticipantField {
+  id: string;
+  template_id: string;
+  label: string;
+  field_type: "text" | "number" | "textarea" | "select";
+  options: string[] | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ParticipantFieldValue {
+  id: string;
+  participant_id: string;
+  field_id: string;
+  value: string | null;
+  created_at: string;
+}
+
 export interface Participant {
   id: string;
   name: string;
@@ -70,6 +88,7 @@ export interface TestSession {
   notes: string | null;
   user_id: string | null;
   join_code: string | null;
+  current_task_index: number;
   created_at: string;
 }
 
@@ -165,6 +184,7 @@ export interface TemplateWithRelations extends Template {
   template_tasks: TemplateTask[];
   template_error_types: TemplateErrorType[];
   template_questions: TemplateQuestion[];
+  template_participant_fields: TemplateParticipantField[];
 }
 
 export interface TestSessionWithRelations extends TestSession {

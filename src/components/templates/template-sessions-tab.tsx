@@ -101,7 +101,15 @@ function SessionAverages({ session }: { session: TestSessionWithRelations }) {
     );
   }
 
-  const timeTasks = results.filter((r) => r.time_seconds != null);
+  // Skipped tasks have time_seconds = 0; including them either skews
+  // avgTime or, worse, divides by zero in the efficiency formula and
+  // yields Infinity. Exclude them from both.
+  const timeTasks = results.filter(
+    (r) =>
+      r.time_seconds != null &&
+      Number(r.time_seconds) > 0 &&
+      r.completion_status !== "skipped",
+  );
   const avgTime =
     timeTasks.length > 0
       ? timeTasks.reduce((s, r) => s + Number(r.time_seconds), 0) / timeTasks.length

@@ -54,7 +54,7 @@ export function useTemplate(id: string | undefined) {
       const { data, error } = await supabase
         .from("templates")
         .select(
-          "*, task_groups(*), template_tasks(*, task_questions(*)), template_error_types(*), template_questions(*)",
+          "*, task_groups(*), template_tasks(*, task_questions(*)), template_error_types(*), template_questions(*), template_participant_fields(*)",
         )
         .eq("id", id!)
         .single();
@@ -89,6 +89,14 @@ interface TaskInput {
   task_questions?: TaskQuestionInput[];
 }
 
+interface ParticipantFieldInput {
+  id?: string;
+  label: string;
+  field_type: "text" | "number" | "textarea" | "select";
+  options: string[] | null;
+  sort_order: number;
+}
+
 interface CreateTemplateInput {
   name: string;
   description?: string;
@@ -97,6 +105,7 @@ interface CreateTemplateInput {
   tasks: TaskInput[];
   error_types: Omit<TemplateErrorType, "id" | "template_id" | "created_at">[];
   questions: Omit<TemplateQuestion, "id" | "template_id" | "created_at">[];
+  participant_fields: ParticipantFieldInput[];
 }
 
 // ── Create ──────────────────────────────────────
@@ -177,6 +186,19 @@ export function useCreateTemplate() {
         if (error) throw error;
       }
 
+      // 7. Insert participant fields
+      if (input.participant_fields.length > 0) {
+        const { error } = await supabase
+          .from("template_participant_fields")
+          .insert(
+            input.participant_fields.map(({ id: _id, ...f }) => ({
+              ...f,
+              template_id: template.id,
+            })),
+          );
+        if (error) throw error;
+      }
+
       return template as Template;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["templates"] }),
@@ -216,6 +238,10 @@ export function useUpdateTemplate() {
 
       // 5. Sync interview questions (simple delete + insert)
       await syncQuestions(input.id, input.questions);
+
+      // 6. Sync participant fields (upsert + delete removed, to
+      //    preserve participant_field_values FK references)
+      await syncParticipantFields(input.id, input.participant_fields);
     },
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ["templates"] });
@@ -343,6 +369,44 @@ async function syncQuestions(
     const { error } = await supabase
       .from("template_questions")
       .insert(questions.map((q) => ({ ...q, template_id: templateId })));
+    if (error) throw error;
+  }
+}
+
+async function syncParticipantFields(
+  templateId: string,
+  fields: ParticipantFieldInput[],
+) {
+  if (fields.length > 0) {
+    const { error } = await supabase
+      .from("template_participant_fields")
+      .upsert(
+        fields.map((f) => ({
+          id: f.id,
+          template_id: templateId,
+          label: f.label,
+          field_type: f.field_type,
+          options: f.options,
+          sort_order: f.sort_order,
+        })),
+      );
+    if (error) throw error;
+  }
+
+  // Delete fields no longer present (cascades to participant_field_values)
+  const keepIds = fields.map((f) => f.id).filter(Boolean);
+  const { data: existing } = await supabase
+    .from("template_participant_fields")
+    .select("id")
+    .eq("template_id", templateId);
+  const toDelete = (existing ?? [])
+    .filter((f) => !keepIds.includes(f.id))
+    .map((f) => f.id);
+  if (toDelete.length > 0) {
+    const { error } = await supabase
+      .from("template_participant_fields")
+      .delete()
+      .in("id", toDelete);
     if (error) throw error;
   }
 }

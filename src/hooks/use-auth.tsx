@@ -99,6 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (signUpError) throw signUpError;
 
+    // Supabase anti-enumeration: if the email is already registered it
+    // returns an obfuscated dummy user (no error) with an empty
+    // `identities` array and a fabricated id. Linking that fake id would
+    // violate the participants.auth_user_id FK (→ 409). Bail out clearly.
+    if ((signUpData.user?.identities?.length ?? 0) === 0) {
+      throw new Error(
+        "This email already has an account and can't be invited again. Use a different email for this participant.",
+      );
+    }
+
     const newUserId = signUpData.user?.id;
     if (!newUserId) throw new Error("Failed to create participant account");
 

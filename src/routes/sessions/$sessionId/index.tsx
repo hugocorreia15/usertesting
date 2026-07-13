@@ -71,6 +71,7 @@ function SessionDetailPage() {
   const { sessionId } = Route.useParams();
   const navigate = useNavigate();
   const { data: session, isLoading } = useSession(sessionId);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
@@ -251,7 +252,18 @@ function SessionDetailPage() {
                                     ))}
                                   {q.question_type === "photo" &&
                                     (answer.media_url ? (
-                                      <img src={answer.media_url} alt="Captured" className="mt-1 w-full max-h-48 rounded-md object-cover" />
+                                      <button
+                                        type="button"
+                                        onClick={() => setLightboxUrl(answer.media_url!)}
+                                        className="mt-1 block w-full overflow-hidden rounded-md transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary"
+                                        aria-label="Open photo"
+                                      >
+                                        <img
+                                          src={answer.media_url}
+                                          alt="Captured"
+                                          className="w-full max-h-48 object-cover cursor-zoom-in"
+                                        />
+                                      </button>
                                     ) : (
                                       "No photo captured"
                                     ))}
@@ -418,6 +430,21 @@ function SessionDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!lightboxUrl} onOpenChange={(open) => !open && setLightboxUrl(null)}>
+        <DialogContent className="max-w-4xl p-2 sm:p-4">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Photo answer</DialogTitle>
+          </DialogHeader>
+          {lightboxUrl && (
+            <img
+              src={lightboxUrl}
+              alt="Photo answer"
+              className="max-h-[80vh] w-full rounded-md object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </PageWrapper>
   );
 }

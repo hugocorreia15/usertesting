@@ -58,6 +58,7 @@ function JoinPage() {
 
   const joinSession = useJoinSession();
   const [saving, setSaving] = useState(false);
+  const [customValues, setCustomValues] = useState<Record<string, string>>({});
 
   const {
     register,
@@ -146,6 +147,9 @@ function JoinPage() {
             (data.tech_proficiency as "low" | "medium" | "high") || undefined,
           notes: data.notes || undefined,
         },
+        custom_field_values: Object.entries(customValues).map(
+          ([field_id, value]) => ({ field_id, value }),
+        ),
       });
       navigate({
         to: "/join/$code",
@@ -161,6 +165,9 @@ function JoinPage() {
   };
 
   const hasAnyField = fields.length > 0;
+  const customFields = [...(template.template_participant_fields ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pt-12">
@@ -288,6 +295,66 @@ function JoinPage() {
                   />
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {customFields.length > 0 && (
+          <Card className="mt-4 bg-transparent backdrop-blur-md">
+            <CardHeader>
+              <CardTitle className="text-lg">Additional Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {customFields.map((field) => (
+                  <div key={field.id} className="space-y-2">
+                    <Label>{field.label}</Label>
+                    {field.field_type === "textarea" ? (
+                      <Textarea
+                        rows={3}
+                        value={customValues[field.id] ?? ""}
+                        onChange={(e) =>
+                          setCustomValues((v) => ({
+                            ...v,
+                            [field.id]: e.target.value,
+                          }))
+                        }
+                      />
+                    ) : field.field_type === "select" ? (
+                      <Select
+                        value={customValues[field.id] ?? ""}
+                        onValueChange={(val) =>
+                          setCustomValues((v) => ({ ...v, [field.id]: val }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(field.options ?? []).map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        type={
+                          field.field_type === "number" ? "number" : "text"
+                        }
+                        value={customValues[field.id] ?? ""}
+                        onChange={(e) =>
+                          setCustomValues((v) => ({
+                            ...v,
+                            [field.id]: e.target.value,
+                          }))
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

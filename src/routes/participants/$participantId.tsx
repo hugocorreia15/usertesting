@@ -5,6 +5,7 @@ import {
   ParticipantForm,
   type ParticipantFormData,
 } from "@/components/participants/participant-form";
+import { ParticipantCustomFields } from "@/components/participants/participant-custom-fields";
 import {
   useParticipant,
   useUpdateParticipant,
@@ -120,6 +121,8 @@ function ParticipantDetailPage() {
         onSubmit={handleSubmit}
         submitLabel="Save Changes"
       />
+
+      <ParticipantCustomFields participantId={participantId} />
 
       {sessions && sessions.length > 0 && (
         <Card className="bg-transparent backdrop-blur-md">

@@ -18,6 +18,10 @@ import {
   QuestionEditor,
   type QuestionItem,
 } from "@/components/templates/question-editor";
+import {
+  ParticipantFieldEditor,
+  type ParticipantFieldItem,
+} from "@/components/templates/participant-field-editor";
 import type { TemplateWithRelations, TemplateTaskWithQuestions } from "@/types";
 import { toast } from "sonner";
 
@@ -35,6 +39,7 @@ export interface TemplateFormData {
   tasks: TaskItem[];
   error_types: ErrorTypeItem[];
   questions: QuestionItem[];
+  participant_fields: ParticipantFieldItem[];
 }
 
 export function TemplateForm({
@@ -98,6 +103,19 @@ export function TemplateForm({
       sort_order: q.sort_order,
     })) ?? [],
   );
+  const [participantFields, setParticipantFields] = useState<
+    ParticipantFieldItem[]
+  >(
+    [...(initial?.template_participant_fields ?? [])]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((f) => ({
+        key: f.id,
+        label: f.label,
+        field_type: f.field_type,
+        options: (f.options as string[]) ?? [],
+        sort_order: f.sort_order,
+      })),
+  );
   const [isPublic, setIsPublic] = useState(initial?.is_public ?? false);
   const [saving, setSaving] = useState(false);
 
@@ -117,6 +135,7 @@ export function TemplateForm({
         tasks,
         error_types: errorTypes,
         questions,
+        participant_fields: participantFields,
       });
     } finally {
       setSaving(false);
@@ -200,6 +219,18 @@ export function TemplateForm({
         </CardHeader>
         <CardContent>
           <QuestionEditor items={questions} onChange={setQuestions} />
+        </CardContent>
+      </Card>
+
+      <Card className="bg-transparent backdrop-blur-md">
+        <CardHeader>
+          <CardTitle>Participant Fields</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ParticipantFieldEditor
+            items={participantFields}
+            onChange={setParticipantFields}
+          />
         </CardContent>
       </Card>
 

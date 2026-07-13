@@ -137,7 +137,16 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   );
   const interviewAnswers = session.interview_answers ?? [];
   const hasInterviewQuestions = interviewQuestions.length > 0;
-  const allInterviewAnswered = interviewAnswers.every((a) => a.answer_text) || interviewDone;
+  // Check each question has a non-empty answer. `interviewAnswers.every`
+  // returns true on an empty array, which was previously skipping the
+  // whole interview step whenever no skeleton rows were visible.
+  const allInterviewAnswered =
+    interviewDone ||
+    (hasInterviewQuestions &&
+      interviewQuestions.every((q) => {
+        const a = interviewAnswers.find((x) => x.question_id === q.id);
+        return !!a?.answer_text;
+      }));
 
   const handleSusSubmit = async (
     answers: { question_number: number; score: number }[],
@@ -186,6 +195,48 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
           submitting={createSusAnswers.isPending}
         />
       );
+    }
+
+    // Session in progress: surface the task the evaluator is currently
+    // running so the participant can read it without the evaluator
+    // narrating. Follows the evaluator's persisted current_task_index.
+    if (session.status === "in_progress") {
+      const activeTask =
+        taskResults[session.current_task_index] ??
+        taskResults.find((tr) => !tr.completion_status);
+      if (activeTask) {
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">
+                  Task {activeTask.sort_order + 1} of {totalTasks}
+                </p>
+                <h2 className="text-xl font-semibold">
+                  {activeTask.template_tasks.name}
+                </h2>
+                {activeTask.template_tasks.description && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {activeTask.template_tasks.description}
+                  </p>
+                )}
+              </div>
+              <Badge variant="secondary">
+                {completedByObserver}/{totalTasks} done
+              </Badge>
+            </div>
+            <Card className="mx-auto bg-transparent backdrop-blur-md">
+              <CardContent className="flex flex-col items-center gap-3 pt-6">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <p className="text-center text-sm text-muted-foreground">
+                  Work through this task. Questions will appear here once the
+                  evaluator marks it complete.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      }
     }
 
     // Waiting for observer to finish more tasks

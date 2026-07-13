@@ -47,7 +47,17 @@ function makeTask(groupKey: string, order: number): TaskItem {
     optimal_time_seconds: "",
     optimal_actions: "",
     sort_order: order,
-    task_questions: [],
+    task_questions: [
+      {
+        key: crypto.randomUUID(),
+        question_text: "Notes",
+        question_type: "open",
+        options: [],
+        rating_min: "1",
+        rating_max: "5",
+        sort_order: 0,
+      },
+    ],
   };
 }
 
@@ -143,12 +153,16 @@ export function TaskListEditor({ groups, onGroupsChange, tasks, onChange }: Task
           Create a task group to start adding tasks.
         </p>
       ) : (
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0">
+        <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5">
             {groups.map((group) => {
               const count = tasks.filter((t) => t.group_key === group.key).length;
               return (
-                <TabsTrigger key={group.key} value={group.key} className="gap-1.5">
+                <TabsTrigger
+                  key={group.key}
+                  value={group.key}
+                  className="min-w-[11rem] justify-between gap-1.5 rounded-md border border-border bg-background/40 data-[state=active]:border-primary/40 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
                   {editingGroup === group.key ? (
                     <div onClick={(e) => e.stopPropagation()}>
                       <Input
