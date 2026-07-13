@@ -37,6 +37,7 @@ import {
   CHART_MARGIN,
   TOP_LEGEND_PROPS,
   PolarTick,
+  ChartScroll,
 } from "@/components/charts/chart-axis";
 import { useSession, useDeleteSession } from "@/hooks/use-sessions";
 import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
@@ -676,7 +677,7 @@ function SessionCharts({
               <CardTitle>SEQ Ratings per Task</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
+              <ChartScroll><ResponsiveContainer width="100%" height={280}>
                 <BarChart data={seqData} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis {...TASK_AXIS_PROPS} />
@@ -689,7 +690,7 @@ function SessionCharts({
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer></ChartScroll>
             </CardContent>
           </Card>
         )}
@@ -702,7 +703,7 @@ function SessionCharts({
             <CardTitle>Time vs Optimal (seconds)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={timeData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -722,7 +723,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></ChartScroll>
           </CardContent>
         </Card>
 
@@ -731,7 +732,7 @@ function SessionCharts({
             <CardTitle>Actions vs Optimal</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={actionData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -751,7 +752,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></ChartScroll>
           </CardContent>
         </Card>
       </div>
@@ -763,7 +764,7 @@ function SessionCharts({
             <CardTitle>Errors & Hesitations per Task</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={issuesData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -783,7 +784,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></ChartScroll>
           </CardContent>
         </Card>
 
@@ -793,7 +794,7 @@ function SessionCharts({
               <CardTitle>Errors by Task</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartScroll><ResponsiveContainer width="100%" height={300}>
                 <BarChart
                   data={taskResults
                     .filter((tr) => tr.error_count > 0)
@@ -814,7 +815,7 @@ function SessionCharts({
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer></ChartScroll>
             </CardContent>
           </Card>
         )}

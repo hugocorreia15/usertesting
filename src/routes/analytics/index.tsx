@@ -38,6 +38,7 @@ import {
   TASK_AXIS_PROPS,
   CHART_MARGIN,
   TOP_LEGEND_PROPS,
+  ChartScroll,
 } from "@/components/charts/chart-axis";
 
 export const Route = createFileRoute("/analytics/")({
@@ -186,7 +187,7 @@ function AnalyticsPage() {
               <CardTitle>Task Completion</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ChartScroll><ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.taskCompletion} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis {...TASK_AXIS_PROPS} />
@@ -216,7 +217,7 @@ function AnalyticsPage() {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
+              </ResponsiveContainer></ChartScroll>
             </CardContent>
           </Card>
 
@@ -227,7 +228,7 @@ function AnalyticsPage() {
                 <CardTitle>Time per Task (seconds)</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -247,7 +248,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer></ChartScroll>
               </CardContent>
             </Card>
 
@@ -256,7 +257,7 @@ function AnalyticsPage() {
                 <CardTitle>Actions per Task</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -276,7 +277,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer></ChartScroll>
               </CardContent>
             </Card>
           </div>
@@ -322,7 +323,7 @@ function AnalyticsPage() {
                 <CardTitle>Errors by Task</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.errorsByTask} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -335,7 +336,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer></ChartScroll>
               </CardContent>
             </Card>
           </div>

@@ -65,6 +65,17 @@ export const TASK_AXIS_PROPS = {
   tick: <AngledTick />,
 } as const;
 
+// Task charts keep every tick; on narrow screens the chart scrolls
+// horizontally instead of decimating labels (same convention as the
+// app's tables). No visual change above the min width.
+export function ChartScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[560px]">{children}</div>
+    </div>
+  );
+}
+
 export const CHART_MARGIN = { top: 4, right: 16, bottom: 4, left: 0 };
 
 export const TOP_LEGEND_PROPS = {
