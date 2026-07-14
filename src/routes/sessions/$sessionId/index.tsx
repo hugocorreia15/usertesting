@@ -458,7 +458,10 @@ function SessionDetailPage() {
       </Tabs>
 
       <Dialog open={!!lightboxUrl} onOpenChange={(open) => !open && setLightboxUrl(null)}>
-        <DialogContent className="max-w-4xl p-2 sm:p-4">
+        <DialogContent
+          className="max-w-4xl p-2 sm:p-4"
+          aria-describedby={undefined}
+        >
           <DialogHeader className="sr-only">
             <DialogTitle>Photo answer</DialogTitle>
           </DialogHeader>

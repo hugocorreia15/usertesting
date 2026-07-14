@@ -47,7 +47,10 @@ export function HelpScreenshot({
       </figure>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-5xl p-2 sm:p-4">
+        <DialogContent
+          className="max-w-5xl p-2 sm:p-4"
+          aria-describedby={undefined}
+        >
           <DialogHeader className="sr-only">
             <DialogTitle>{alt}</DialogTitle>
           </DialogHeader>
