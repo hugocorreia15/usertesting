@@ -47,8 +47,20 @@ import {
 import { EventTimeline } from "@/components/charts/event-timeline";
 import { scoreTlx, scoreUeqS } from "@/lib/instruments";
 import type { TaskResultWithRelations, InstrumentAnswer } from "@/types";
-import { useSession, useDeleteSession } from "@/hooks/use-sessions";
-import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
+import {
+  useSession,
+  useDeleteSession,
+  useAnonymizeSession,
+} from "@/hooks/use-sessions";
+import {
+  PenLine,
+  Play,
+  Copy,
+  Check,
+  Trash2,
+  Loader2,
+  ShieldOff,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -121,6 +133,10 @@ function SessionDetailPage() {
               Edit Data
             </Link>
           </Button>
+          {session.status === "completed" &&
+            session.participants?.is_anonymous !== true && (
+              <AnonymizeSessionDialog sessionId={sessionId} />
+            )}
           <DeleteSessionDialog
             sessionId={sessionId}
             onDeleted={() => navigate({ to: "/sessions" })}
@@ -621,6 +637,67 @@ function JoinCodeBanner({ joinCode }: { joinCode: string }) {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+// Retroactive anonymization: identity lives on the participants row,
+// so this affects ALL of the participant's sessions. Irreversible.
+function AnonymizeSessionDialog({ sessionId }: { sessionId: string }) {
+  const [open, setOpen] = useState(false);
+  const anonymizeSession = useAnonymizeSession();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <ShieldOff className="mr-2 h-4 w-4" />
+          Anonymize
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Anonymize this participant?</DialogTitle>
+          <DialogDescription>
+            This replaces the participant's name with a random identifier
+            and removes their email, notes and custom field values across
+            ALL of their sessions. Demographics (age, gender, occupation,
+            tech proficiency) and all metrics are kept. This action cannot
+            be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={anonymizeSession.isPending}
+            onClick={async () => {
+              try {
+                await anonymizeSession.mutateAsync(sessionId);
+                toast.success("Participant anonymized");
+                setOpen(false);
+              } catch (err) {
+                toast.error(
+                  err instanceof Error
+                    ? err.message
+                    : "Failed to anonymize participant",
+                );
+              }
+            }}
+          >
+            {anonymizeSession.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Anonymizing...
+              </>
+            ) : (
+              "Anonymize"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

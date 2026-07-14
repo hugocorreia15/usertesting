@@ -70,23 +70,17 @@ Everything in the former Next tier shipped (N1–N6), as did L3 (SUS
 confidence intervals, incl. in the paper). Remaining items, re-planned
 with scope and acceptance criteria, in recommended order:
 
-### P2.1 README rewrite + repository license  *(hours — gates the paper)*
-Replace the stale CRA boilerplate README with: what Avalux is, features,
-screenshots (reuse public/help/), local setup (Supabase env vars,
-migrations), test/CI, deploy notes. Pick a license (MIT or AGPL — AGPL
-if you want derivatives to stay open) and add LICENSE.
-**Accept:** paper's Availability section can cite the repo URL + license
-with no placeholder. **Paper:** fills the [repository URL and license]
-TODO.
+### P2.1 README rewrite + repository license — SHIPPED
+README rewritten (features, stack, setup, testing, deployment, research
+context); MIT LICENSE added; paper Availability cites the public repo
+URL + license with no placeholder remaining.
 
-### P2.2 Retroactive session anonymization  *(small — ROADMAP 2.2)*
-One-click "Anonymize session" on completed sessions: unlink/replace
-participant identity (name → Participant-XXXX, email/notes nulled,
-custom field values wiped) while keeping demographics + metrics; RPC +
-confirm dialog; irreversible warning.
-**Accept:** after anonymizing, no query as evaluator returns the
-participant's name/email for that session; metrics unchanged.
-**Paper:** Future Work item → shipped; strengthens §Security Model.
+### P2.2 Retroactive session anonymization — SHIPPED
+anonymize_session RPC (migration 036, owner-only SECURITY DEFINER):
+name becomes Participant-XXXX, email/notes/custom field values removed
+across all the participant's sessions, demographics + metrics kept;
+Anonymize button with confirm dialog on completed sessions. Documented
+in the paper's Security Model.
 
 ### P2.3 Practice-task flag  *(small)*
 `is_practice` on template_tasks + editor toggle; excluded from ALL

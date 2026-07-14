@@ -108,10 +108,14 @@ seeds, and report generator are versioned with the application source.
 \section{System Design}
 
 \subsection{Architecture}
-Avalux is a React single-page application (TanStack Router, Tailwind,
-Recharts) served statically from a CDN, with all persistent state in a
-hosted Postgres instance accessed through PostgREST and secured by
-row-level security (RLS) policies (Fig.~\ref{fig:arch}). Three backend
+Avalux is a TypeScript React single-page application (React~19 with
+TanStack Router and Query, Tailwind~CSS, shadcn/ui components, and
+Recharts visualizations, built with Vite) served statically from a CDN
+(Vercel), with all persistent state in a hosted Postgres instance
+(Supabase) accessed through PostgREST and secured by row-level security
+(RLS) policies (Fig.~\ref{fig:arch}). Reports are rendered client-side
+with jsPDF, and the codebase is exercised by a unit test suite (Vitest)
+run on every push through continuous integration (GitHub Actions). Three backend
 primitives carry the design: (i)~\emph{RLS dual-role security}: evaluator
 rows are scoped to their authenticated account, while participants operate
 anonymously, authorized per session through unguessable join codes checked
@@ -156,14 +160,24 @@ label, e.g.\ \emph{WB, wrong button}); \emph{per-task questions} of seven
 types (open text, single and multiple choice, rating, audio, video,
 photo); a semi-structured \emph{interview script}; and \emph{participant
 fields}: extra attributes such as handedness or vision correction that
-the study collects per participant. A \emph{session} instantiates a
+the study collects per participant. Templates also select the
+post-session instruments a study administers: the SUS is always on, and
+studies can add the unweighted (raw) NASA-TLX workload
+scale~\cite{hart2006nasatlx} and the eight-item UEQ-S user experience
+questionnaire~\cite{schrepp2017ueqs}. A \emph{session} instantiates a
 template for one participant and accumulates per-task results (status,
 time, action count, error and hesitation logs with timestamps, SEQ),
-question answers, interview answers, and the ten SUS item scores.
+question answers, interview answers, and the item scores of every
+administered instrument.
 Participants can be enrolled directly, through single-use personal links,
 or through shared links that spawn one session per respondent, with
 configurable collection (or omission, for anonymous participation) of
-identity fields.
+identity fields. Task presentation order is a per-session strategy chosen
+at creation: the template's fixed order, an independent random shuffle,
+or Latin-square rotation in which consecutive sessions rotate the
+starting task so that every task occupies every position equally often
+across the cohort; the strategy is recorded on the session and stated in
+its report.
 
 \subsection{Live Session and Synchronization}
 During a session the evaluator's cockpit drives the protocol
@@ -242,7 +256,11 @@ them produces unbounded efficiency values), and the SUS score with its
 adjective band~\cite{brooke1996sus,bangor2009determining}. Cross-session
 SUS summaries are accompanied by two-sided 95\% confidence intervals
 computed with the $t$-distribution, following the small-sample
-recommendation of Sauro and Lewis~\cite{sauro2016quantifying}.
+recommendation of Sauro and Lewis~\cite{sauro2016quantifying}. When a
+template administers them, raw NASA-TLX is scored as the unweighted mean
+of its six subscales~\cite{hart2006nasatlx} and UEQ-S as pragmatic,
+hedonic, and overall means on the $-3$ to $+3$
+scale~\cite{schrepp2017ueqs}.
 Distributions, efficiency ratios, and SUS scores are computed at display
 time from the stored task results; per-task error, hesitation, and action
 counts are persisted when the task completes, alongside the individual
@@ -273,19 +291,34 @@ model survived two studies without an application server, though it
 requires discipline: one gap, a missing anonymous update policy on
 invitation counters, which silently aborted link joins after the
 participant row was already created, was found during operation and is
-now covered by a regression migration. Studies that must avoid personal
-data can disable identity collection entirely, producing anonymous
-participant records that never join the evaluator's roster.
+now covered by a regression migration. Participant media (photo, audio,
+and video answers) lives in a private bucket and is served exclusively
+through short-lived signed URLs, so a leaked link expires instead of
+exposing a recording permanently; deleting a session also deletes its
+stored media. Studies that must avoid personal data can disable identity
+collection entirely, producing anonymous participant records that never
+join the evaluator's roster, and a completed session's participant can be
+anonymized retroactively (identity replaced, contact details and custom
+attributes removed, demographics and metrics kept). Operational error
+monitoring follows the same stance: only uncaught exceptions are
+reported, tagged with opaque session identifiers, with no session
+replays, no performance traces, and no request payloads.
 
 \subsection{Analysis and Reporting}
 Session dashboards chart completion status, time and action counts against
 the template's optimal baselines, error and hesitation distributions, SEQ
 per task, and a normalized per-task performance radar
-(Fig.~\ref{fig:dash}); template-level analytics aggregate all completed
+(Fig.~\ref{fig:dash}); per-task event timelines plot each logged error
+and hesitation at its within-task timestamp, showing \emph{when} inside a
+task problems clustered; template-level analytics aggregate all completed
 sessions. A one-click export renders a self-contained PDF report
-(participant demographics, per-task tables, charts, logs, interview
-answers, and SUS breakdown with cross-session comparison), replacing the
-manual assembly step that typically follows moderated studies.
+(participant demographics, per-task tables, charts, timelines, logs,
+interview answers, and questionnaire breakdowns with cross-session
+comparison), replacing the manual assembly step that typically follows
+moderated studies. For external statistical analysis, every measurement a
+study produced can also be exported as raw flat tables (CSV or JSON):
+sessions, task results with baselines, timestamped event logs, question
+answers, and per-item questionnaire scores.
 
 \subsection{Design Notes}
 Two design decisions proved more consequential than expected. First,
@@ -539,23 +572,22 @@ report latency, SUS and workload on the toolchain), an inter-rater
 reliability study of the live-logging instrument, and, for browser-based
 systems under test, an optional auto-instrumentation snippet whose event
 counts can be correlated against evaluator-logged counts to bound manual
-logging error. The \emph{platform} track ships features the studies
-motivated: temporal views that plot the already-timestamped error and
-hesitation events along each task's timeline, raw CSV/JSON export for
-external statistical analysis, a more flexible task model,
-\emph{retroactive} anonymization of already-collected sessions
-(complementing the prospective identity-field omission the platform
-ships today), multi-evaluator observation of a single live session, and
+logging error. The \emph{platform} track continues with a more flexible
+task model, multi-evaluator observation of a single live session, and
 localization of the participant client, whose users in both studies
-preferred answering in their native language.
+preferred answering in their native language; the event timelines, raw
+data export, order counterbalancing, additional questionnaires, and
+retroactive anonymization described in Section~III were themselves
+motivated by the two studies and shipped since they concluded.
 
 \section*{Availability}
 The platform is deployed at \url{https://avalux.pt}. Its source, comprising the
-application, the database schema (35 SQL migrations), the seeded protocol
+application, the database schema (36 SQL migrations), the seeded protocol
 of study~2, the in-application tutorial, and the report generator, is
-available at \textbf{[repository URL and license to be inserted before
-submission]}. Anonymized session data from the case studies is available
-on request within the limits of the participants' consent.
+available under the MIT license at
+\url{https://github.com/hugocorreia15/usertesting}. Anonymized session
+data from the case studies is available on request within the limits of
+the participants' consent.
 
 \balance
 \bibliographystyle{IEEEtran}

@@ -479,3 +479,24 @@ export function useDeleteSession() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
   });
 }
+
+// Retroactive anonymization (036 RPC): replaces the participant's name
+// with a random identifier and removes email, notes and custom field
+// values. Identity lives on the participants row, so this affects ALL
+// of the participant's sessions; demographics and metrics are kept.
+// Irreversible.
+export function useAnonymizeSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const { error } = await supabase.rpc("anonymize_session", {
+        p_session_id: sessionId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["sessions"] });
+      qc.invalidateQueries({ queryKey: ["participants"] });
+    },
+  });
+}
