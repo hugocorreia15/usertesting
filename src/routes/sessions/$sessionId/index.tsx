@@ -44,6 +44,8 @@ import {
   SignedVideo,
   SignedImage,
 } from "@/components/media/signed-media";
+import { EventTimeline } from "@/components/charts/event-timeline";
+import type { TaskResultWithRelations } from "@/types";
 import { useSession, useDeleteSession } from "@/hooks/use-sessions";
 import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
 import {
@@ -202,6 +204,8 @@ function SessionDetailPage() {
                 </TableBody>
               </Table>
             </div>
+
+            <EventTimelines taskResults={taskResults} />
 
             <SessionCharts taskResults={taskResults} />
           </div>
@@ -458,6 +462,59 @@ function SessionDetailPage() {
         </DialogContent>
       </Dialog>
     </PageWrapper>
+  );
+}
+
+// Timeline strips for tasks that logged events: where within each task
+// the errors (red diamonds) and hesitations (amber dots) occurred.
+function EventTimelines({
+  taskResults,
+}: {
+  taskResults: TaskResultWithRelations[];
+}) {
+  const withEvents = taskResults.filter(
+    (tr) => tr.error_logs.length > 0 || tr.hesitation_logs.length > 0,
+  );
+  if (withEvents.length === 0) return null;
+
+  return (
+    <Card className="bg-transparent backdrop-blur-md">
+      <CardHeader>
+        <CardTitle>Event Timeline</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          <span className="mr-3 inline-flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rotate-45 bg-red-500" /> Error
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />{" "}
+            Hesitation
+          </span>
+          {" — hover a marker for details"}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {withEvents.map((tr) => (
+          <div key={tr.id} className="grid items-center gap-2 sm:grid-cols-[220px_1fr]">
+            <p className="truncate text-sm" title={tr.template_tasks.name}>
+              {tr.template_tasks.name}
+            </p>
+            <EventTimeline
+              durationSeconds={
+                tr.time_seconds != null ? Number(tr.time_seconds) : null
+              }
+              errors={tr.error_logs.map((e) => ({
+                t: e.timestamp_seconds != null ? Number(e.timestamp_seconds) : null,
+                label: e.description,
+              }))}
+              hesitations={tr.hesitation_logs.map((h) => ({
+                t: h.timestamp_seconds != null ? Number(h.timestamp_seconds) : null,
+                label: h.note,
+              }))}
+            />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 

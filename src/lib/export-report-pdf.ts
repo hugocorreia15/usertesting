@@ -457,6 +457,8 @@ export function exportReportPdf(
 
       // ── Individual session charts ──
       y = renderSessionCharts(doc, sortedResults, margin, pageWidth, y);
+
+      y = drawEventTimelines(doc, sortedResults, margin, pageWidth, y);
     }
 
     // Error logs
@@ -601,6 +603,86 @@ export function exportReportPdf(
 }
 
 // ── Per-session charts ──────────────────────────────────────
+
+// Per-task event timeline: a horizontal track with error (diamond) and
+// hesitation (dot) markers at their within-task timestamps.
+function drawEventTimelines(
+  doc: jsPDF,
+  taskResults: TaskResultWithRelations[],
+  margin: number,
+  pageWidth: number,
+  startY: number,
+): number {
+  const withEvents = taskResults.filter(
+    (r) => r.error_logs.length > 0 || r.hesitation_logs.length > 0,
+  );
+  if (withEvents.length === 0) return startY;
+
+  let y = ensureSpace(doc, startY, 20 + withEvents.length * 9);
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text("Event Timeline", margin, y);
+  doc.setFontSize(6);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120);
+  doc.text("error = diamond, hesitation = dot", margin + 32, y);
+  doc.setTextColor(0);
+  y += 5;
+
+  const labelW = 55;
+  const trackX = margin + labelW;
+  const trackW = pageWidth - margin - trackX - 12;
+
+  for (const r of withEvents) {
+    y = ensureSpace(doc, y, 9);
+    const events = [
+      ...r.error_logs.map((e) => ({ t: e.timestamp_seconds, kind: "e" as const })),
+      ...r.hesitation_logs.map((h) => ({ t: h.timestamp_seconds, kind: "h" as const })),
+    ];
+    const maxEvent = events.reduce(
+      (m, ev) => (ev.t != null && Number(ev.t) > m ? Number(ev.t) : m),
+      0,
+    );
+    const duration = Math.max(
+      r.time_seconds != null ? Number(r.time_seconds) : 0,
+      maxEvent,
+      1,
+    );
+
+    doc.setFontSize(6.5);
+    const name =
+      r.template_tasks.name.length > 32
+        ? r.template_tasks.name.substring(0, 31) + "…"
+        : r.template_tasks.name;
+    doc.text(name, margin, y + 1);
+
+    doc.setDrawColor(180);
+    doc.setLineWidth(0.4);
+    doc.line(trackX, y, trackX + trackW, y);
+    doc.setFontSize(5);
+    doc.setTextColor(140);
+    doc.text("0s", trackX, y + 3.5);
+    doc.text(`${duration.toFixed(0)}s`, trackX + trackW, y + 3.5, { align: "right" });
+    doc.setTextColor(0);
+
+    for (const ev of events) {
+      if (ev.t == null) continue;
+      const frac = Math.min(1, Math.max(0, Number(ev.t) / duration));
+      const x = trackX + frac * trackW;
+      if (ev.kind === "e") {
+        doc.setFillColor(239, 68, 68);
+        // diamond
+        doc.triangle(x, y - 1.6, x + 1.6, y, x, y + 1.6, "F");
+        doc.triangle(x, y - 1.6, x - 1.6, y, x, y + 1.6, "F");
+      } else {
+        doc.setFillColor(245, 158, 11);
+        doc.circle(x, y, 1.2, "F");
+      }
+    }
+    y += 8;
+  }
+  return y + 3;
+}
 
 function renderSessionCharts(
   doc: jsPDF,
