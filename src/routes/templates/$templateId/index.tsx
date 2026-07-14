@@ -8,11 +8,18 @@ import { useTemplate, useDeleteTemplate } from "@/hooks/use-templates";
 import { useSessionsByTemplateWithRelations, useSessionsRealtime } from "@/hooks/use-sessions";
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
 import { exportReportPdf } from "@/lib/export-report-pdf";
+import { exportDataZip, exportDataJson } from "@/lib/export-data";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TemplateOverviewTab } from "@/components/templates/template-overview-tab";
 import { TemplateSessionsTab } from "@/components/templates/template-sessions-tab";
 import { TemplateParticipantsTab } from "@/components/templates/template-participants-tab";
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
-import { Download, FileBarChart, Trash2, Plus } from "lucide-react";
+import { Download, FileBarChart, Trash2, Plus, Database } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/templates/$templateId/")({
@@ -51,6 +58,19 @@ function TemplateDetailPage() {
     }
   };
 
+  const handleExportData = (format: "csv" | "json") => {
+    if (!template || !sessions || sessions.length === 0) {
+      toast.info("No sessions to export");
+      return;
+    }
+    try {
+      if (format === "csv") exportDataZip(template, sessions);
+      else exportDataJson(template, sessions);
+    } catch {
+      toast.error("Failed to export data");
+    }
+  };
+
   if (templateLoading)
     return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!template)
@@ -82,6 +102,22 @@ function TemplateDetailPage() {
             <FileBarChart className="mr-2 h-4 w-4" />
             {exportingReport ? "Exporting..." : "Export Report"}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Database className="mr-2 h-4 w-4" />
+                Export Data
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExportData("csv")}>
+                CSV tables (.zip)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportData("json")}>
+                JSON (single file)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </>
       }
     >
