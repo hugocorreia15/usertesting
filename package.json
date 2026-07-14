@@ -36,7 +36,11 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "loadtest:journey": "k6 run loadtests/scenarios/participant-journey.js",
+    "loadtest:spike": "k6 run loadtests/scenarios/join-spike.js",
+    "loadtest:dashboard": "k6 run loadtests/scenarios/dashboard-reads.js",
+    "loadtest:realtime": "k6 run loadtests/scenarios/realtime-subscribe.js"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",

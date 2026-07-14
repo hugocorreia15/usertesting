@@ -74,7 +74,9 @@ npm test          # run the suite once
 npm run test:watch
 ```
 
-The suite (75+ tests) covers scoring and statistics (SUS, instruments, confidence intervals), metrics aggregation, task ordering, session gating, timer persistence, data export, and chart components. CI runs the tests plus a typecheck and production build on every push and pull request.
+The suite (80+ tests) covers scoring and statistics (SUS, instruments, confidence intervals), metrics aggregation, task ordering, session gating, timer persistence, data export, and chart components. CI runs the tests plus a typecheck and production build on every push and pull request.
+
+Load tests live in [`loadtests/`](loadtests/README.md): four [k6](https://k6.io) scenarios that replay the real client's request sequences with many simultaneous users — concurrent participant journeys, a join spike that verifies atomic invitation consumption under contention, evaluator dashboard reads, and concurrent Realtime subscriptions.
 
 ## Deployment
 
