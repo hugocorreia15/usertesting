@@ -239,11 +239,14 @@ actions), where $A$ contains only \emph{attempted} tasks with
 $t_i > 0$---skipped tasks are excluded rather than scored as zero-time
 successes, an aggregation rule we adopted after observing that including
 them produces unbounded efficiency values---and the SUS score with its
-adjective band~\cite{brooke1996sus,bangor2009determining}. Distributions,
-efficiency ratios, and SUS scores are computed at display time from the
-stored task results; per-task error, hesitation, and action counts are
-persisted when the task completes, alongside the individual timestamped
-log entries they summarize.
+adjective band~\cite{brooke1996sus,bangor2009determining}. Cross-session
+SUS summaries are accompanied by two-sided 95\% confidence intervals
+computed with the $t$-distribution, following the small-sample
+recommendation of Sauro and Lewis~\cite{sauro2016quantifying}.
+Distributions, efficiency ratios, and SUS scores are computed at display
+time from the stored task results; per-task error, hesitation, and action
+counts are persisted when the task completes, alongside the individual
+timestamped log entries they summarize.
 
 \begin{figure}[t]
 \centering
@@ -334,7 +337,8 @@ state)---on a commercial water-heater touch panel. Sessions averaged
 15~minutes. Aggregate completion across the $4\times14$ task attempts was
 approximately 70\% success, 20\% partial, and 11\% failure (percentages
 independently rounded). SUS scores were 25.0, 40.0, 17.5, and 30.0 (mean 28.1,
-``Poor''~\cite{bangor2009determining}, far below the benchmark mean of
+95\% CI $[13.1, 43.1]$, ``Poor''~\cite{bangor2009determining}; even the
+interval's optimistic bound sits far below the benchmark mean of
 68~\cite{sauro2011practical}); notably the high-proficiency participant
 produced the \emph{lowest} score, indicating problems not attributable to
 inexperience. Task-level metrics located the failures precisely
