@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { SessionInvitation } from "@/types";
-import { applyTaskOrder, type TaskOrderStrategy } from "@/lib/task-order";
+import { orderSessionTasks, type TaskOrderStrategy } from "@/lib/task-order";
 
 async function getCurrentUserId() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -160,10 +160,20 @@ export function useJoinSession() {
 
       // 3. Create task_results skeleton in the strategy's order.
       // Latin-square rotation is indexed by how many participants have
-      // already responded to this invitation.
+      // already responded; practice tasks stay pinned first.
       if (invitation.selected_task_ids.length > 0) {
-        const orderedIds = applyTaskOrder(
-          invitation.selected_task_ids,
+        const { data: taskFlags } = await supabase
+          .from("template_tasks")
+          .select("id, is_practice")
+          .in("id", invitation.selected_task_ids);
+        const practiceById = new Map(
+          (taskFlags ?? []).map((t) => [t.id, t.is_practice]),
+        );
+        const orderedIds = orderSessionTasks(
+          invitation.selected_task_ids.map((id) => ({
+            id,
+            is_practice: practiceById.get(id) ?? false,
+          })),
           strategy,
           invitation.response_count,
         );

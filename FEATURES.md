@@ -82,12 +82,14 @@ across all the participant's sessions, demographics + metrics kept;
 Anonymize button with confirm dialog on completed sessions. Documented
 in the paper's Security Model.
 
-### P2.3 Practice-task flag  *(small)*
-`is_practice` on template_tasks + editor toggle; excluded from ALL
-metrics (completion %, efficiency, charts, export marked, SEQ averages)
-but still run in sessions; badge in live mode + session detail.
-**Accept:** a practice task's timings don't move any aggregate; export
-rows carry is_practice=true.
+### P2.3 Practice-task flag — SHIPPED
+`is_practice` on template_tasks (migration 037) + editor toggle;
+practice tasks always run first (pinned before shuffle/latin-square
+rotation of measured tasks); excluded from ALL metrics: session
+averages, analytics charts + summary, completion donut, PDF session
+charts + overall aggregates; marked "(practice)" in PDF task table and
+badged in live mode + session detail; export carries an is_practice
+column.
 
 ### P2.4 Qualitative coding  *(medium — high research value)*
 Code book per template (code + color); evaluator tags open/interview

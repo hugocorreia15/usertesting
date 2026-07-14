@@ -7,7 +7,16 @@ export interface MetricTaskResult {
   completion_status: string | null;
   template_tasks: {
     optimal_time_seconds: number | null;
+    is_practice?: boolean;
   };
+}
+
+// Practice (warm-up) tasks run in sessions but never count toward any
+// aggregate metric.
+export function excludePractice<T extends MetricTaskResult>(
+  results: T[],
+): T[] {
+  return results.filter((r) => !r.template_tasks.is_practice);
 }
 
 export interface SessionAveragesResult {
@@ -21,8 +30,9 @@ export interface SessionAveragesResult {
 // avgTime or, worse, divides by zero in the efficiency formula and
 // yields Infinity. Exclude them from both time metrics.
 export function computeSessionAverages(
-  results: MetricTaskResult[],
+  allResults: MetricTaskResult[],
 ): SessionAveragesResult {
+  const results = excludePractice(allResults);
   const timeTasks = results.filter(
     (r) =>
       r.time_seconds != null &&

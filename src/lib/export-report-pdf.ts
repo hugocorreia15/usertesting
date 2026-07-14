@@ -342,7 +342,9 @@ export function exportReportPdf(
         startY: y,
         head: [["Task", "Comp.", "Time (s)", "Actions", "Optimal", "Errors", "Hesit.", "SEQ"]],
         body: sortedResults.map((r) => [
-          r.template_tasks.name,
+          r.template_tasks.is_practice
+            ? `${r.template_tasks.name} (practice)`
+            : r.template_tasks.name,
           r.completion_status || "—",
           r.time_seconds != null ? String(Number(r.time_seconds).toFixed(1)) : "—",
           r.action_count != null ? String(r.action_count) : "—",
@@ -458,8 +460,13 @@ export function exportReportPdf(
         y = Math.max(colY[0], colY[1]) + 4;
       }
 
-      // ── Individual session charts ──
-      y = renderSessionCharts(doc, sortedResults, margin, pageWidth, y);
+      // ── Individual session charts (practice tasks excluded) ──
+      const measuredResults = sortedResults.filter(
+        (r) => !r.template_tasks.is_practice,
+      );
+      if (measuredResults.length > 0) {
+        y = renderSessionCharts(doc, measuredResults, margin, pageWidth, y);
+      }
 
       y = drawEventTimelines(doc, sortedResults, margin, pageWidth, y);
     }
@@ -853,6 +860,7 @@ function renderOverallCharts(
   const taskMap = new Map<string, { name: string; times: number[]; actions: number[]; errors: number[]; hesitations: number[]; seqs: number[]; statuses: string[] }>();
   for (const session of sessions) {
     for (const tr of session.task_results) {
+      if (tr.template_tasks.is_practice) continue;
       const key = tr.task_id;
       if (!taskMap.has(key)) {
         taskMap.set(key, { name: tr.template_tasks.name, times: [], actions: [], errors: [], hesitations: [], seqs: [], statuses: [] });

@@ -10,7 +10,7 @@ import type {
   InterviewAnswer,
   SusAnswer,
 } from "@/types";
-import { applyTaskOrder, type TaskOrderStrategy } from "@/lib/task-order";
+import { orderSessionTasks, type TaskOrderStrategy } from "@/lib/task-order";
 
 async function getCurrentUserId() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -152,21 +152,23 @@ export function useCreateSession() {
         .single();
       if (error) throw error;
 
-      // Materialize the task order into the task_results skeleton
-      let baseIds: string[];
+      // Materialize the task order into the task_results skeleton.
+      // Practice tasks stay pinned first regardless of strategy.
+      const { data: templateTasks } = await supabase
+        .from("template_tasks")
+        .select("id, sort_order, is_practice")
+        .eq("template_id", input.template_id)
+        .order("sort_order");
+      let baseTasks = templateTasks ?? [];
       if (selected_task_ids && selected_task_ids.length > 0) {
-        baseIds = selected_task_ids;
-      } else {
-        const { data: tasks } = await supabase
-          .from("template_tasks")
-          .select("id, sort_order")
-          .eq("template_id", input.template_id)
-          .order("sort_order");
-        baseIds = (tasks ?? []).map((t) => t.id);
+        const byId = new Map(baseTasks.map((t) => [t.id, t]));
+        baseTasks = selected_task_ids
+          .map((id) => byId.get(id) ?? { id, sort_order: 0, is_practice: false })
+          .filter(Boolean);
       }
 
-      const orderedIds = applyTaskOrder(
-        baseIds,
+      const orderedIds = orderSessionTasks(
+        baseTasks,
         task_order_strategy,
         rotationIndex,
       );

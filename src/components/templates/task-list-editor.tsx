@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
@@ -27,6 +28,7 @@ export interface TaskItem {
   group_key: string;
   optimal_time_seconds: string;
   optimal_actions: string;
+  is_practice: boolean;
   sort_order: number;
   task_questions: TaskQuestionItem[];
 }
@@ -46,6 +48,7 @@ function makeTask(groupKey: string, order: number): TaskItem {
     group_key: groupKey,
     optimal_time_seconds: "",
     optimal_actions: "",
+    is_practice: false,
     sort_order: order,
     task_questions: [
       {
@@ -262,6 +265,15 @@ function TaskRow({
             onChange={(e) => onUpdate("description", e.target.value)}
             rows={2}
           />
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox
+              checked={task.is_practice}
+              onCheckedChange={(checked) =>
+                onUpdate("is_practice", checked === true)
+              }
+            />
+            Practice task (warm-up: runs first, excluded from all metrics)
+          </label>
         </div>
         <Button
           variant="ghost"

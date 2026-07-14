@@ -119,6 +119,7 @@ function fakeSession(): TestSessionWithRelations {
           description: null,
           optimal_time_seconds: 20,
           optimal_actions: 3,
+          is_practice: false,
           created_at: "",
           task_questions: [
             {
@@ -216,6 +217,12 @@ describe("buildExportTables", () => {
     expect(tables.hesitation_logs.rows[0]).toContain("paused, looked around");
     expect(tables.task_question_answers.rows[0]).toContain("How was it?");
     expect(tables.interview_answers.rows[0]).toContain("Overall thoughts?");
+  });
+
+  it("exports the practice flag on task result rows", () => {
+    const idx = tables.task_results.headers.indexOf("is_practice");
+    expect(idx).toBeGreaterThan(-1);
+    expect(tables.task_results.rows[0][idx]).toBe("false");
   });
 
   it("survives a CSV round of the participant name with quotes and commas", () => {

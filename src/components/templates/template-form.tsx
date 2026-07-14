@@ -76,6 +76,7 @@ export function TemplateForm({
         group_key: t.group_id ?? "",
         optimal_time_seconds: t.optimal_time_seconds?.toString() ?? "",
         optimal_actions: t.optimal_actions?.toString() ?? "",
+        is_practice: t.is_practice ?? false,
         sort_order: t.sort_order,
         task_questions: (twq.task_questions ?? [])
           .sort((a, b) => a.sort_order - b.sort_order)

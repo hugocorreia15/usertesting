@@ -39,6 +39,7 @@ function NewTemplatePage() {
             optimal_actions: t.optimal_actions
               ? parseInt(t.optimal_actions)
               : null,
+            is_practice: t.is_practice,
             sort_order: i,
             task_questions: t.task_questions
               .filter((q) => q.question_text.trim())

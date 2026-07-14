@@ -51,7 +51,14 @@ export function TaskNavigator({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold">{task.name}</h3>
+          <h3 className="text-lg font-semibold">
+            {task.name}
+            {task.is_practice && (
+              <Badge variant="outline" className="ml-2 align-middle text-xs">
+                practice
+              </Badge>
+            )}
+          </h3>
           {task.description && (
             <p className="mt-1 text-sm text-muted-foreground">
               {task.description}

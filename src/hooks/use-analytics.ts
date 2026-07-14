@@ -56,8 +56,12 @@ function computeAnalytics(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
 ): AnalyticsData {
-  const tasks = [...template.template_tasks].sort(
-    (a, b) => a.sort_order - b.sort_order,
+  // Practice (warm-up) tasks are excluded from every chart and aggregate.
+  const tasks = [...template.template_tasks]
+    .filter((t) => !t.is_practice)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const practiceTaskIds = new Set(
+    template.template_tasks.filter((t) => t.is_practice).map((t) => t.id),
   );
   const errorTypes = template.template_error_types;
 
@@ -129,7 +133,9 @@ function computeAnalytics(
   });
 
   // Summary
-  const allResults = sessions.flatMap((s) => s.task_results);
+  const allResults = sessions
+    .flatMap((s) => s.task_results)
+    .filter((r) => !practiceTaskIds.has(r.task_id));
   const completedResults = allResults.filter(
     (r) => r.completion_status === "success",
   );

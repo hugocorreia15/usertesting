@@ -80,3 +80,35 @@ describe("computeSessionAverages", () => {
     expect(r.timeEfficiency).toBe(50);
   });
 });
+
+describe("practice task exclusion", () => {
+  it("ignores practice tasks in every average", () => {
+    const r = computeSessionAverages([
+      task({
+        time_seconds: 999,
+        action_count: 99,
+        seq_rating: 1,
+        template_tasks: { optimal_time_seconds: 1, is_practice: true },
+      }),
+      task({ time_seconds: 20 }),
+      task({ time_seconds: 40 }),
+    ]);
+    expect(r.avgTime).toBe(30);
+    expect(r.avgActions).toBe("4.0");
+    expect(r.avgSeq).toBe("6.0");
+    // (30/20 + 30/40) / 2 = 112.5% — the practice row's 1s optimal never enters
+    expect(r.timeEfficiency).toBe(113);
+  });
+
+  it("returns nulls when only practice tasks exist", () => {
+    const r = computeSessionAverages([
+      task({ template_tasks: { optimal_time_seconds: 30, is_practice: true } }),
+    ]);
+    expect(r).toEqual({
+      avgTime: null,
+      timeEfficiency: null,
+      avgActions: null,
+      avgSeq: null,
+    });
+  });
+});

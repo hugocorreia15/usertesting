@@ -47,3 +47,19 @@ export function applyTaskOrder(
   const offset = ((rotationIndex % ids.length) + ids.length) % ids.length;
   return [...ids.slice(offset), ...ids.slice(0, offset)];
 }
+
+/**
+ * Session task order with practice-task pinning: warm-up tasks keep
+ * their template order at the START of the session; the ordering
+ * strategy applies only to the measured tasks that follow.
+ */
+export function orderSessionTasks(
+  tasks: readonly { id: string; is_practice?: boolean | null }[],
+  strategy: TaskOrderStrategy,
+  rotationIndex = 0,
+  rng: () => number = Math.random,
+): string[] {
+  const practice = tasks.filter((t) => t.is_practice).map((t) => t.id);
+  const measured = tasks.filter((t) => !t.is_practice).map((t) => t.id);
+  return [...practice, ...applyTaskOrder(measured, strategy, rotationIndex, rng)];
+}

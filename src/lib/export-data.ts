@@ -79,6 +79,7 @@ export function buildExportTables(
       "seq_rating",
       "optimal_time_seconds",
       "optimal_actions",
+      "is_practice",
     ],
     rows: [],
   };
@@ -146,6 +147,7 @@ export function buildExportTables(
         tr.seq_rating,
         tr.template_tasks?.optimal_time_seconds ?? null,
         tr.template_tasks?.optimal_actions ?? null,
+        tr.template_tasks?.is_practice ? "true" : "false",
       ]);
 
       for (const e of tr.error_logs ?? []) {

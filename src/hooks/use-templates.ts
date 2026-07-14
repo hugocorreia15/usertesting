@@ -85,6 +85,7 @@ interface TaskInput {
   description: string | null;
   optimal_time_seconds: number | null;
   optimal_actions: number | null;
+  is_practice?: boolean;
   sort_order: number;
   task_questions?: TaskQuestionInput[];
 }

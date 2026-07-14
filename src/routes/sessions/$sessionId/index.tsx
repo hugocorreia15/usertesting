@@ -204,6 +204,11 @@ function SessionDetailPage() {
                       <TableCell>{i + 1}</TableCell>
                       <TableCell className="font-medium">
                         {tr.template_tasks.name}
+                        {tr.template_tasks.is_practice && (
+                          <Badge variant="outline" className="ml-2 text-xs">
+                            practice
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="capitalize">
                         {tr.completion_status || "—"}
@@ -760,10 +765,14 @@ function DeleteSessionDialog({
 }
 
 function SessionCharts({
-  taskResults,
+  taskResults: allTaskResults,
 }: {
   taskResults: import("@/types").TaskResultWithRelations[];
 }) {
+  // Practice tasks appear in the results table but never in charts.
+  const taskResults = allTaskResults.filter(
+    (tr) => !tr.template_tasks.is_practice,
+  );
   if (taskResults.length === 0) return null;
 
   // --- Completion status distribution (pie) ---

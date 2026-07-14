@@ -29,7 +29,9 @@ interface TemplateSessionsTabProps {
 }
 
 function CompletionDonut({ session }: { session: TestSessionWithRelations }) {
-  const results = session.task_results;
+  const results = session.task_results.filter(
+    (r) => !r.template_tasks.is_practice,
+  );
   const success = results.filter((r) => r.completion_status === "success").length;
   const partial = results.filter((r) => r.completion_status === "partial").length;
   const failure = results.filter((r) => r.completion_status === "failure").length;

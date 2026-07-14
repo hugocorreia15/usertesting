@@ -26,6 +26,7 @@ export interface TemplateTask {
   description: string | null;
   optimal_time_seconds: number | null;
   optimal_actions: number | null;
+  is_practice: boolean;
   created_at: string;
 }
 

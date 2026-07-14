@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyTaskOrder } from "../task-order";
+import { applyTaskOrder, orderSessionTasks } from "../task-order";
 
 const IDS = ["a", "b", "c", "d", "e"];
 
@@ -82,5 +82,60 @@ describe("applyTaskOrder", () => {
   it("handles empty and single-item lists", () => {
     expect(applyTaskOrder([], "shuffled")).toEqual([]);
     expect(applyTaskOrder(["only"], "latin_square", 3)).toEqual(["only"]);
+  });
+});
+
+describe("orderSessionTasks", () => {
+  const tasks = [
+    { id: "warmup", is_practice: true },
+    { id: "a", is_practice: false },
+    { id: "b", is_practice: false },
+    { id: "c", is_practice: false },
+  ];
+
+  it("pins practice tasks first under fixed order", () => {
+    expect(orderSessionTasks(tasks, "fixed")).toEqual([
+      "warmup",
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+
+  it("keeps practice tasks first when measured tasks are shuffled", () => {
+    for (let seed = 1; seed <= 5; seed++) {
+      const out = orderSessionTasks(tasks, "shuffled", 0, seededRng(seed));
+      expect(out[0]).toBe("warmup");
+      expect([...out.slice(1)].sort()).toEqual(["a", "b", "c"]);
+    }
+  });
+
+  it("rotates only the measured tasks under latin_square", () => {
+    expect(orderSessionTasks(tasks, "latin_square", 1)).toEqual([
+      "warmup",
+      "b",
+      "c",
+      "a",
+    ]);
+  });
+
+  it("treats a missing flag as a measured task", () => {
+    const out = orderSessionTasks(
+      [{ id: "x" }, { id: "p", is_practice: true }],
+      "fixed",
+    );
+    expect(out).toEqual(["p", "x"]);
+  });
+
+  it("handles all-practice and no-practice lists", () => {
+    expect(
+      orderSessionTasks(
+        [{ id: "p1", is_practice: true }, { id: "p2", is_practice: true }],
+        "shuffled",
+        0,
+        seededRng(1),
+      ),
+    ).toEqual(["p1", "p2"]);
+    expect(orderSessionTasks([{ id: "a" }], "fixed")).toEqual(["a"]);
   });
 });
