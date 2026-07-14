@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { csvEscape, toCsv, buildExportTables } from "./export-data";
-import { calculateSusScore } from "./sus";
+import { csvEscape, toCsv, buildExportTables } from "../export-data";
+import { calculateSusScore } from "../sus";
 import type {
   TemplateWithRelations,
   TestSessionWithRelations,
@@ -62,6 +62,7 @@ function fakeTemplate(): TemplateWithRelations {
       },
     ],
     template_participant_fields: [],
+    instruments: [],
   };
 }
 
@@ -175,6 +176,7 @@ function fakeSession(): TestSessionWithRelations {
         created_at: "",
       },
     ],
+    instrument_answers: [],
     sus_answers: SUS_VECTOR.map((score, i) => ({
       id: `sus${i}`,
       session_id: "s1",

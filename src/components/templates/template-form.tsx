@@ -22,6 +22,8 @@ import {
   ParticipantFieldEditor,
   type ParticipantFieldItem,
 } from "@/components/templates/participant-field-editor";
+import { Checkbox } from "@/components/ui/checkbox";
+import { INSTRUMENT_KEYS, INSTRUMENTS } from "@/lib/instruments";
 import type { TemplateWithRelations, TemplateTaskWithQuestions } from "@/types";
 import { toast } from "sonner";
 
@@ -40,6 +42,7 @@ export interface TemplateFormData {
   error_types: ErrorTypeItem[];
   questions: QuestionItem[];
   participant_fields: ParticipantFieldItem[];
+  instruments: string[];
 }
 
 export function TemplateForm({
@@ -117,6 +120,9 @@ export function TemplateForm({
       })),
   );
   const [isPublic, setIsPublic] = useState(initial?.is_public ?? false);
+  const [instruments, setInstruments] = useState<string[]>(
+    initial?.instruments ?? [],
+  );
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,6 +142,7 @@ export function TemplateForm({
         error_types: errorTypes,
         questions,
         participant_fields: participantFields,
+        instruments,
       });
     } finally {
       setSaving(false);
@@ -219,6 +226,42 @@ export function TemplateForm({
         </CardHeader>
         <CardContent>
           <QuestionEditor items={questions} onChange={setQuestions} />
+        </CardContent>
+      </Card>
+
+      <Card className="bg-transparent backdrop-blur-md">
+        <CardHeader>
+          <CardTitle>Questionnaires</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Standardized instruments the participant answers at the end of a
+            session.
+          </p>
+          <label className="flex items-center gap-2 text-sm opacity-70">
+            <Checkbox checked disabled />
+            SUS — System Usability Scale (always on)
+          </label>
+          {INSTRUMENT_KEYS.map((key) => (
+            <label key={key} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={instruments.includes(key)}
+                onCheckedChange={(checked) =>
+                  setInstruments((prev) =>
+                    checked
+                      ? [...prev, key]
+                      : prev.filter((k) => k !== key),
+                  )
+                }
+              />
+              {INSTRUMENTS[key].name}
+              <span className="text-xs text-muted-foreground">
+                {key === "nasa_tlx"
+                  ? "— perceived workload, 6 subscales"
+                  : "— UX pragmatic/hedonic quality, 8 items"}
+              </span>
+            </label>
+          ))}
         </CardContent>
       </Card>
 

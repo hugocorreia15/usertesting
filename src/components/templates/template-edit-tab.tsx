@@ -68,6 +68,7 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
                 : null,
             sort_order: i,
           })),
+        instruments: data.instruments,
       });
       toast.success("Template updated");
     } catch (err: unknown) {

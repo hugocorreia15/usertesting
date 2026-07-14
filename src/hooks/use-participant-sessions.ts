@@ -110,7 +110,9 @@ export interface ParticipantLiveSession {
   task_results: ParticipantLiveTaskResult[];
   sus_answers: { id: string; question_number: number; score: number }[];
   interview_answers: { id: string; question_id: string; answer_text: string | null }[];
+  instrument_answers: { id: string; instrument: string; item_number: number; score: number }[];
   templates: {
+    instruments: string[] | null;
     template_questions: { id: string; question_text: string; sort_order: number }[];
   };
 }
@@ -120,7 +122,8 @@ async function fetchParticipantSession(sessionId: string) {
     .from("test_sessions")
     .select(
       `id, status, user_id, join_code, template_id, current_task_index,
-       templates(template_questions(id, question_text, sort_order)),
+       templates(instruments, template_questions(id, question_text, sort_order)),
+       instrument_answers(id, instrument, item_number, score),
        task_results(
          id, sort_order, seq_rating, completion_status,
          template_tasks(id, name, description, task_questions(*)),
@@ -214,6 +217,29 @@ export function useSubmitParticipantAnswers() {
           );
         if (error) throw error;
       }
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["participant-live"] }),
+  });
+}
+
+export function useSubmitInstrumentAnswers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      session_id: string;
+      instrument: string;
+      answers: { item_number: number; score: number }[];
+    }) => {
+      const { error } = await supabase.from("instrument_answers").insert(
+        input.answers.map((a) => ({
+          session_id: input.session_id,
+          instrument: input.instrument,
+          item_number: a.item_number,
+          score: a.score,
+        })),
+      );
+      if (error) throw error;
     },
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["participant-live"] }),

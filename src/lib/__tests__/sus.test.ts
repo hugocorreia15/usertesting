@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calculateSusScore, getSusLabel } from "./sus";
+import { calculateSusScore, getSusLabel } from "../sus";
 
 function answers(scores: number[]) {
   return scores.map((score, i) => ({ question_number: i + 1, score }));

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { participantStillAnswering } from "./session-gating";
+import { participantStillAnswering } from "../session-gating";
 
 const q = {}; // opaque question
 const a = {}; // opaque answer

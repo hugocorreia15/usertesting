@@ -125,6 +125,10 @@ export function buildExportTables(
     headers: ["session_id", "question_number", "score"],
     rows: [],
   };
+  const instrumentT: ExportTable = {
+    headers: ["session_id", "instrument", "item_number", "score"],
+    rows: [],
+  };
 
   for (const s of sessions) {
     for (const tr of s.task_results ?? []) {
@@ -193,6 +197,9 @@ export function buildExportTables(
     for (const sa of s.sus_answers ?? []) {
       susT.rows.push([s.id, sa.question_number, sa.score]);
     }
+    for (const ia of s.instrument_answers ?? []) {
+      instrumentT.rows.push([s.id, ia.instrument, ia.item_number, ia.score]);
+    }
   }
 
   return {
@@ -203,6 +210,7 @@ export function buildExportTables(
     task_question_answers: answersT,
     interview_answers: interviewT,
     sus_answers: susT,
+    instrument_answers: instrumentT,
   };
 }
 

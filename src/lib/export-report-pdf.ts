@@ -6,6 +6,7 @@ import type {
   TaskResultWithRelations,
 } from "@/types";
 import { SUS_QUESTIONS, calculateSusScore, getSusLabel } from "@/lib/sus";
+import { scoreTlx, scoreUeqS } from "@/lib/instruments";
 
 // ── Chart colors ──────────────────────────────────────
 const C = {
@@ -576,6 +577,46 @@ export function exportReportPdf(
         columnStyles: { 0: { cellWidth: 8 }, 2: { cellWidth: 15 } },
       });
       y = (doc as any).lastAutoTable.finalY + 6;
+    }
+
+    // Additional standardized questionnaires (NASA-TLX, UEQ-S)
+    {
+      const iRows = session.instrument_answers ?? [];
+      const tlx = scoreTlx(iRows);
+      const ueq = scoreUeqS(iRows);
+      if (tlx || ueq) {
+        y = ensureSpace(doc, y, 26);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Additional Questionnaires", margin, y);
+        y += 2;
+        const body: string[][] = [];
+        if (tlx) {
+          body.push([
+            "NASA-TLX (Raw)",
+            `${tlx.overall.toFixed(1)} / 100 workload`,
+            tlx.subscales.map((s) => `${s.label}: ${s.score}`).join("; "),
+          ]);
+        }
+        if (ueq) {
+          body.push([
+            "UEQ-S",
+            `${ueq.overall.toFixed(2)} (−3…+3)`,
+            `Pragmatic: ${ueq.pragmatic.toFixed(2)}; Hedonic: ${ueq.hedonic.toFixed(2)}`,
+          ]);
+        }
+        autoTable(doc, {
+          startY: y,
+          head: [["Instrument", "Score", "Detail"]],
+          body,
+          theme: "grid",
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 7, cellPadding: 2 },
+          headStyles: { fillColor: [60, 60, 60] },
+          columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 32 } },
+        });
+        y = (doc as any).lastAutoTable.finalY + 6;
+      }
     }
 
     // Session notes

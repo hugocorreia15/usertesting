@@ -68,6 +68,7 @@ function NewTemplatePage() {
                 : null,
             sort_order: i,
           })),
+        instruments: data.instruments,
       });
       toast.success("Template created");
       navigate({ to: "/templates/$templateId", params: { templateId: template.id } });

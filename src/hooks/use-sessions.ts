@@ -71,7 +71,7 @@ export function useSessionsByTemplateWithRelations(
         .select(
           `*, templates(*), participants(*),
            task_results(*, template_tasks(*, task_questions(*)), error_logs(*), hesitation_logs(*), task_question_answers(*)),
-           interview_answers(*), sus_answers(*)`,
+           interview_answers(*), sus_answers(*), instrument_answers(*)`,
         )
         .eq("template_id", templateId!)
         .order("created_at", { ascending: false });
@@ -91,7 +91,7 @@ export function useSession(id: string | undefined) {
         .select(
           `*, templates(*), participants(*),
            task_results(*, template_tasks(*, task_questions(*)), error_logs(*), hesitation_logs(*), task_question_answers(*)),
-           interview_answers(*), sus_answers(*)`,
+           interview_answers(*), sus_answers(*), instrument_answers(*)`,
         )
         .eq("id", id!)
         .single();

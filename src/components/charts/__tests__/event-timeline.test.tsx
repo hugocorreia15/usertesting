@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { timelinePosition, effectiveDuration } from "./event-timeline";
+import { timelinePosition, effectiveDuration } from "../event-timeline";
 
 describe("timelinePosition", () => {
   it("places events proportionally", () => {

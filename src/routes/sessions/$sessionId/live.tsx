@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useDeleteErrorLog, useDeleteHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { participantStillAnswering } from "@/lib/session-gating";
+import { instrumentsComplete } from "@/lib/instruments";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
 import { TaskNavigator } from "@/components/live/task-navigator";
@@ -115,7 +116,14 @@ function LiveSessionPage() {
   }, [blockedForParticipant]);
 
   // Poll for SUS completion when waiting
-  const susCompleted = (session?.sus_answers?.length ?? 0) >= 10;
+  // The session finishes when SUS AND every extra instrument the
+  // template administers (NASA-TLX, UEQ-S) are fully answered.
+  const susCompleted =
+    (session?.sus_answers?.length ?? 0) >= 10 &&
+    instrumentsComplete(
+      template?.instruments ?? [],
+      session?.instrument_answers ?? [],
+    );
 
   useEffect(() => {
     if (!waitingForSus || susCompleted) return;
@@ -129,7 +137,7 @@ function LiveSessionPage() {
   // When SUS is completed while waiting, navigate to session detail
   useEffect(() => {
     if (waitingForSus && susCompleted) {
-      toast.success("SUS questionnaire completed! Session finished.");
+      toast.success("Questionnaires completed! Session finished.");
       navigate({ to: "/sessions/$sessionId", params: { sessionId } });
     }
   }, [waitingForSus, susCompleted, navigate, sessionId]);
@@ -148,7 +156,7 @@ function LiveSessionPage() {
             <div className="text-center space-y-2">
               <h2 className="text-xl font-bold">All Tasks Completed</h2>
               <p className="text-sm text-muted-foreground">
-                Waiting for the participant to complete the SUS questionnaire...
+                Waiting for the participant to complete the questionnaires...
               </p>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">

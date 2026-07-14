@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useTimer } from "./use-timer";
+import { useTimer } from "../use-timer";
 
 const KEY = "avalux-live-timer-test-0";
 

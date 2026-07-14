@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeSessionAverages, type MetricTaskResult } from "./metrics";
+import { computeSessionAverages, type MetricTaskResult } from "../metrics";
 
 function task(overrides: Partial<MetricTaskResult> = {}): MetricTaskResult {
   return {

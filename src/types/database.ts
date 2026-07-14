@@ -4,6 +4,7 @@ export interface Template {
   description: string | null;
   user_id: string | null;
   is_public: boolean;
+  instruments: string[];
   created_at: string;
   updated_at: string;
 }
@@ -133,6 +134,15 @@ export interface InterviewAnswer {
   created_at: string;
 }
 
+export interface InstrumentAnswer {
+  id: string;
+  session_id: string;
+  instrument: string;
+  item_number: number;
+  score: number;
+  created_at: string;
+}
+
 export interface SusAnswer {
   id: string;
   session_id: string;
@@ -195,6 +205,7 @@ export interface TestSessionWithRelations extends TestSession {
   task_results: TaskResultWithRelations[];
   interview_answers: InterviewAnswer[];
   sus_answers: SusAnswer[];
+  instrument_answers: InstrumentAnswer[];
 }
 
 export interface TemplateTaskWithQuestions extends TemplateTask {

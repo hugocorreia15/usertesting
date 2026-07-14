@@ -45,7 +45,8 @@ import {
   SignedImage,
 } from "@/components/media/signed-media";
 import { EventTimeline } from "@/components/charts/event-timeline";
-import type { TaskResultWithRelations } from "@/types";
+import { scoreTlx, scoreUeqS } from "@/lib/instruments";
+import type { TaskResultWithRelations, InstrumentAnswer } from "@/types";
 import { useSession, useDeleteSession } from "@/hooks/use-sessions";
 import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
 import {
@@ -400,6 +401,7 @@ function SessionDetailPage() {
         </TabsContent>
 
         <TabsContent value="sus">
+          <InstrumentScores answers={session.instrument_answers ?? []} />
           <Card className="bg-transparent backdrop-blur-md">
             <CardContent>
               {(!session.sus_answers || session.sus_answers.length === 0) ? (
@@ -470,6 +472,67 @@ function SessionDetailPage() {
         </DialogContent>
       </Dialog>
     </PageWrapper>
+  );
+}
+
+// Scores for the extra standardized questionnaires (NASA-TLX, UEQ-S),
+// shown above the SUS breakdown when the session collected them.
+function InstrumentScores({ answers }: { answers: InstrumentAnswer[] }) {
+  const tlx = scoreTlx(answers);
+  const ueq = scoreUeqS(answers);
+  if (!tlx && !ueq) return null;
+
+  return (
+    <div className="mb-4 grid gap-4 lg:grid-cols-2">
+      {tlx && (
+        <Card className="bg-transparent backdrop-blur-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">NASA-TLX (Raw)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-3xl font-bold">
+              {tlx.overall.toFixed(1)}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                / 100 workload
+              </span>
+            </p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+              {tlx.subscales.map((s) => (
+                <div key={s.label} className="flex justify-between">
+                  <span className="text-muted-foreground">{s.label}</span>
+                  <span className="font-medium">{s.score}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {ueq && (
+        <Card className="bg-transparent backdrop-blur-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">UEQ-S</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-3xl font-bold">
+              {ueq.overall.toFixed(2)}
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                / scale −3…+3
+              </span>
+            </p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Pragmatic quality</span>
+                <span className="font-medium">{ueq.pragmatic.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Hedonic quality</span>
+                <span className="font-medium">{ueq.hedonic.toFixed(2)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 

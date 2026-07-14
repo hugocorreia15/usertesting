@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyTaskOrder } from "./task-order";
+import { applyTaskOrder } from "../task-order";
 
 const IDS = ["a", "b", "c", "d", "e"];
 

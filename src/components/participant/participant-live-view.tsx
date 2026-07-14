@@ -8,11 +8,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MediaCapture } from "@/components/live/media-capture";
 import { SusQuestionnaire } from "@/components/live/sus-questionnaire";
+import { InstrumentForm } from "@/components/live/instrument-form";
+import {
+  INSTRUMENTS,
+  instrumentsComplete,
+  type InstrumentKey,
+} from "@/lib/instruments";
 import { CheckCircle2, Clock, Loader2 } from "lucide-react";
 import {
   useParticipantLiveSession,
   useSubmitParticipantAnswers,
   useCreateParticipantSusAnswers,
+  useSubmitInstrumentAnswers,
   useUpdateParticipantInterviewAnswer,
   type ParticipantLiveTaskResult,
 } from "@/hooks/use-participant-sessions";
@@ -31,6 +38,10 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     new Set(),
   );
   const [susSubmitted, setSusSubmitted] = useState(false);
+  const [submittedInstruments, setSubmittedInstruments] = useState<Set<string>>(
+    new Set(),
+  );
+  const submitInstrument = useSubmitInstrumentAnswers();
   const [interviewDone, setInterviewDone] = useState(false);
 
   if (isLoading || !session) {
@@ -158,19 +169,47 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     });
   };
 
+  // Extra standardized questionnaires the template administers after SUS
+  const selectedInstruments = (session.templates?.instruments ?? []).filter(
+    (k): k is InstrumentKey => k in INSTRUMENTS,
+  );
+  const instrumentRows = session.instrument_answers ?? [];
+  const nextInstrument = selectedInstruments.find(
+    (key) => !instrumentsComplete([key], instrumentRows) && !submittedInstruments.has(key),
+  );
+
   if (!pendingTask) {
-    // SUS completed — thank you screen
-    if (hasSusAnswers) {
+    // Every questionnaire completed — thank you screen
+    if (hasSusAnswers && !nextInstrument) {
       return (
         <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
           <CardContent className="flex flex-col items-center gap-4 pt-6">
             <CheckCircle2 className="h-12 w-12 text-green-500" />
             <p className="text-lg font-medium">Thank You!</p>
             <p className="text-center text-sm text-muted-foreground">
-              You have completed all tasks and the questionnaire. You can close this page.
+              You have completed all tasks and the questionnaires. You can close this page.
             </p>
           </CardContent>
         </Card>
+      );
+    }
+
+    // SUS done → remaining instruments, one at a time
+    if (hasSusAnswers && nextInstrument) {
+      return (
+        <InstrumentForm
+          key={nextInstrument}
+          def={INSTRUMENTS[nextInstrument]}
+          submitting={submitInstrument.isPending}
+          onSubmit={async (answers) => {
+            setSubmittedInstruments((prev) => new Set(prev).add(nextInstrument));
+            await submitInstrument.mutateAsync({
+              session_id: sessionId,
+              instrument: nextInstrument,
+              answers,
+            });
+          }}
+        />
       );
     }
 

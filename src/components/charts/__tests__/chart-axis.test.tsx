@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { truncateLabel } from "./chart-axis";
+import { truncateLabel } from "../chart-axis";
 
 describe("truncateLabel", () => {
   it("passes short labels through unchanged", () => {

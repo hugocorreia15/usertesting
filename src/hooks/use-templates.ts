@@ -106,6 +106,7 @@ interface CreateTemplateInput {
   error_types: Omit<TemplateErrorType, "id" | "template_id" | "created_at">[];
   questions: Omit<TemplateQuestion, "id" | "template_id" | "created_at">[];
   participant_fields: ParticipantFieldInput[];
+  instruments?: string[];
 }
 
 // ── Create ──────────────────────────────────────
@@ -124,6 +125,7 @@ export function useCreateTemplate() {
           description: input.description || null,
           user_id: userId,
           is_public: input.is_public ?? false,
+          instruments: input.instruments ?? [],
         })
         .select()
         .single();
@@ -222,6 +224,7 @@ export function useUpdateTemplate() {
           name: input.name,
           description: input.description || null,
           is_public: input.is_public ?? false,
+          instruments: input.instruments ?? [],
           updated_at: new Date().toISOString(),
         })
         .eq("id", input.id);
