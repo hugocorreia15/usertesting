@@ -78,6 +78,7 @@ function fakeSession(): TestSessionWithRelations {
     user_id: "u1",
     join_code: null,
     current_task_index: 0,
+    task_order_strategy: "fixed",
     created_at: "",
     templates: fakeTemplate(),
     participants: {

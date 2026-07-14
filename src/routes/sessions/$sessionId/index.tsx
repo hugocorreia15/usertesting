@@ -145,6 +145,14 @@ function SessionDetailPage() {
             Completed: {new Date(session.completed_at).toLocaleString()}
           </Badge>
         )}
+        {session.task_order_strategy && session.task_order_strategy !== "fixed" && (
+          <Badge variant="outline">
+            Task order:{" "}
+            {session.task_order_strategy === "shuffled"
+              ? "shuffled"
+              : "Latin square"}
+          </Badge>
+        )}
       </div>
 
       <Tabs defaultValue="tasks">

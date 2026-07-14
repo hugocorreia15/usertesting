@@ -313,6 +313,7 @@ export function exportReportPdf(
         ["Tech Proficiency", session.participants.tech_proficiency || "—"],
         ["Evaluator", session.evaluator_name],
         ["Status", session.status],
+        ["Task order", session.task_order_strategy ?? "fixed"],
         ["Started", startedAt],
         ["Completed", completedAt],
       ],

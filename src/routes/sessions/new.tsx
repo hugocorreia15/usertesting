@@ -23,6 +23,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Play, PenLine, Link2, Copy, Check, ExternalLink, Users } from "lucide-react";
 import type { TemplateTask } from "@/types";
+import {
+  TASK_ORDER_STRATEGIES,
+  TASK_ORDER_LABELS,
+  type TaskOrderStrategy,
+} from "@/lib/task-order";
 
 const PARTICIPANT_FIELDS = [
   { key: "name", label: "Name" },
@@ -62,6 +67,8 @@ function NewSessionPage() {
   const [collectedFields, setCollectedFields] = useState<string[]>(
     PARTICIPANT_FIELDS.map((f) => f.key),
   );
+  const [taskOrderStrategy, setTaskOrderStrategy] =
+    useState<TaskOrderStrategy>("fixed");
   const [generatedLink, setGeneratedLink] = useState("");
   const [sharedLink, setSharedLink] = useState("");
   const [copied, setCopied] = useState(false);
@@ -100,6 +107,7 @@ function NewSessionPage() {
         evaluator_name: evaluatorName,
         status: startLive ? "in_progress" : "planned",
         selected_task_ids: getOrderedSelectedIds(),
+        task_order_strategy: taskOrderStrategy,
       });
       toast.success("Session created");
       if (startLive) {
@@ -126,6 +134,7 @@ function NewSessionPage() {
         evaluator_name: evaluatorName,
         selected_task_ids: getOrderedSelectedIds(),
         collected_fields: collectedFields,
+        task_order_strategy: taskOrderStrategy,
         max_responses: 1,
       });
       const url = `${window.location.origin}/join/${invitation.code}`;
@@ -144,6 +153,7 @@ function NewSessionPage() {
         evaluator_name: evaluatorName,
         selected_task_ids: getOrderedSelectedIds(),
         collected_fields: collectedFields,
+        task_order_strategy: taskOrderStrategy,
       });
       const url = `${window.location.origin}/join/${invitation.code}`;
       setSharedLink(url);
@@ -188,6 +198,37 @@ function NewSessionPage() {
               orderedTasks={orderedTasks}
               onOrderChange={setOrderedTasks}
             />
+          )}
+
+          {selectedTemplate && selectedTaskIds.length > 1 && (
+            <div className="space-y-2">
+              <Label>Task order</Label>
+              <Select
+                value={taskOrderStrategy}
+                onValueChange={(v) =>
+                  setTaskOrderStrategy(v as TaskOrderStrategy)
+                }
+              >
+                <SelectTrigger className="w-full sm:w-72">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_ORDER_STRATEGIES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {TASK_ORDER_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {taskOrderStrategy === "fixed" &&
+                  "Every session presents tasks in the order above."}
+                {taskOrderStrategy === "shuffled" &&
+                  "Each session gets an independent random order."}
+                {taskOrderStrategy === "latin_square" &&
+                  "Consecutive sessions rotate the starting task, so every task appears at every position equally often."}
+              </p>
+            </div>
           )}
 
           <Tabs defaultValue="direct" className="pt-2">

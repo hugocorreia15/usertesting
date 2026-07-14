@@ -89,6 +89,7 @@ export interface TestSession {
   user_id: string | null;
   join_code: string | null;
   current_task_index: number;
+  task_order_strategy: "fixed" | "shuffled" | "latin_square";
   created_at: string;
 }
 
@@ -171,6 +172,7 @@ export interface SessionInvitation {
   evaluator_name: string;
   selected_task_ids: string[];
   collected_fields: string[];
+  task_order_strategy: "fixed" | "shuffled" | "latin_square";
   is_active: boolean;
   max_responses: number | null;
   response_count: number;

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { SessionInvitation } from "@/types";
+import { applyTaskOrder, type TaskOrderStrategy } from "@/lib/task-order";
 
 async function getCurrentUserId() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -29,6 +30,7 @@ interface CreateInvitationInput {
   evaluator_name: string;
   selected_task_ids: string[];
   collected_fields: string[];
+  task_order_strategy?: TaskOrderStrategy;
   max_responses?: number;
   expires_at?: string;
 }
@@ -48,6 +50,7 @@ export function useCreateInvitation() {
           evaluator_name: input.evaluator_name,
           selected_task_ids: input.selected_task_ids,
           collected_fields: input.collected_fields,
+          task_order_strategy: input.task_order_strategy ?? "fixed",
           max_responses: input.max_responses ?? null,
           expires_at: input.expires_at ?? null,
         })
@@ -138,6 +141,7 @@ export function useJoinSession() {
       }
 
       // 2. Create test session with unique join code
+      const strategy = invitation.task_order_strategy ?? "fixed";
       const joinCode = crypto.randomUUID().slice(0, 8);
       const { data: session, error: sErr } = await supabase
         .from("test_sessions")
@@ -148,15 +152,23 @@ export function useJoinSession() {
           user_id: invitation.user_id,
           status: "planned",
           join_code: joinCode,
+          task_order_strategy: strategy,
         })
         .select()
         .single();
       if (sErr) throw sErr;
 
-      // 3. Create task_results skeleton from selected_task_ids
+      // 3. Create task_results skeleton in the strategy's order.
+      // Latin-square rotation is indexed by how many participants have
+      // already responded to this invitation.
       if (invitation.selected_task_ids.length > 0) {
+        const orderedIds = applyTaskOrder(
+          invitation.selected_task_ids,
+          strategy,
+          invitation.response_count,
+        );
         const { error: trErr } = await supabase.from("task_results").insert(
-          invitation.selected_task_ids.map((taskId, index) => ({
+          orderedIds.map((taskId, index) => ({
             session_id: session.id,
             task_id: taskId,
             sort_order: index,

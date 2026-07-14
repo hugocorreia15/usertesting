@@ -10,6 +10,7 @@ import type {
   InterviewAnswer,
   SusAnswer,
 } from "@/types";
+import { applyTaskOrder, type TaskOrderStrategy } from "@/lib/task-order";
 
 async function getCurrentUserId() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -106,6 +107,17 @@ interface CreateSessionInput {
   evaluator_name: string;
   status?: "planned" | "in_progress";
   selected_task_ids?: string[];
+  task_order_strategy?: TaskOrderStrategy;
+}
+
+// Latin-square rotation index: how many sessions this template already
+// has determines the rotation offset of the next one.
+async function templateSessionCount(templateId: string): Promise<number> {
+  const { count } = await supabase
+    .from("test_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("template_id", templateId);
+  return count ?? 0;
 }
 
 export function useCreateSession() {
@@ -113,10 +125,22 @@ export function useCreateSession() {
   return useMutation({
     mutationFn: async (input: CreateSessionInput) => {
       const userId = await getCurrentUserId();
+      const {
+        selected_task_ids,
+        task_order_strategy = "fixed",
+        ...sessionFields
+      } = input;
+
+      const rotationIndex =
+        task_order_strategy === "latin_square"
+          ? await templateSessionCount(input.template_id)
+          : 0;
+
       const { data, error } = await supabase
         .from("test_sessions")
         .insert({
-          ...input,
+          ...sessionFields,
+          task_order_strategy,
           user_id: userId,
           status: input.status || "planned",
           started_at:
@@ -128,35 +152,33 @@ export function useCreateSession() {
         .single();
       if (error) throw error;
 
-      // Create task_results skeleton
-      if (input.selected_task_ids && input.selected_task_ids.length > 0) {
-        // Use selected task IDs with custom sort order from array index
+      // Materialize the task order into the task_results skeleton
+      let baseIds: string[];
+      if (selected_task_ids && selected_task_ids.length > 0) {
+        baseIds = selected_task_ids;
+      } else {
+        const { data: tasks } = await supabase
+          .from("template_tasks")
+          .select("id, sort_order")
+          .eq("template_id", input.template_id)
+          .order("sort_order");
+        baseIds = (tasks ?? []).map((t) => t.id);
+      }
+
+      const orderedIds = applyTaskOrder(
+        baseIds,
+        task_order_strategy,
+        rotationIndex,
+      );
+      if (orderedIds.length > 0) {
         const { error: trErr } = await supabase.from("task_results").insert(
-          input.selected_task_ids.map((taskId, index) => ({
+          orderedIds.map((taskId, index) => ({
             session_id: data.id,
             task_id: taskId,
             sort_order: index,
           })),
         );
         if (trErr) throw trErr;
-      } else {
-        // Default: all tasks with sort_order from template
-        const { data: tasks } = await supabase
-          .from("template_tasks")
-          .select("id, sort_order")
-          .eq("template_id", input.template_id)
-          .order("sort_order");
-
-        if (tasks && tasks.length > 0) {
-          const { error: trErr } = await supabase.from("task_results").insert(
-            tasks.map((t) => ({
-              session_id: data.id,
-              task_id: t.id,
-              sort_order: t.sort_order,
-            })),
-          );
-          if (trErr) throw trErr;
-        }
       }
 
       // Create interview_answers skeleton
