@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
 import { calculateSusScore, getSusLabel } from "@/lib/sus";
+import { computeSessionAverages } from "@/lib/metrics";
 import type { TestSessionWithRelations } from "@/types";
 import {
   PieChart,
@@ -101,46 +102,8 @@ function SessionAverages({ session }: { session: TestSessionWithRelations }) {
     );
   }
 
-  // Skipped tasks have time_seconds = 0; including them either skews
-  // avgTime or, worse, divides by zero in the efficiency formula and
-  // yields Infinity. Exclude them from both.
-  const timeTasks = results.filter(
-    (r) =>
-      r.time_seconds != null &&
-      Number(r.time_seconds) > 0 &&
-      r.completion_status !== "skipped",
-  );
-  const avgTime =
-    timeTasks.length > 0
-      ? timeTasks.reduce((s, r) => s + Number(r.time_seconds), 0) / timeTasks.length
-      : null;
-
-  const optTimeTasks = timeTasks.filter(
-    (r) => r.template_tasks.optimal_time_seconds != null,
-  );
-  const timeEfficiency =
-    optTimeTasks.length > 0
-      ? Math.round(
-          (optTimeTasks.reduce(
-            (s, r) => s + r.template_tasks.optimal_time_seconds! / Number(r.time_seconds!),
-            0,
-          ) /
-            optTimeTasks.length) *
-            100,
-        )
-      : null;
-
-  const actionTasks = results.filter((r) => r.action_count != null);
-  const avgActions =
-    actionTasks.length > 0
-      ? (actionTasks.reduce((s, r) => s + r.action_count!, 0) / actionTasks.length).toFixed(1)
-      : null;
-
-  const seqTasks = results.filter((r) => r.seq_rating != null);
-  const avgSeq =
-    seqTasks.length > 0
-      ? (seqTasks.reduce((s, r) => s + r.seq_rating!, 0) / seqTasks.length).toFixed(1)
-      : null;
+  const { avgTime, timeEfficiency, avgActions, avgSeq } =
+    computeSessionAverages(results);
 
   const effColor =
     timeEfficiency != null

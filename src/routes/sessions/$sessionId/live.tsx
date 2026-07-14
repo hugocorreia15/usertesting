@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useDeleteErrorLog, useDeleteHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { participantStillAnswering } from "@/lib/session-gating";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
 import { TaskNavigator } from "@/components/live/task-navigator";
@@ -21,21 +22,6 @@ import type { CompletionStatus } from "@/lib/constants";
 export const Route = createFileRoute("/sessions/$sessionId/live")({
   component: LiveSessionPage,
 });
-
-// In join-code mode the participant answers each task's questions on
-// their own device after the evaluator marks it complete. True while
-// any completed task still has unanswered participant questions.
-function participantStillAnswering(
-  session: ReturnType<typeof useSession>["data"],
-): boolean {
-  if (!session?.join_code) return false;
-  return (session.task_results ?? []).some((tr) => {
-    if (!tr.completion_status) return false;
-    const qs = tr.template_tasks?.task_questions ?? [];
-    if (qs.length === 0) return false;
-    return (tr.task_question_answers?.length ?? 0) < qs.length;
-  });
-}
 
 type UndoEntry =
   | { kind: "action" }
