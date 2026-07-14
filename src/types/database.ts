@@ -191,6 +191,26 @@ export interface SessionInvitation {
   expires_at: string | null;
 }
 
+// Qualitative coding (migration 039)
+export interface TemplateCode {
+  id: string;
+  template_id: string;
+  code: string;
+  description: string | null;
+  color: string;
+  sort_order: number;
+  created_at: string;
+}
+
+// Exactly one of the two answer references is set
+export interface AnswerCode {
+  id: string;
+  code_id: string;
+  task_question_answer_id: string | null;
+  interview_answer_id: string | null;
+  created_at: string;
+}
+
 // Extended types with relations
 export interface TemplateWithRelations extends Template {
   task_groups: TaskGroup[];
@@ -198,6 +218,11 @@ export interface TemplateWithRelations extends Template {
   template_error_types: TemplateErrorType[];
   template_questions: TemplateQuestion[];
   template_participant_fields: TemplateParticipantField[];
+  template_codes?: TemplateCodeWithAnswers[];
+}
+
+export interface TemplateCodeWithAnswers extends TemplateCode {
+  answer_codes: AnswerCode[];
 }
 
 export interface TestSessionWithRelations extends TestSession {

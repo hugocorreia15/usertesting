@@ -63,6 +63,33 @@ function fakeTemplate(): TemplateWithRelations {
     ],
     template_participant_fields: [],
     instruments: [],
+    template_codes: [
+      {
+        id: "c1",
+        template_id: "t1",
+        code: "confusion",
+        description: null,
+        color: "#f97316",
+        sort_order: 0,
+        created_at: "",
+        answer_codes: [
+          {
+            id: "ac1",
+            code_id: "c1",
+            task_question_answer_id: "a1",
+            interview_answer_id: null,
+            created_at: "",
+          },
+          {
+            id: "ac2",
+            code_id: "c1",
+            task_question_answer_id: null,
+            interview_answer_id: "ia1",
+            created_at: "",
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -223,6 +250,26 @@ describe("buildExportTables", () => {
     const idx = tables.task_results.headers.indexOf("is_practice");
     expect(idx).toBeGreaterThan(-1);
     expect(tables.task_results.rows[0][idx]).toBe("false");
+  });
+
+  it("exports qualitative code tags with resolved answers", () => {
+    const t = tables.answer_codes;
+    expect(t).toBeDefined();
+    expect(t.rows).toHaveLength(2);
+    const col = (name: string) => t.headers.indexOf(name);
+
+    const taskRow = t.rows.find((r) => r[col("source")] === "task")!;
+    expect(taskRow[col("session_id")]).toBe("s1");
+    expect(taskRow[col("code")]).toBe("confusion");
+    expect(taskRow[col("task_name")]).toBe("Find the thing");
+    expect(taskRow[col("question_text")]).toBe("How was it?");
+    expect(taskRow[col("answer_text")]).toBe("fine");
+
+    const interviewRow = t.rows.find((r) => r[col("source")] === "interview")!;
+    expect(interviewRow[col("session_id")]).toBe("s1");
+    expect(interviewRow[col("task_name")]).toBeNull();
+    expect(interviewRow[col("question_text")]).toBe("Overall thoughts?");
+    expect(interviewRow[col("answer_text")]).toBe("Loved it");
   });
 
   it("survives a CSV round of the participant name with quotes and commas", () => {

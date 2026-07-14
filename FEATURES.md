@@ -91,13 +91,13 @@ charts + overall aggregates; marked "(practice)" in PDF task table and
 badged in live mode + session detail; export carries an is_practice
 column.
 
-### P2.4 Qualitative coding  *(medium — high research value)*
-Code book per template (code + color); evaluator tags open/interview
-answers (multi-code); code-frequency matrix view (codes × sessions) +
-export table.
-**Accept:** tagging an answer updates the matrix; export contains an
-answer_codes table. **Paper:** a genuinely novel feature vs the
-commercial platforms' moderated modes — worth a subsection.
+### P2.4 Qualitative coding — SHIPPED
+Code book per template (template_codes + answer_codes, migration 039,
+owner-only RLS); Coding tab on template detail (code book editor with
+color/definition + codes × sessions frequency matrix); multi-code tag
+picker on open task answers and interview answers in session detail;
+answer_codes export table resolving source/question/answer text;
+"Qualitative Coding" subsection in the paper.
 
 ### P2.5 Auto-instrumentation snippet  *(medium-high — ROADMAP 1.3)*
 Embeddable `<script>` for browser-based systems under test: posts

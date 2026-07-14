@@ -320,6 +320,23 @@ study produced can also be exported as raw flat tables (CSV or JSON):
 sessions, task results with baselines, timestamped event logs, question
 answers, and per-item questionnaire scores.
 
+\subsection{Qualitative Coding}
+Beyond the quantitative record, the platform supports a lightweight
+qualitative analysis workflow directly on collected text. Each template
+carries a code book: a set of short, color-coded labels with optional
+definitions, authored by the evaluator. Any open-ended task answer or
+post-session interview answer can then be tagged with any number of
+codes from the session's results view, and a code-frequency matrix
+(codes as rows, sessions as columns) aggregates tag counts at the
+template level as coding proceeds. Tags are exported as their own raw
+table alongside the quantitative data, with each tag row resolving the
+coded answer's text, source question, and session, so downstream
+analysis can move between counts and quotes. Commercial platforms
+typically confine tagging to recorded video timelines in their
+unmoderated products; coupling a template-scoped code book to the
+structured answers of moderated sessions keeps the coding unit aligned
+with the protocol itself.
+
 \subsection{Design Notes}
 Two design decisions proved more consequential than expected. First,
 \emph{logging must not compete with observation}: every evaluator action

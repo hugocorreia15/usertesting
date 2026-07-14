@@ -54,7 +54,7 @@ export function useTemplate(id: string | undefined) {
       const { data, error } = await supabase
         .from("templates")
         .select(
-          "*, task_groups(*), template_tasks(*, task_questions(*)), template_error_types(*), template_questions(*), template_participant_fields(*)",
+          "*, task_groups(*), template_tasks(*, task_questions(*)), template_error_types(*), template_questions(*), template_participant_fields(*), template_codes(*, answer_codes(*))",
         )
         .eq("id", id!)
         .single();

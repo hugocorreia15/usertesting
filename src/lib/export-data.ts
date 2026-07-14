@@ -130,6 +130,28 @@ export function buildExportTables(
     headers: ["session_id", "instrument", "item_number", "score"],
     rows: [],
   };
+  const answerCodesT: ExportTable = {
+    headers: [
+      "session_id",
+      "code",
+      "source",
+      "task_name",
+      "question_text",
+      "answer_text",
+    ],
+    rows: [],
+  };
+
+  // Answer lookups for resolving qualitative code tags, built once
+  // while walking the sessions below.
+  const taskAnswerRef = new Map<
+    string,
+    { sessionId: string; taskName: Cell; questionText: Cell; answerText: Cell }
+  >();
+  const interviewAnswerRef = new Map<
+    string,
+    { sessionId: string; questionText: Cell; answerText: Cell }
+  >();
 
   for (const s of sessions) {
     for (const tr of s.task_results ?? []) {
@@ -175,6 +197,12 @@ export function buildExportTables(
       );
       for (const a of tr.task_question_answers ?? []) {
         const q = questionById.get(a.question_id);
+        taskAnswerRef.set(a.id, {
+          sessionId: s.id,
+          taskName,
+          questionText: q?.question_text ?? null,
+          answerText: a.answer_text,
+        });
         answersT.rows.push([
           s.id,
           tr.id,
@@ -190,6 +218,11 @@ export function buildExportTables(
     }
 
     for (const ia of s.interview_answers ?? []) {
+      interviewAnswerRef.set(ia.id, {
+        sessionId: s.id,
+        questionText: interviewQuestionText.get(ia.question_id) ?? null,
+        answerText: ia.answer_text,
+      });
       interviewT.rows.push([
         s.id,
         interviewQuestionText.get(ia.question_id) ?? null,
@@ -204,6 +237,36 @@ export function buildExportTables(
     }
   }
 
+  // Qualitative code tags, resolved against the sessions exported
+  // above; tags on answers outside those sessions are skipped.
+  for (const code of template.template_codes ?? []) {
+    for (const ac of code.answer_codes ?? []) {
+      if (ac.task_question_answer_id) {
+        const ref = taskAnswerRef.get(ac.task_question_answer_id);
+        if (!ref) continue;
+        answerCodesT.rows.push([
+          ref.sessionId,
+          code.code,
+          "task",
+          ref.taskName,
+          ref.questionText,
+          ref.answerText,
+        ]);
+      } else if (ac.interview_answer_id) {
+        const ref = interviewAnswerRef.get(ac.interview_answer_id);
+        if (!ref) continue;
+        answerCodesT.rows.push([
+          ref.sessionId,
+          code.code,
+          "interview",
+          null,
+          ref.questionText,
+          ref.answerText,
+        ]);
+      }
+    }
+  }
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -213,6 +276,7 @@ export function buildExportTables(
     interview_answers: interviewT,
     sus_answers: susT,
     instrument_answers: instrumentT,
+    answer_codes: answerCodesT,
   };
 }
 

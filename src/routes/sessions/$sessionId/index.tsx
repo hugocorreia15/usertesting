@@ -52,6 +52,8 @@ import {
   useDeleteSession,
   useAnonymizeSession,
 } from "@/hooks/use-sessions";
+import { useTemplateCodes, useSessionAnswerCodes } from "@/hooks/use-codes";
+import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import {
   PenLine,
   Play,
@@ -99,6 +101,20 @@ function SessionDetailPage() {
   const navigate = useNavigate();
   const { data: session, isLoading } = useSession(sessionId);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Qualitative coding: the code book + every tag on this session's answers
+  const { data: codes } = useTemplateCodes(session?.template_id);
+  const taskAnswerIds =
+    session?.task_results?.flatMap((tr) =>
+      (tr.task_question_answers ?? []).map((a) => a.id),
+    ) ?? [];
+  const interviewAnswerIds =
+    session?.interview_answers?.map((a) => a.id) ?? [];
+  const { data: answerCodes } = useSessionAnswerCodes(
+    session?.id,
+    taskAnswerIds,
+    interviewAnswerIds,
+  );
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
@@ -314,6 +330,17 @@ function SessionDetailPage() {
                                       "No photo captured"
                                     ))}
                                 </div>
+                                {q.question_type === "open" && (
+                                  <AnswerCodeTags
+                                    templateId={session.template_id}
+                                    sessionId={session.id}
+                                    codes={codes ?? []}
+                                    answerCodes={answerCodes ?? []}
+                                    answerRef={{
+                                      task_question_answer_id: answer.id,
+                                    }}
+                                  />
+                                )}
                               </div>
                             );
                           })}
@@ -413,6 +440,15 @@ function SessionDetailPage() {
                       <p className="mt-1 text-sm text-muted-foreground">
                         {a.answer_text || "No answer recorded"}
                       </p>
+                      {a.answer_text && (
+                        <AnswerCodeTags
+                          templateId={session.template_id}
+                          sessionId={session.id}
+                          codes={codes ?? []}
+                          answerCodes={answerCodes ?? []}
+                          answerRef={{ interview_answer_id: a.id }}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>

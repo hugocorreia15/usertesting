@@ -19,6 +19,8 @@ import { TemplateOverviewTab } from "@/components/templates/template-overview-ta
 import { TemplateSessionsTab } from "@/components/templates/template-sessions-tab";
 import { TemplateParticipantsTab } from "@/components/templates/template-participants-tab";
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
+import { CodeBookEditor } from "@/components/coding/code-book-editor";
+import { CodeMatrix } from "@/components/coding/code-matrix";
 import { Download, FileBarChart, Trash2, Plus, Database } from "lucide-react";
 import { toast } from "sonner";
 
@@ -131,6 +133,7 @@ function TemplateDetailPage() {
             <TabsTrigger value="participants">
               Participants ({uniqueParticipantCount})
             </TabsTrigger>
+            <TabsTrigger value="coding">Coding</TabsTrigger>
             <TabsTrigger value="edit">Edit</TabsTrigger>
           </TabsList>
 
@@ -173,6 +176,18 @@ function TemplateDetailPage() {
             <p className="text-muted-foreground">Loading participants...</p>
           ) : (
             <TemplateParticipantsTab sessions={sessions ?? []} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="coding" className="mt-6 space-y-6">
+          <CodeBookEditor templateId={templateId} />
+          {sessionsLoading ? (
+            <p className="text-muted-foreground">Loading sessions...</p>
+          ) : (
+            <CodeMatrix
+              codes={template.template_codes ?? []}
+              sessions={sessions ?? []}
+            />
           )}
         </TabsContent>
 
