@@ -43,13 +43,13 @@ over WebSocket channels, including a gating protocol that prevents the
 session from advancing while the participant is still answering. Sessions
 conclude with an automatically scored System Usability Scale questionnaire
 and a semi-structured interview, and export to a self-contained PDF report.
-We describe the architecture---a React single-page application over a
-Postgres backend with row-level security---and report two case studies:
+We describe the architecture, a React single-page application over a
+Postgres backend with row-level security, and report two case studies:
 a four-participant evaluation of a household touch-panel controller
 (mean SUS 28.1) and a two-participant evaluation of an eye-tracking
 analysis dashboard (SUS 80). The studies show that the platform
-carries complete, realistic evaluations end to end---including a physical
-device beyond the reach of browser-based instrumentation---while
+carries complete, realistic evaluations end to end, including a physical
+device beyond the reach of browser-based instrumentation, while
 producing diagnostic task-level detail alongside the standard summary
 metrics.
 \end{abstract}
@@ -75,8 +75,8 @@ on unmoderated remote studies, where metrics are captured by automatic
 instrumentation of the participant's browser; their moderated modes
 produce session videos and free-form notes that must be coded after the
 fact. In practice, a moderated session is therefore run with an ad-hoc
-toolchain---a stopwatch, a paper or spreadsheet observation grid, a
-separate questionnaire form, and manual report writing---which is slow,
+toolchain (a stopwatch, a paper or spreadsheet observation grid, a
+separate questionnaire form, and manual report writing) that is slow,
 error-prone, and hard to standardize across studies.
 
 This paper presents \emph{Avalux}, an open web platform that integrates
@@ -92,8 +92,8 @@ the moderated-testing pipeline end to end. Its contributions are:
   logging, per-task SEQ) and the participant's own device are synchronized
   in real time, including a gating protocol that blocks task advancement
   while the participant is still answering the previous task's questions;
-  \item \textbf{two case studies}---a household touch-panel controller and
-  an eye-tracking analysis dashboard---run entirely on the platform,
+  \item \textbf{two case studies}, a household touch-panel controller and
+  an eye-tracking analysis dashboard, both run entirely on the platform,
   showing that it carries realistic studies end to end, including a
   physical device beyond browser instrumentation, and that its task-level
   instruments localize the problems behind widely differing outcomes
@@ -152,10 +152,10 @@ views.}
 A \emph{template} is a reusable test protocol: an ordered set of
 \emph{tasks}, optionally grouped, each carrying instructions and optimal
 time/action baselines; a study-specific \emph{error taxonomy} (code plus
-label, e.g.\ \emph{WB---wrong button}); \emph{per-task questions} of seven
+label, e.g.\ \emph{WB, wrong button}); \emph{per-task questions} of seven
 types (open text, single and multiple choice, rating, audio, video,
 photo); a semi-structured \emph{interview script}; and \emph{participant
-fields}---extra attributes such as handedness or vision correction that
+fields}: extra attributes such as handedness or vision correction that
 the study collects per participant. A \emph{session} instantiates a
 template for one participant and accumulates per-task results (status,
 time, action count, error and hesitation logs with timestamps, SEQ),
@@ -174,7 +174,7 @@ them aloud. When the evaluator marks a task complete, its questions unlock
 on the participant's device; conversely, the evaluator's
 success/partial/failure controls are \emph{disabled} while the participant
 is still answering the previous task's questions, with a notification when
-they finish---a two-way gate designed to keep both roles aligned without
+they finish: a two-way gate designed to keep both roles aligned without
 requiring verbal coordination (Fig.~\ref{fig:seq}). Both directions of the gate are
 computed from persisted state (the task pointer and the ratio of answers
 to questions per completed task), not from ephemeral messages, so either
@@ -236,9 +236,9 @@ Session-level indicators are the completion-status distribution, mean
 time and action efficiency
 $\frac{1}{|A|}\sum_{i \in A} t^{*}_i / t_i$ (and analogously for
 actions), where $A$ contains only \emph{attempted} tasks with
-$t_i > 0$---skipped tasks are excluded rather than scored as zero-time
+$t_i > 0$ (skipped tasks are excluded rather than scored as zero-time
 successes, an aggregation rule we adopted after observing that including
-them produces unbounded efficiency values---and the SUS score with its
+them produces unbounded efficiency values), and the SUS score with its
 adjective band~\cite{brooke1996sus,bangor2009determining}. Cross-session
 SUS summaries are accompanied by two-sided 95\% confidence intervals
 computed with the $t$-distribution, following the small-sample
@@ -270,9 +270,9 @@ policy with the read policy, and mutable invitation counters are further
 restricted with column-level grants so an anonymous client can increment
 a response counter but not rewrite an invitation's task selection. This
 model survived two studies without an application server, though it
-requires discipline: one gap---a missing anonymous update policy on
+requires discipline: one gap, a missing anonymous update policy on
 invitation counters, which silently aborted link joins after the
-participant row was already created---was found during operation and is
+participant row was already created, was found during operation and is
 now covered by a regression migration. Studies that must avoid personal
 data can disable identity collection entirely, producing anonymous
 participant records that never join the evaluator's roster.
@@ -290,8 +290,8 @@ manual assembly step that typically follows moderated studies.
 \subsection{Design Notes}
 Two design decisions proved more consequential than expected. First,
 \emph{logging must not compete with observation}: every evaluator action
-during a task---counting an action, categorizing an error, marking a
-hesitation---is a single tap on a persistently visible control, sized to
+during a task (counting an action, categorizing an error, marking a
+hesitation) is a single tap on a persistently visible control, sized to
 mobile touch-target guidelines so the cockpit is operable on a tablet
 held in the lap while watching the participant. Instruments that require
 navigation or typing (task questions, notes) are deferred to task
@@ -299,8 +299,8 @@ boundaries. Second, \emph{the protocol is an artifact, not
 configuration}: because a template fully encodes tasks, baselines,
 taxonomies, and instruments, it can be reviewed before the study like a
 questionnaire, reused across sessions unchanged, exported as printable
-observation sheets when a study must run entirely on paper, and---as in
-study~2---seeded from a written protocol document under version control.
+observation sheets when a study must run entirely on paper, and, as in
+study~2, seeded from a written protocol document under version control.
 
 \begin{figure}[t]
 \centering
@@ -319,7 +319,7 @@ the evaluator client alone; study~2 additionally used the participant's
 own device for questions, interview, and SUS via join links, so the
 synchronization and gating mechanism of
 Section~III-C was exercised only in study~2's co-located
-sessions---its validation with a non-co-located moderator remains future
+sessions; its validation with a non-co-located moderator remains future
 work. Participants in both studies were volunteers recruited from the
 authors' university environment, were informed about the study's purpose
 and the data collected (including, in study~2, browser-captured
@@ -330,10 +330,10 @@ procedure details.]}
 
 \subsection{Study 1: Household Touch-Panel Controller}
 Four participants (ages 20--23, two female, three of low and one of high
-self-rated technical proficiency) attempted 14 tasks---seven simple
+self-rated technical proficiency) attempted 14 tasks, seven simple
 (e.g.\ wake the panel, read the time, adjust temperature) and seven
 complex (e.g.\ set the clock, change language, recover from an error
-state)---on a commercial water-heater touch panel. Sessions averaged
+state), on a commercial water-heater touch panel. Sessions averaged
 15~minutes. Aggregate completion across the $4\times14$ task attempts was
 approximately 70\% success, 20\% partial, and 11\% failure (percentages
 independently rounded). SUS scores were 25.0, 40.0, 17.5, and 30.0 (mean 28.1,
@@ -360,9 +360,9 @@ point to settings and explicit error feedback.
 \toprule
 Task & Mean SEQ & Mean time (s) & Note\\
 \midrule
-Wake up panel & 1.8 & --- & all struggled\\
-Recover from error & 2.5 & --- & no error feedback\\
-Set clock to 08:30 & --- & 43.6 & 10 actions vs.\ 8 optimal\\
+Wake up panel & 1.8 & -- & all struggled\\
+Recover from error & 2.5 & -- & no error feedback\\
+Set clock to 08:30 & -- & 43.6 & 10 actions vs.\ 8 optimal\\
 Read current time & 7.0 & 2.7 & 100\% success\\
 \bottomrule
 \end{tabular}
@@ -407,9 +407,9 @@ every other task was completed successfully by both participants (one
 task was skipped in one session). Both participants scored the system at
 SUS 80 (``Good'', approaching
 ``Excellent''~\cite{bangor2009determining}). Open answers
-converged on three concrete defects---an auto-track feature hidden in an
+converged on three concrete defects (an auto-track feature hidden in an
 overflow menu, participant IDs shown instead of names in comparisons, and
-truncated axis labels---each traceable to a specific task's logs and
+truncated axis labels), each traceable to a specific task's logs and
 answers in the report.
 
 \subsection{Cross-Study Reading}
@@ -427,7 +427,7 @@ Operationally, a single evaluator ran every session in both studies. The
 protocol-as-template design meant the second study's considerably richer
 instrumentation (19 error codes, media questions, custom participant
 attributes) cost setup effort once rather than per session, and both
-study reports---including all charts and per-task appendices---were
+study reports, including all charts and per-task appendices, were
 generated without manual assembly. Running real studies also stress-tested
 the platform itself: study operation exposed a row-level-security gap in
 the anonymous invitation-counter update (Section~III-D) and showed that
@@ -491,15 +491,15 @@ as a controlled comparison.
 The samples (four participants in study~1, two in study~2) are in line
 with problem-discovery practice
 \cite{virzi1992refining,nielsen1993mathematical} but far too small for
-statistical generalization of the metric values---study~2's two
+statistical generalization of the metric values (study~2's two
 participants in particular make its aggregate figures illustrative
-only---and both cohorts were young adults in their early twenties. More importantly for a tool paper, we have not yet
+only), and both cohorts were young adults in their early twenties. More importantly for a tool paper, we have not yet
 run a controlled comparison of evaluator effort and data quality against
 an ad-hoc toolchain or a commercial moderated platform; the case studies
 demonstrate feasibility and output quality, not superiority. That
-comparison---several evaluators logging the same scripted session with
+comparison, in which several evaluators log the same scripted session with
 Avalux and with a stopwatch-and-spreadsheet baseline, measured for setup
-time, logging completeness, report latency, and workload---is the
+time, logging completeness, report latency, and workload, is the
 designed next study, together with an inter-rater reliability measurement
 of the live-logging instrument.
 
@@ -514,7 +514,7 @@ between the lab and the fully remote setting. Because the participant
 client is an ordinary web page, the same protocol runs in a lab (evaluator
 and participant co-located, as in both case studies), over a video call
 with the join link shared in chat, or asynchronously through shared links
-when moderation is not required---though the platform's distinctive
+when moderation is not required, although the platform's distinctive
 instruments (evaluator-logged actions, errors, and hesitations) only apply
 in the moderated modes. Prior comparisons suggest synchronous remote
 moderation approaches lab quality~\cite{andreasen2007remote,
@@ -536,8 +536,8 @@ Future work proceeds on two tracks. The \emph{evaluation} track validates
 the tool itself: a counterbalanced evaluator study against a
 stopwatch-and-spreadsheet baseline (setup time, logging completeness,
 report latency, SUS and workload on the toolchain), an inter-rater
-reliability study of the live-logging instrument, and---for browser-based
-systems under test---an optional auto-instrumentation snippet whose event
+reliability study of the live-logging instrument, and, for browser-based
+systems under test, an optional auto-instrumentation snippet whose event
 counts can be correlated against evaluator-logged counts to bound manual
 logging error. The \emph{platform} track ships features the studies
 motivated: temporal views that plot the already-timestamped error and
@@ -550,9 +550,9 @@ localization of the participant client, whose users in both studies
 preferred answering in their native language.
 
 \section*{Availability}
-The platform is deployed at \url{https://avalux.pt}. Its source---the
-application, the database schema (31 SQL migrations), the seeded protocol
-of study~2, the in-application tutorial, and the report generator---is
+The platform is deployed at \url{https://avalux.pt}. Its source, comprising the
+application, the database schema (35 SQL migrations), the seeded protocol
+of study~2, the in-application tutorial, and the report generator, is
 available at \textbf{[repository URL and license to be inserted before
 submission]}. Anonymized session data from the case studies is available
 on request within the limits of the participants' consent.
