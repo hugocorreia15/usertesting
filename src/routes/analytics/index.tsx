@@ -177,6 +177,13 @@ function AnalyticsPage() {
                     ? analytics.summary.avgSusScore
                     : "—"}
                 </p>
+                {analytics.summary.susCi && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    95% CI [{analytics.summary.susCi.low.toFixed(1)},{" "}
+                    {analytics.summary.susCi.high.toFixed(1)}] · n=
+                    {analytics.summary.susCi.n}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

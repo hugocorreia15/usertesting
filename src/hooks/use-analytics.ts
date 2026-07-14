@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { calculateSusScore } from "@/lib/sus";
+import {
+  susConfidenceInterval95,
+  type ConfidenceInterval,
+} from "@/lib/stats";
 import type {
   TemplateWithRelations,
   TestSessionWithRelations,
@@ -37,6 +41,7 @@ export interface AnalyticsSummary {
   avgTaskTime: number;
   totalErrors: number;
   avgSusScore: number | null;
+  susCi: ConfidenceInterval | null;
 }
 
 export interface AnalyticsData {
@@ -156,6 +161,7 @@ function computeAnalytics(
           (susScores.reduce((a, b) => a + b, 0) / susScores.length) * 10,
         ) / 10
       : null;
+  const susCi = susConfidenceInterval95(susScores);
 
   return {
     summary: {
@@ -164,6 +170,7 @@ function computeAnalytics(
       avgTaskTime,
       totalErrors,
       avgSusScore,
+      susCi,
     },
     taskCompletion,
     timeEfficiency,

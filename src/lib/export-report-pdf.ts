@@ -7,6 +7,7 @@ import type {
 } from "@/types";
 import { SUS_QUESTIONS, calculateSusScore, getSusLabel } from "@/lib/sus";
 import { scoreTlx, scoreUeqS } from "@/lib/instruments";
+import { susConfidenceInterval95 } from "@/lib/stats";
 
 // ── Chart colors ──────────────────────────────────────
 const C = {
@@ -937,6 +938,7 @@ function renderOverallCharts(
     y += 2;
 
     const avgSus = avg(susScores.map((s) => s.score));
+    const susCi = susConfidenceInterval95(susScores.map((s) => s.score));
 
     autoTable(doc, {
       startY: y,
@@ -944,6 +946,13 @@ function renderOverallCharts(
       body: [
         ...susScores.map((s) => [s.name, s.score.toFixed(1), getSusLabel(s.score)]),
         ["Average", avgSus.toFixed(1), getSusLabel(avgSus)],
+        ...(susCi
+          ? [[
+              "95% CI (t-dist.)",
+              `[${susCi.low.toFixed(1)}, ${susCi.high.toFixed(1)}]`,
+              `n=${susCi.n}, sd=${susCi.sd.toFixed(1)}`,
+            ]]
+          : []),
       ],
       theme: "grid",
       margin: { left: margin, right: margin },
@@ -951,7 +960,7 @@ function renderOverallCharts(
       headStyles: { fillColor: [60, 60, 60] },
       columnStyles: { 0: { cellWidth: 50 } },
       didParseCell: (data: any) => {
-        if (data.row.index === susScores.length && data.section === "body") {
+        if (data.row.index >= susScores.length && data.section === "body") {
           data.cell.styles.fontStyle = "bold";
         }
       },
