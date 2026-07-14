@@ -39,6 +39,11 @@ import {
   PolarTick,
   ChartScroll,
 } from "@/components/charts/chart-axis";
+import {
+  SignedAudio,
+  SignedVideo,
+  SignedImage,
+} from "@/components/media/signed-media";
 import { useSession, useDeleteSession } from "@/hooks/use-sessions";
 import { PenLine, Play, Copy, Check, Trash2, Loader2 } from "lucide-react";
 import {
@@ -247,13 +252,13 @@ function SessionDetailPage() {
                                       : "No rating")}
                                   {q.question_type === "audio" &&
                                     (answer.media_url ? (
-                                      <audio src={answer.media_url} controls className="mt-1 h-10 w-full" />
+                                      <SignedAudio value={answer.media_url} className="mt-1 h-10 w-full" />
                                     ) : (
                                       "No audio recorded"
                                     ))}
                                   {q.question_type === "video" &&
                                     (answer.media_url ? (
-                                      <video src={answer.media_url} controls className="mt-1 w-full max-h-48 rounded-md bg-black" />
+                                      <SignedVideo value={answer.media_url} className="mt-1 w-full max-h-48 rounded-md bg-black" />
                                     ) : (
                                       "No video recorded"
                                     ))}
@@ -265,8 +270,8 @@ function SessionDetailPage() {
                                         className="mt-1 block w-full overflow-hidden rounded-md transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary"
                                         aria-label="Open photo"
                                       >
-                                        <img
-                                          src={answer.media_url}
+                                        <SignedImage
+                                          value={answer.media_url}
                                           alt="Captured"
                                           className="w-full max-h-48 object-cover cursor-zoom-in"
                                         />
@@ -444,8 +449,8 @@ function SessionDetailPage() {
             <DialogTitle>Photo answer</DialogTitle>
           </DialogHeader>
           {lightboxUrl && (
-            <img
-              src={lightboxUrl}
+            <SignedImage
+              value={lightboxUrl}
               alt="Photo answer"
               className="max-h-[80vh] w-full rounded-md object-contain"
             />

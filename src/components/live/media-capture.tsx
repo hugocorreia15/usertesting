@@ -2,6 +2,11 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Video, VideoOff, Camera, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  SignedAudio,
+  SignedVideo,
+  SignedImage,
+} from "@/components/media/signed-media";
 
 interface MediaCaptureProps {
   type: "audio" | "video" | "photo";
@@ -16,13 +21,14 @@ export function MediaCapture({ type, value, onChange, storagePath }: MediaCaptur
   return <PhotoCapture value={value} onChange={onChange} storagePath={storagePath} />;
 }
 
+// The bucket is private (migration 032): store the bucket-relative path
+// and let render sites mint short-lived signed URLs.
 async function uploadMedia(blob: Blob, path: string, contentType: string): Promise<string> {
   const { error } = await supabase.storage
     .from("session-media")
     .upload(path, blob, { contentType, upsert: true });
   if (error) throw error;
-  const { data } = supabase.storage.from("session-media").getPublicUrl(path);
-  return data.publicUrl;
+  return path;
 }
 
 function AudioRecorder({
@@ -73,7 +79,7 @@ function AudioRecorder({
     <div className="space-y-2">
       {value ? (
         <div className="flex items-center gap-2">
-          <audio src={value} controls className="flex-1 h-10" />
+          <SignedAudio value={value} className="flex-1 h-10" />
           <Button variant="ghost" size="icon" onClick={remove}>
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -167,7 +173,7 @@ function VideoRecorder({
     <div className="space-y-2">
       {value ? (
         <div className="space-y-2">
-          <video src={value} controls className="w-full max-h-48 rounded-md bg-black" />
+          <SignedVideo value={value} className="w-full max-h-48 rounded-md bg-black" />
           <Button variant="ghost" size="sm" onClick={remove}>
             <Trash2 className="mr-2 h-4 w-4" />
             Remove
@@ -263,7 +269,7 @@ function PhotoCapture({
     <div className="space-y-2">
       {value ? (
         <div className="space-y-2">
-          <img src={value} alt="Captured" className="w-full max-h-48 rounded-md object-cover" />
+          <SignedImage value={value} alt="Captured" className="w-full max-h-48 rounded-md object-cover" />
           <Button variant="ghost" size="sm" onClick={remove}>
             <Trash2 className="mr-2 h-4 w-4" />
             Remove

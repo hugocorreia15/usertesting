@@ -107,6 +107,7 @@ function SessionEditPage() {
           <TaskResultEditor
             key={tr.id}
             index={i}
+            ownerUserId={session.user_id}
             taskResult={tr}
             expanded={!!expanded[tr.id]}
             onToggle={() => toggle(tr.id)}
@@ -179,6 +180,7 @@ function SessionEditPage() {
 
 function TaskResultEditor({
   index,
+  ownerUserId,
   taskResult,
   expanded,
   onToggle,
@@ -186,6 +188,7 @@ function TaskResultEditor({
   onSaveQuestionAnswer,
 }: {
   index: number;
+  ownerUserId: string | null;
   taskResult: any;
   expanded: boolean;
   onToggle: () => void;
@@ -302,7 +305,7 @@ function TaskResultEditor({
                     key={q.id}
                     question={q}
                     existing={questionAnswers.find((a) => a.question_id === q.id)}
-                    storagePath={`${taskResult.session_id}/${taskResult.id}/${q.id}`}
+                    storagePath={`${ownerUserId}/${taskResult.session_id}/${taskResult.id}/${q.id}`}
                     onSave={(data) => onSaveQuestionAnswer(q.id, data)}
                   />
                 ))}

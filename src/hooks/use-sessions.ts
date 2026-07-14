@@ -283,6 +283,29 @@ export function useCreateErrorLog() {
   });
 }
 
+// Deletions used by live-mode undo: remove a just-logged event.
+export function useDeleteErrorLog() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("error_logs").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
+export function useDeleteHesitationLog() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("hesitation_logs").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
+  });
+}
+
 export function useCreateHesitationLog() {
   const qc = useQueryClient();
   return useMutation({
@@ -390,10 +413,41 @@ export function useUpsertTaskQuestionAnswer() {
   });
 }
 
+// Media files live under <owner>/<sessionId>/<taskResultId>/<questionId>.<ext>
+// in the private session-media bucket. Rows cascade-delete with the session,
+// but storage files don't — remove them best-effort before deleting the row.
+async function deleteSessionMedia(sessionId: string) {
+  try {
+    const { data: session } = await supabase
+      .from("test_sessions")
+      .select("user_id")
+      .eq("id", sessionId)
+      .single();
+    if (!session?.user_id) return;
+
+    const base = `${session.user_id}/${sessionId}`;
+    const bucket = supabase.storage.from("session-media");
+    const { data: folders } = await bucket.list(base);
+    const paths: string[] = [];
+    for (const entry of folders ?? []) {
+      if (entry.id) {
+        paths.push(`${base}/${entry.name}`);
+      } else {
+        const { data: files } = await bucket.list(`${base}/${entry.name}`);
+        for (const f of files ?? []) paths.push(`${base}/${entry.name}/${f.name}`);
+      }
+    }
+    if (paths.length > 0) await bucket.remove(paths);
+  } catch {
+    // storage cleanup must never block session deletion
+  }
+}
+
 export function useDeleteSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      await deleteSessionMedia(id);
       const { error } = await supabase
         .from("test_sessions")
         .delete()

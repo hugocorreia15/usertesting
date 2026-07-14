@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
+import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useDeleteErrorLog, useDeleteHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
@@ -14,7 +14,7 @@ import { SeqRating } from "@/components/live/seq-rating";
 import { TaskQuestionsDialog, type TaskQuestionAnswerData } from "@/components/live/task-questions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ClipboardCheck, CheckCircle2 } from "lucide-react";
+import { Loader2, ClipboardCheck, CheckCircle2, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import type { CompletionStatus } from "@/lib/constants";
 
@@ -37,6 +37,11 @@ function participantStillAnswering(
   });
 }
 
+type UndoEntry =
+  | { kind: "action" }
+  | { kind: "error"; errorTypeId: string; logId: string }
+  | { kind: "hesitation"; logId: string };
+
 function LiveSessionPage() {
   const { sessionId } = Route.useParams();
   const navigate = useNavigate();
@@ -44,15 +49,19 @@ function LiveSessionPage() {
   const { data: session, isLoading } = useSession(sessionId);
   const { data: template } = useTemplate(session?.template_id);
 
-  const timer = useTimer();
   const updateTaskResult = useUpdateTaskResult();
   const createErrorLog = useCreateErrorLog();
   const createHesitationLog = useCreateHesitationLog();
+  const deleteErrorLog = useDeleteErrorLog();
+  const deleteHesitationLog = useDeleteHesitationLog();
   const updateSession = useUpdateSession();
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  // Timer state survives tab reloads/crashes, keyed per session+task.
+  const timer = useTimer(`avalux-live-timer-${sessionId}-${currentTaskIndex}`);
   const [actionCount, setActionCount] = useState(0);
   const [errorCounts, setErrorCounts] = useState<Record<string, number>>({});
   const [hesitationCount, setHesitationCount] = useState(0);
+  const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
   const [showSeq, setShowSeq] = useState(false);
   const [showTaskQuestions, setShowTaskQuestions] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<CompletionStatus | null>(null);
@@ -60,6 +69,16 @@ function LiveSessionPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const upsertTaskQuestionAnswer = useUpsertTaskQuestionAnswer();
   const resetTaskResult = useResetTaskResult();
+
+  // Keyboard shortcuts dispatch through a ref so the listener is bound
+  // once; the handler body is reassigned each render below (after the
+  // logging handlers are defined).
+  const shortcutHandler = useRef<(e: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => shortcutHandler.current(e);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Resume at the evaluator's persisted task pointer (once, on load)
   const hasInitIndex = useRef(false);
@@ -251,6 +270,7 @@ function LiveSessionPage() {
     setActionCount(0);
     setErrorCounts({});
     setHesitationCount(0);
+    setUndoStack([]);
     setPendingStatus(null);
     timer.reset();
   };
@@ -259,6 +279,7 @@ function LiveSessionPage() {
     setActionCount(0);
     setErrorCounts({});
     setHesitationCount(0);
+    setUndoStack([]);
     setPendingStatus(null);
     setShowSeq(false);
     setShowTaskQuestions(false);
@@ -284,33 +305,100 @@ function LiveSessionPage() {
     toast.success("Task reset");
   };
 
-  const handleLogError = (errorTypeId: string) => {
+  const handleAction = () => {
+    setActionCount((c) => c + 1);
+    setUndoStack((s) => [...s, { kind: "action" }]);
+  };
+
+  const handleLogError = async (errorTypeId: string) => {
     setErrorCounts((prev) => ({
       ...prev,
       [errorTypeId]: (prev[errorTypeId] || 0) + 1,
     }));
     if (currentTaskResult) {
-      createErrorLog.mutate({
-        task_result_id: currentTaskResult.id,
-        error_type_id: errorTypeId,
-        timestamp_seconds: parseFloat(timer.seconds.toFixed(1)),
-        description: null,
-      });
+      try {
+        const log = await createErrorLog.mutateAsync({
+          task_result_id: currentTaskResult.id,
+          error_type_id: errorTypeId,
+          timestamp_seconds: parseFloat(timer.seconds.toFixed(1)),
+          description: null,
+        });
+        setUndoStack((s) => [...s, { kind: "error", errorTypeId, logId: log.id }]);
+      } catch {
+        toast.error("Failed to log error");
+      }
     }
   };
 
-  const handleLogHesitation = () => {
+  const handleLogHesitation = async () => {
     setHesitationCount((c) => c + 1);
     if (currentTaskResult) {
-      createHesitationLog.mutate({
-        task_result_id: currentTaskResult.id,
-        timestamp_seconds: parseFloat(timer.seconds.toFixed(1)),
-        note: null,
-      });
+      try {
+        const log = await createHesitationLog.mutateAsync({
+          task_result_id: currentTaskResult.id,
+          timestamp_seconds: parseFloat(timer.seconds.toFixed(1)),
+          note: null,
+        });
+        setUndoStack((s) => [...s, { kind: "hesitation", logId: log.id }]);
+      } catch {
+        toast.error("Failed to log hesitation");
+      }
+    }
+  };
+
+  const handleUndo = () => {
+    const entry = undoStack[undoStack.length - 1];
+    if (!entry) return;
+    setUndoStack((s) => s.slice(0, -1));
+    if (entry.kind === "action") {
+      setActionCount((c) => Math.max(0, c - 1));
+      toast.info("Action undone");
+    } else if (entry.kind === "error") {
+      setErrorCounts((prev) => ({
+        ...prev,
+        [entry.errorTypeId]: Math.max(0, (prev[entry.errorTypeId] || 0) - 1),
+      }));
+      deleteErrorLog.mutate(entry.logId);
+      toast.info("Error undone");
+    } else {
+      setHesitationCount((c) => Math.max(0, c - 1));
+      deleteHesitationLog.mutate(entry.logId);
+      toast.info("Hesitation undone");
     }
   };
 
   const currentTask = currentTaskResult?.template_tasks;
+  const errorTypes = template?.template_error_types ?? [];
+
+  // Cockpit shortcuts: logging must not require looking away from the
+  // participant. Disabled while typing or while any dialog is open.
+  const shortcutsActive =
+    !showSeq && !showTaskQuestions && !showResetConfirm && !waitingForSus;
+  shortcutHandler.current = (e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (
+      t &&
+      (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+    )
+      return;
+    if (!shortcutsActive) return;
+
+    const key = e.key.toLowerCase();
+    if (key === "a") {
+      handleAction();
+    } else if (key === "h") {
+      handleLogHesitation();
+    } else if (key === "z" || key === "u") {
+      handleUndo();
+    } else if (/^[1-9]$/.test(key)) {
+      const et = errorTypes[parseInt(key, 10) - 1];
+      if (et) handleLogError(et.id);
+    } else {
+      return;
+    }
+    e.preventDefault();
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">
@@ -338,7 +426,7 @@ function LiveSessionPage() {
         <ActionCounter
           count={actionCount}
           optimalActions={currentTask?.optimal_actions ?? null}
-          onIncrement={() => setActionCount((c) => c + 1)}
+          onIncrement={handleAction}
           onDecrement={() => setActionCount((c) => Math.max(0, c - 1))}
         />
       </div>
@@ -353,6 +441,27 @@ function LiveSessionPage() {
           count={hesitationCount}
           onLog={handleLogHesitation}
         />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed px-3 py-2">
+        <p className="text-xs text-muted-foreground">
+          Shortcuts: <kbd className="rounded border px-1">A</kbd> action ·{" "}
+          <kbd className="rounded border px-1">1</kbd>–
+          <kbd className="rounded border px-1">9</kbd> errors ·{" "}
+          <kbd className="rounded border px-1">H</kbd> hesitation ·{" "}
+          <kbd className="rounded border px-1">Z</kbd> undo
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={undoStack.length === 0}
+          onClick={handleUndo}
+        >
+          <Undo2 className="mr-1 h-4 w-4" />
+          Undo last{" "}
+          {undoStack.length > 0 ? undoStack[undoStack.length - 1].kind : "event"}
+        </Button>
       </div>
 
       <ConfirmDialog
