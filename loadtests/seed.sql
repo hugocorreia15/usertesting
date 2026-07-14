@@ -39,24 +39,24 @@ BEGIN
   RETURNING id INTO tpl_id;
 
   INSERT INTO template_tasks
-    (template_id, sort_order, name, description, complexity,
+    (template_id, sort_order, name, description,
      optimal_time_seconds, optimal_actions, is_practice)
   VALUES (tpl_id, 0, 'Warm-up: explore the store',
-          'Practice task — excluded from metrics.', 'simple', 30, 3, true)
+          'Practice task — excluded from metrics.', 30, 3, true)
   RETURNING id INTO t_warm;
 
   INSERT INTO template_tasks
-    (template_id, sort_order, name, description, complexity,
+    (template_id, sort_order, name, description,
      optimal_time_seconds, optimal_actions, is_practice)
   VALUES (tpl_id, 1, 'Find a specific product',
-          'Locate the blue backpack via search or categories.', 'simple', 45, 5, false)
+          'Locate the blue backpack via search or categories.', 45, 5, false)
   RETURNING id INTO t_find;
 
   INSERT INTO template_tasks
-    (template_id, sort_order, name, description, complexity,
+    (template_id, sort_order, name, description,
      optimal_time_seconds, optimal_actions, is_practice)
   VALUES (tpl_id, 2, 'Complete the checkout',
-          'Add to cart and finish payment with the test card.', 'complex', 120, 12, false)
+          'Add to cart and finish payment with the test card.', 120, 12, false)
   RETURNING id INTO t_pay;
 
   -- ── Per-task questions (one rating, one open) ──
