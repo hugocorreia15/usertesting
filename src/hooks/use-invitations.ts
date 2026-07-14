@@ -196,16 +196,12 @@ export function useJoinSession() {
         if (iaErr) throw iaErr;
       }
 
-      // 5. Increment response_count and deactivate if limit reached
-      const newCount = invitation.response_count + 1;
-      const updates: Record<string, unknown> = { response_count: newCount };
-      if (invitation.max_responses && newCount >= invitation.max_responses) {
-        updates.is_active = false;
-      }
-      const { error: uErr } = await supabase
-        .from("session_invitations")
-        .update(updates)
-        .eq("id", invitation.id);
+      // 5. Consume the invitation atomically (increments the counter and
+      // deactivates at max_responses server-side; safe under concurrent
+      // joins and independent of the caller's auth state)
+      const { error: uErr } = await supabase.rpc("consume_invitation", {
+        invitation_code: invitation.code,
+      });
       if (uErr) throw uErr;
 
       return session;
