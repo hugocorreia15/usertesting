@@ -5,6 +5,7 @@ import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitation
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { participantStillAnswering } from "@/lib/session-gating";
 import { instrumentsComplete } from "@/lib/instruments";
+import { setSessionContext } from "@/lib/monitoring";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
 import { TaskNavigator } from "@/components/live/task-navigator";
@@ -66,6 +67,17 @@ function LiveSessionPage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Monitoring context: opaque ids only (no participant data)
+  useEffect(() => {
+    if (session) {
+      setSessionContext({
+        sessionId: session.id,
+        templateId: session.template_id,
+        role: "evaluator",
+      });
+    }
+  }, [session]);
 
   // Resume at the evaluator's persisted task pointer (once, on load)
   const hasInitIndex = useRef(false);

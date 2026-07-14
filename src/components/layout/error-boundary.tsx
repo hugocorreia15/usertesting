@@ -1,5 +1,6 @@
-import { Component, type ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { SkaterGame } from "@/components/layout/skater-game";
+import { captureError } from "@/lib/monitoring";
 
 interface Props {
   children: ReactNode;
@@ -18,6 +19,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    captureError(error, {
+      component_stack: info.componentStack?.slice(0, 400) ?? "",
+    });
   }
 
   render() {

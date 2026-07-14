@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { setSessionContext } from "@/lib/monitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +32,17 @@ interface ParticipantLiveViewProps {
 
 export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   const { data: session, isLoading } = useParticipantLiveSession(sessionId);
+
+  // Monitoring context: opaque ids only (no participant data)
+  useEffect(() => {
+    if (session) {
+      setSessionContext({
+        sessionId: session.id,
+        templateId: session.template_id,
+        role: "participant",
+      });
+    }
+  }, [session]);
   const submitAnswers = useSubmitParticipantAnswers();
   const createSusAnswers = useCreateParticipantSusAnswers();
   const updateInterviewAnswer = useUpdateParticipantInterviewAnswer();

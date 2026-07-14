@@ -56,11 +56,13 @@ instruments per template.
 **Accept:** a template with TLX shows TLX to the participant after tasks
 and scores it in the report.
 
-### N6. Error monitoring
-Sentry (or GlitchTip) on both clients; source maps uploaded on deploy;
-user-safe error boundary reporting.
-**Accept:** a thrown error in participant view appears in the dashboard
-with session context (no PII).
+### N6. Error monitoring — SHIPPED (needs DSN)
+Sentry wired behind `VITE_SENTRY_DSN` (inert without it): global handlers
+via Sentry.init, error-boundary capture, session-context tags (opaque
+UUIDs + role only; no PII, no replays, request data stripped).
+**To activate:** create a Sentry project (React), set `VITE_SENTRY_DSN`
+in Vercel project env (Production) and redeploy.
+**Deferred:** source-map upload (needs a Sentry auth token in CI).
 
 ## Later
 
