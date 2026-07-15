@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SUS_QUESTIONS, SUS_SCALE_LABELS } from "@/lib/sus";
+import { useLang, format } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
@@ -12,8 +12,9 @@ interface SusQuestionnaireProps {
 
 export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps) {
   const [ratings, setRatings] = useState<Record<number, number>>({});
+  const { dict } = useLang();
 
-  const allAnswered = SUS_QUESTIONS.every((_, i) => ratings[i + 1] != null);
+  const allAnswered = dict.sus.questions.every((_, i) => ratings[i + 1] != null);
 
   const handleSubmit = () => {
     const answers = Object.entries(ratings).map(([q, s]) => ({
@@ -26,15 +27,12 @@ export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-bold">System Usability Scale (SUS)</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Please rate your agreement with each statement on a scale of 1
-          (Strongly Disagree) to 5 (Strongly Agree).
-        </p>
+        <h2 className="text-xl font-bold">{dict.sus.title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{dict.sus.hint}</p>
       </div>
 
       <div className="space-y-3">
-        {SUS_QUESTIONS.map((question, i) => {
+        {dict.sus.questions.map((question, i) => {
           const qNum = i + 1;
           return (
             <Card key={qNum} className="bg-transparent backdrop-blur-md">
@@ -47,6 +45,8 @@ export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps
                     <Button
                       key={score}
                       variant={ratings[qNum] === score ? "default" : "outline"}
+                      aria-label={format(dict.live.ratingOf, { i: score, max: 5 })}
+                      aria-pressed={ratings[qNum] === score}
                       size="sm"
                       className={cn(
                         "h-11 min-w-11 transition-all duration-200",
@@ -62,8 +62,8 @@ export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps
                   ))}
                 </div>
                 <div className="flex justify-between text-[10px] text-muted-foreground px-1">
-                  <span>{SUS_SCALE_LABELS[0]}</span>
-                  <span>{SUS_SCALE_LABELS[4]}</span>
+                  <span>{dict.sus.scaleLow}</span>
+                  <span>{dict.sus.scaleHigh}</span>
                 </div>
               </CardContent>
             </Card>
@@ -80,12 +80,12 @@ export function SusQuestionnaire({ onSubmit, submitting }: SusQuestionnaireProps
         {submitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Submitting...
+            {dict.common.submitting}
           </>
         ) : allAnswered ? (
-          "Submit SUS Questionnaire"
+          dict.sus.submitSus
         ) : (
-          `Answer all questions (${Object.keys(ratings).length}/10)`
+          format(dict.sus.answerAll, { n: Object.keys(ratings).length })
         )}
       </Button>
     </div>

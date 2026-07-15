@@ -20,6 +20,8 @@ import { useInvitationByCode, useJoinSession } from "@/hooks/use-invitations";
 import { useSessionByJoinCode } from "@/hooks/use-participant-sessions";
 import { ParticipantLiveView } from "@/components/participant/participant-live-view";
 import { Loader2 } from "lucide-react";
+import { useLang, format } from "@/lib/i18n";
+import { LangToggle } from "@/components/participant/lang-toggle";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/join/$code")({
@@ -41,6 +43,7 @@ type JoinFormValues = z.infer<typeof joinSchema>;
 function JoinPage() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
+  const { dict } = useLang();
 
   // 1. Check if this code belongs to an existing session (resume)
   const {
@@ -85,7 +88,7 @@ function JoinPage() {
     return (
       <div className="flex items-center justify-center gap-2 pt-12">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{dict.common.loading}</p>
       </div>
     );
   }
@@ -94,10 +97,11 @@ function JoinPage() {
   if (existingSession) {
     return (
       <div className="mx-auto max-w-2xl space-y-6 pt-12">
-        <div className="text-center">
+        <div className="relative text-center">
           <h1 className="text-2xl font-bold">
-            {existingSession.templates?.name ?? "Usability Test"}
+            {existingSession.templates?.name ?? dict.join.usabilityTest}
           </h1>
+          <LangToggle className="absolute right-0 top-0" />
         </div>
         <ParticipantLiveView sessionId={existingSession.id} />
       </div>
@@ -111,11 +115,10 @@ function JoinPage() {
         <Card className="bg-transparent backdrop-blur-md">
           <CardContent className="pt-6 text-center">
             <p className="text-lg font-medium text-destructive">
-              Invalid or expired link
+              {dict.join.invalidLink}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              This link is no longer active. Please contact the evaluator for a
-              new one.
+              {dict.join.invalidLinkHint}
             </p>
           </CardContent>
         </Card>
@@ -158,7 +161,7 @@ function JoinPage() {
       });
     } catch (err: any) {
       console.error("Join session failed:", err);
-      toast.error(err?.message || "Failed to join session. Please try again.");
+      toast.error(err?.message || dict.join.joinFailed);
     } finally {
       setSaving(false);
     }
@@ -171,11 +174,12 @@ function JoinPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pt-12">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Join Usability Test</h1>
+      <div className="relative text-center">
+        <h1 className="text-2xl font-bold">{dict.join.title}</h1>
         <p className="mt-1 text-muted-foreground">
-          Evaluator: {invitation.evaluator_name}
+          {dict.join.evaluator}: {invitation.evaluator_name}
         </p>
+        <LangToggle className="absolute right-0 top-0" />
       </div>
 
       <Card className="bg-transparent backdrop-blur-md">
@@ -184,8 +188,7 @@ function JoinPage() {
         </CardHeader>
         <CardContent>
           <p className="mb-3 text-sm text-muted-foreground">
-            {selectedTasks.length} task{selectedTasks.length !== 1 ? "s" : ""} to
-            complete:
+            {format(dict.join.tasksToComplete, { n: selectedTasks.length })}
           </p>
           <div className="flex flex-wrap gap-2">
             {selectedTasks.map((task) => (
@@ -201,23 +204,23 @@ function JoinPage() {
         {hasAnyField && (
           <Card className="bg-transparent backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="text-lg">Your Information</CardTitle>
+              <CardTitle className="text-lg">{dict.join.yourInfo}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 {has("name") && (
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name *</Label>
+                    <Label htmlFor="name">{dict.join.name}</Label>
                     <Input
                       id="name"
-                      placeholder="Your name"
+                      placeholder={dict.join.namePlaceholder}
                       {...register("name")}
                     />
                   </div>
                 )}
                 {has("email") && (
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{dict.join.email}</Label>
                     <Input
                       id="email"
                       type="email"
@@ -225,13 +228,13 @@ function JoinPage() {
                       {...register("email")}
                     />
                     {errors.email && (
-                      <p className="text-xs text-destructive">{errors.email.message}</p>
+                      <p className="text-xs text-destructive">{dict.join.emailInvalid}</p>
                     )}
                   </div>
                 )}
                 {has("age") && (
                   <div className="space-y-2">
-                    <Label htmlFor="age">Age</Label>
+                    <Label htmlFor="age">{dict.join.age}</Label>
                     <Input
                       id="age"
                       type="number"
@@ -241,25 +244,28 @@ function JoinPage() {
                 )}
                 {has("gender") && (
                   <div className="space-y-2">
-                    <Label>Gender</Label>
+                    <Label id="gender-label">{dict.join.gender}</Label>
                     <Select
                       value={watch("gender")}
                       onValueChange={(v) => setValue("gender", v)}
                     >
-                      <SelectTrigger className={"w-full"}>
-                        <SelectValue placeholder="Select gender" />
+                      <SelectTrigger
+                        className={"w-full"}
+                        aria-labelledby="gender-label"
+                      >
+                        <SelectValue placeholder={dict.join.selectGender} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Male</SelectItem>
-                        <SelectItem value="female">Female</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="male">{dict.join.male}</SelectItem>
+                        <SelectItem value="female">{dict.join.female}</SelectItem>
+                        <SelectItem value="other">{dict.join.other}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 )}
                 {has("occupation") && (
                   <div className="space-y-2">
-                    <Label htmlFor="occupation">Occupation</Label>
+                    <Label htmlFor="occupation">{dict.join.occupation}</Label>
                     <Input
                       id="occupation"
                       {...register("occupation")}
@@ -268,18 +274,21 @@ function JoinPage() {
                 )}
                 {has("tech_proficiency") && (
                   <div className="space-y-2">
-                    <Label>Tech Proficiency</Label>
+                    <Label id="tech-label">{dict.join.techProficiency}</Label>
                     <Select
                       value={watch("tech_proficiency")}
                       onValueChange={(v) => setValue("tech_proficiency", v)}
                     >
-                      <SelectTrigger className={"w-full"}>
-                        <SelectValue placeholder="Select level" />
+                      <SelectTrigger
+                        className={"w-full"}
+                        aria-labelledby="tech-label"
+                      >
+                        <SelectValue placeholder={dict.join.selectLevel} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="low">{dict.join.low}</SelectItem>
+                        <SelectItem value="medium">{dict.join.medium}</SelectItem>
+                        <SelectItem value="high">{dict.join.high}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -287,7 +296,7 @@ function JoinPage() {
               </div>
               {has("notes") && (
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
+                  <Label htmlFor="notes">{dict.join.notes}</Label>
                   <Textarea
                     id="notes"
                     rows={3}
@@ -302,15 +311,16 @@ function JoinPage() {
         {customFields.length > 0 && (
           <Card className="mt-4 bg-transparent backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="text-lg">Additional Information</CardTitle>
+              <CardTitle className="text-lg">{dict.join.additionalInfo}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 {customFields.map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label>{field.label}</Label>
+                    <Label htmlFor={`cf-${field.id}`}>{field.label}</Label>
                     {field.field_type === "textarea" ? (
                       <Textarea
+                        id={`cf-${field.id}`}
                         rows={3}
                         value={customValues[field.id] ?? ""}
                         onChange={(e) =>
@@ -327,8 +337,11 @@ function JoinPage() {
                           setCustomValues((v) => ({ ...v, [field.id]: val }))
                         }
                       >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select an option" />
+                        <SelectTrigger
+                          className="w-full"
+                          id={`cf-${field.id}`}
+                        >
+                          <SelectValue placeholder={dict.join.selectOption} />
                         </SelectTrigger>
                         <SelectContent>
                           {(field.options ?? []).map((opt) => (
@@ -340,6 +353,7 @@ function JoinPage() {
                       </Select>
                     ) : (
                       <Input
+                        id={`cf-${field.id}`}
                         type={
                           field.field_type === "number" ? "number" : "text"
                         }
@@ -361,7 +375,7 @@ function JoinPage() {
 
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={saving}>
-            {saving ? "Joining..." : "Join Session"}
+            {saving ? dict.join.joining : dict.join.join}
           </Button>
         </div>
       </form>

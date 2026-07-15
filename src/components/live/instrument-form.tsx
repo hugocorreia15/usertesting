@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { InstrumentDef } from "@/lib/instruments";
+import { useLang, format, localizeInstrument } from "@/lib/i18n";
 
 // Generic renderer for a standardized questionnaire (NASA-TLX, UEQ-S).
 // TLX items use a 0–100 stepped slider; 7-point bipolar items render as
 // a button row between the two anchors.
 export function InstrumentForm({
-  def,
+  def: rawDef,
   onSubmit,
   submitting,
 }: {
@@ -17,6 +18,8 @@ export function InstrumentForm({
   submitting?: boolean;
 }) {
   const [values, setValues] = useState<Record<number, number>>({});
+  const { dict } = useLang();
+  const def = localizeInstrument(rawDef, dict);
   const allAnswered = def.items.every((i) => values[i.number] != null);
 
   const set = (item: number, score: number) =>
@@ -54,6 +57,11 @@ export function InstrumentForm({
                       key={score}
                       type="button"
                       size="sm"
+                      aria-label={format(dict.live.ratingOf, {
+                        i: score,
+                        max: def.max,
+                      })}
+                      aria-pressed={values[item.number] === score}
                       variant={
                         values[item.number] === score ? "default" : "outline"
                       }
@@ -72,6 +80,7 @@ export function InstrumentForm({
               <div className="space-y-1.5">
                 <input
                   type="range"
+                  aria-label={item.prompt || `${item.lowAnchor} / ${item.highAnchor}`}
                   min={def.min}
                   max={def.max}
                   step={def.step}
@@ -97,7 +106,7 @@ export function InstrumentForm({
                   >
                     {values[item.number] != null
                       ? values[item.number]
-                      : "slide to answer"}
+                      : dict.instruments.slideToAnswer}
                   </span>
                   <span>{item.highAnchor}</span>
                 </div>
@@ -119,7 +128,7 @@ export function InstrumentForm({
             )
           }
         >
-          {submitting ? "Submitting..." : "Submit"}
+          {submitting ? dict.common.submitting : dict.common.submit}
         </Button>
       </div>
     </div>

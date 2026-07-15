@@ -108,13 +108,15 @@ auto vs manual counts (with prefilled demo-page link); session detail
 shows counts + per-minute stacked timeline; auto_events export table;
 public/instrument-demo.html playground; paper paragraph in Measures.
 
-### P2.6 Participant client i18n (PT/EN) + WCAG pass  *(medium)*
-Localize participant-facing strings (join, live view, SUS, instruments,
-interview) with a lightweight dictionary (no i18n framework needed at
-this string count); browser-language default + toggle. A11y: focus
-order, aria-labels on rating buttons, contrast check at both themes.
-**Accept:** ?lang=pt renders the full participant journey in Portuguese;
-axe DevTools reports no critical issues on participant pages.
+### P2.6 Participant client i18n (PT/EN) + WCAG pass — SHIPPED
+src/lib/i18n.tsx: typed EN/PT dictionaries (compile-time parity),
+?lang= param → localStorage → browser-language detection, EN|PT toggle
+on join + live views; SUS in validated European Portuguese (Martins et
+al. 2015), UEQ-S official PT pairs, TLX PT; document.lang follows the
+UI (WCAG 3.1.1). A11y: aria-label/aria-pressed on all rating buttons,
+label associations on every join-form field (incl. custom fields and
+selects), range inputs labeled. Verified in-browser: ?lang=pt renders
+the join flow in Portuguese, default stays EN.
 
 ### P2.7 Teams / organizations  *(large — do last, prerequisite for
 multi-evaluator observation)*

@@ -25,6 +25,8 @@ import {
   type ParticipantLiveTaskResult,
 } from "@/hooks/use-participant-sessions";
 import type { TaskQuestion } from "@/types";
+import { useLang, format, type Dict } from "@/lib/i18n";
+import { LangToggle } from "@/components/participant/lang-toggle";
 
 interface ParticipantLiveViewProps {
   sessionId: string;
@@ -32,6 +34,7 @@ interface ParticipantLiveViewProps {
 
 export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   const { data: session, isLoading } = useParticipantLiveSession(sessionId);
+  const { dict } = useLang();
 
   // Monitoring context: opaque ids only (no participant data)
   useEffect(() => {
@@ -60,7 +63,7 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     return (
       <div className="flex items-center justify-center gap-2 pt-12">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        <p className="text-muted-foreground">Loading session...</p>
+        <p className="text-muted-foreground">{dict.live.loadingSession}</p>
       </div>
     );
   }
@@ -72,9 +75,9 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
         <CardContent className="flex flex-col items-center gap-4 pt-6">
           <CheckCircle2 className="h-12 w-12 text-green-500" />
-          <p className="text-lg font-medium">Session Complete</p>
+          <p className="text-lg font-medium">{dict.live.sessionComplete}</p>
           <p className="text-center text-sm text-muted-foreground">
-            Thank you for participating! You can close this page.
+            {dict.live.thankYouClose}
           </p>
         </CardContent>
       </Card>
@@ -92,13 +95,12 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
         <CardContent className="flex flex-col items-center gap-4 pt-6">
           <Clock className="h-12 w-12 animate-pulse text-muted-foreground" />
-          <p className="text-lg font-medium">Waiting for Evaluator</p>
+          <p className="text-lg font-medium">{dict.live.waitingEvaluator}</p>
           <p className="text-center text-sm text-muted-foreground">
-            The evaluator hasn't started the session yet. This page will update
-            automatically when they begin.
+            {dict.live.waitingEvaluatorHint}
           </p>
           <p className="text-xs text-muted-foreground">
-            {totalTasks} task{totalTasks !== 1 ? "s" : ""} scheduled
+            {format(dict.live.tasksScheduled, { n: totalTasks })}
           </p>
         </CardContent>
       </Card>
@@ -197,9 +199,9 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
         <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
           <CardContent className="flex flex-col items-center gap-4 pt-6">
             <CheckCircle2 className="h-12 w-12 text-green-500" />
-            <p className="text-lg font-medium">Thank You!</p>
+            <p className="text-lg font-medium">{dict.live.thankYou}</p>
             <p className="text-center text-sm text-muted-foreground">
-              You have completed all tasks and the questionnaires. You can close this page.
+              {dict.live.allDoneHint}
             </p>
           </CardContent>
         </Card>
@@ -261,7 +263,10 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">
-                  Task {activeTask.sort_order + 1} of {totalTasks}
+                  {format(dict.live.taskOf, {
+                    i: activeTask.sort_order + 1,
+                    n: totalTasks,
+                  })}
                 </p>
                 <h2 className="text-xl font-semibold">
                   {activeTask.template_tasks.name}
@@ -272,16 +277,21 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
                   </p>
                 )}
               </div>
-              <Badge variant="secondary" className="shrink-0">
-                {completedByObserver}/{totalTasks} done
-              </Badge>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge variant="secondary">
+                  {format(dict.live.done, {
+                    done: completedByObserver,
+                    total: totalTasks,
+                  })}
+                </Badge>
+                <LangToggle />
+              </div>
             </div>
             <Card className="mx-auto bg-transparent backdrop-blur-md">
               <CardContent className="flex flex-col items-center gap-3 pt-6">
                 <Loader2 className="h-7 w-7 animate-spin text-primary" />
                 <p className="text-center text-sm text-muted-foreground">
-                  Work through this task. Questions will appear here once the
-                  evaluator marks it complete.
+                  {dict.live.workThrough}
                 </p>
               </CardContent>
             </Card>
@@ -295,17 +305,16 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
         <CardContent className="flex flex-col items-center gap-4 pt-6">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-lg font-medium">Waiting for Next Task</p>
+          <p className="text-lg font-medium">{dict.live.waitingNextTask}</p>
           <p className="text-center text-sm text-muted-foreground">
-            The evaluator is working on the session. Questions will appear here
-            as tasks are completed.
+            {dict.live.waitingNextTaskHint}
           </p>
           <div className="flex gap-4 text-xs text-muted-foreground">
             <span>
-              Tasks completed: {completedByObserver}/{totalTasks}
+              {dict.live.tasksCompleted}: {completedByObserver}/{totalTasks}
             </span>
             <span>
-              Answered: {answeredByParticipant}/{totalTasks}
+              {dict.live.answered}: {answeredByParticipant}/{totalTasks}
             </span>
           </div>
         </CardContent>
@@ -323,7 +332,10 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground">
-            Task {pendingTask.sort_order + 1} of {totalTasks}
+            {format(dict.live.taskOf, {
+              i: pendingTask.sort_order + 1,
+              n: totalTasks,
+            })}
           </p>
           <h2 className="text-xl font-semibold">
             {pendingTask.template_tasks.name}
@@ -334,9 +346,15 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
             </p>
           )}
         </div>
-        <Badge variant="secondary" className="shrink-0">
-          {completedByObserver}/{totalTasks} tasks done
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge variant="secondary">
+            {format(dict.live.tasksDone, {
+              done: completedByObserver,
+              total: totalTasks,
+            })}
+          </Badge>
+          <LangToggle />
+        </div>
       </div>
 
       <TaskQuestionForm
@@ -389,6 +407,8 @@ function TaskQuestionForm({
     return init;
   });
 
+  const { dict } = useLang();
+
   const update = (
     id: string,
     data: Partial<(typeof answers)[string]>,
@@ -402,7 +422,7 @@ function TaskQuestionForm({
   return (
     <Card className="bg-transparent backdrop-blur-md">
       <CardHeader>
-        <CardTitle className="text-lg">Questions</CardTitle>
+        <CardTitle className="text-lg">{dict.live.questions}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {questions.map((q) => (
@@ -412,6 +432,7 @@ function TaskQuestionForm({
             value={answers[q.id]}
             storagePath={`${storagePath}/${q.id}`}
             onChange={(data) => update(q.id, data)}
+            dict={dict}
           />
         ))}
 
@@ -423,10 +444,10 @@ function TaskQuestionForm({
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
+                {dict.common.submitting}
               </>
             ) : (
-              "Submit Answers"
+              dict.live.submitAnswers
             )}
           </Button>
         </div>
@@ -440,7 +461,9 @@ function QuestionField({
   value,
   storagePath,
   onChange,
+  dict,
 }: {
+  dict: Dict;
   question: TaskQuestion;
   value: {
     question_id: string;
@@ -464,7 +487,7 @@ function QuestionField({
 
       {question.question_type === "open" && (
         <Textarea
-          placeholder="Your answer..."
+          placeholder={dict.live.yourAnswer}
           value={value.answer_text ?? ""}
           onChange={(e) => onChange({ answer_text: e.target.value })}
           rows={2}
@@ -538,6 +561,8 @@ function QuestionField({
                   }
                   size="sm"
                   className="h-11 w-11"
+                  aria-label={format(dict.live.ratingOf, { i, max })}
+                  aria-pressed={value.rating_value === i}
                   onClick={() => onChange({ rating_value: i })}
                 >
                   {i}
@@ -585,6 +610,7 @@ function InterviewQuestionsForm({
     return init;
   });
   const [submitting, setSubmitting] = useState(false);
+  const { dict } = useLang();
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -607,9 +633,9 @@ function InterviewQuestionsForm({
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-bold">Interview Questions</h2>
+        <h2 className="text-xl font-bold">{dict.live.interviewTitle}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Please answer the following questions about your experience.
+          {dict.live.interviewHint}
         </p>
       </div>
 
@@ -621,7 +647,7 @@ function InterviewQuestionsForm({
                 {i + 1}. {q.question_text}
               </Label>
               <Textarea
-                placeholder="Your answer..."
+                placeholder={dict.live.yourAnswer}
                 value={answers[q.id] ?? ""}
                 onChange={(e) =>
                   setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
@@ -642,10 +668,10 @@ function InterviewQuestionsForm({
         {submitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Submitting...
+            {dict.common.submitting}
           </>
         ) : (
-          "Continue"
+          dict.common.continue
         )}
       </Button>
     </div>
