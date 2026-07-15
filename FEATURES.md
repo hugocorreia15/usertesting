@@ -189,11 +189,14 @@ scenario mirrors the split.
 
 ## Backlog (candidate features, ranked 2026-07-15)
 
-1. **Inter-rater reliability mode** — second evaluator logs the same
-   live session independently (observe page is most of the plumbing);
-   compute Cohen's kappa on error categories + ICC on counts. Named in
-   the paper's Future Work evaluation track; would let that study run
-   on the platform itself.
+1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a
+   session's tasks independently (rater_scores, migration 046, RLS via
+   can_note_session) on /sessions/:id/corate; session detail shows an
+   Inter-rater Agreement card: Cohen's kappa (Landis & Koch band) on
+   completion status + exact-match/MAD/Pearson on action/error/
+   hesitation/SEQ counts vs the primary evaluator; rater_scores export
+   table. Stats in src/lib/agreement.ts (pure, tested against the
+   textbook kappa=0.4 example).
 2. **Findings → GitHub issues** — projects carry repo links; one-click
    "create issue" from a coded quote or error cluster closes the
    finding → issue → fix → retest loop for student teams.

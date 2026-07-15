@@ -194,6 +194,22 @@ export interface SessionInvitation {
   expires_at: string | null;
 }
 
+// Inter-rater reliability co-scores (migration 046)
+export interface RaterScore {
+  id: string;
+  session_id: string;
+  task_id: string;
+  rater_id: string;
+  rater_email: string | null;
+  completion_status: "success" | "partial" | "failure" | "skipped" | null;
+  action_count: number | null;
+  error_count: number | null;
+  hesitation_count: number | null;
+  seq_rating: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Spectator observation notes (migration 045)
 export interface ObserverNote {
   id: string;

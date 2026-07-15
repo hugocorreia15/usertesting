@@ -34,6 +34,7 @@ import { Route as MySessionsSessionIdIndexRouteImport } from './routes/my-sessio
 import { Route as SessionsSessionIdObserveRouteImport } from './routes/sessions/$sessionId/observe'
 import { Route as SessionsSessionIdLiveRouteImport } from './routes/sessions/$sessionId/live'
 import { Route as SessionsSessionIdEditRouteImport } from './routes/sessions/$sessionId/edit'
+import { Route as SessionsSessionIdCorateRouteImport } from './routes/sessions/$sessionId/corate'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -164,6 +165,11 @@ const SessionsSessionIdEditRoute = SessionsSessionIdEditRouteImport.update({
   path: '/sessions/$sessionId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionsSessionIdCorateRoute = SessionsSessionIdCorateRouteImport.update({
+  id: '/sessions/$sessionId/corate',
+  path: '/sessions/$sessionId/corate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/sessions/$sessionId/corate': typeof SessionsSessionIdCorateRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
   '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/participants': typeof ParticipantsIndexRoute
   '/sessions': typeof SessionsIndexRoute
   '/templates': typeof TemplatesIndexRoute
+  '/sessions/$sessionId/corate': typeof SessionsSessionIdCorateRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
   '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/sessions/$sessionId/corate': typeof SessionsSessionIdCorateRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
   '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/participants/'
     | '/sessions/'
     | '/templates/'
+    | '/sessions/$sessionId/corate'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
     | '/sessions/$sessionId/observe'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/participants'
     | '/sessions'
     | '/templates'
+    | '/sessions/$sessionId/corate'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
     | '/sessions/$sessionId/observe'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/participants/'
     | '/sessions/'
     | '/templates/'
+    | '/sessions/$sessionId/corate'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
     | '/sessions/$sessionId/observe'
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   ParticipantsIndexRoute: typeof ParticipantsIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  SessionsSessionIdCorateRoute: typeof SessionsSessionIdCorateRoute
   SessionsSessionIdEditRoute: typeof SessionsSessionIdEditRoute
   SessionsSessionIdLiveRoute: typeof SessionsSessionIdLiveRoute
   SessionsSessionIdObserveRoute: typeof SessionsSessionIdObserveRoute
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionsSessionIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions/$sessionId/corate': {
+      id: '/sessions/$sessionId/corate'
+      path: '/sessions/$sessionId/corate'
+      fullPath: '/sessions/$sessionId/corate'
+      preLoaderRoute: typeof SessionsSessionIdCorateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -559,6 +579,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParticipantsIndexRoute: ParticipantsIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  SessionsSessionIdCorateRoute: SessionsSessionIdCorateRoute,
   SessionsSessionIdEditRoute: SessionsSessionIdEditRoute,
   SessionsSessionIdLiveRoute: SessionsSessionIdLiveRoute,
   SessionsSessionIdObserveRoute: SessionsSessionIdObserveRoute,

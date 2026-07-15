@@ -8,6 +8,7 @@ import { calculateSusScore } from "@/lib/sus";
 import type {
   AutoEvent,
   ObserverNote,
+  RaterScore,
   TemplateWithRelations,
   TestSessionWithRelations,
 } from "@/types";
@@ -36,6 +37,7 @@ export function buildExportTables(
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
+  raterScores: RaterScore[] = [],
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
     template.template_questions.map((q) => [q.id, q.question_text]),
@@ -281,6 +283,31 @@ export function buildExportTables(
       .map((e) => [e.session_id, e.event_type, e.occurred_at, e.path, e.detail]),
   };
 
+  const raterScoresT: ExportTable = {
+    headers: [
+      "session_id",
+      "rater_email",
+      "task_id",
+      "completion_status",
+      "action_count",
+      "error_count",
+      "hesitation_count",
+      "seq_rating",
+    ],
+    rows: raterScores
+      .filter((r) => sessionIds.has(r.session_id))
+      .map((r) => [
+        r.session_id,
+        r.rater_email,
+        r.task_id,
+        r.completion_status,
+        r.action_count,
+        r.error_count,
+        r.hesitation_count,
+        r.seq_rating,
+      ]),
+  };
+
   const observerNotesT: ExportTable = {
     headers: ["session_id", "author_email", "task_index", "note", "created_at"],
     rows: observerNotes
@@ -306,6 +333,7 @@ export function buildExportTables(
     answer_codes: answerCodesT,
     auto_events: autoEventsT,
     observer_notes: observerNotesT,
+    rater_scores: raterScoresT,
   };
 }
 
@@ -331,8 +359,9 @@ export function exportDataZip(
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
+  raterScores: RaterScore[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores);
   const files: Record<string, Uint8Array> = {};
   for (const [name, table] of Object.entries(tables)) {
     files[`${name}.csv`] = strToU8(toCsv(table));
@@ -349,8 +378,9 @@ export function exportDataJson(
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
+  raterScores: RaterScore[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores);
   const payload = {
     template: { id: template.id, name: template.name },
     exported_at: new Date().toISOString(),

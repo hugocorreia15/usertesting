@@ -11,6 +11,7 @@ import { exportReportPdf } from "@/lib/export-report-pdf";
 import { exportDataZip, exportDataJson } from "@/lib/export-data";
 import { fetchAutoEventsForSessions } from "@/hooks/use-auto-events";
 import { fetchObserverNotesForSessions } from "@/hooks/use-observer-notes";
+import { fetchRaterScoresForSessions } from "@/hooks/use-rater-scores";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,9 +98,13 @@ function TemplateDetailPage() {
       const observerNotes = await fetchObserverNotesForSessions(ids).catch(
         () => [],
       );
+      const raterScores = await fetchRaterScoresForSessions(ids).catch(
+        () => [],
+      );
       if (format === "csv")
-        exportDataZip(template, sessions, autoEvents, observerNotes);
-      else exportDataJson(template, sessions, autoEvents, observerNotes);
+        exportDataZip(template, sessions, autoEvents, observerNotes, raterScores);
+      else
+        exportDataJson(template, sessions, autoEvents, observerNotes, raterScores);
     } catch {
       toast.error("Failed to export data");
     }

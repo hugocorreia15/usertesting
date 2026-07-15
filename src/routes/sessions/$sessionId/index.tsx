@@ -55,12 +55,15 @@ import {
 } from "@/hooks/use-sessions";
 import { useTemplateCodes, useSessionAnswerCodes } from "@/hooks/use-codes";
 import { useObserverNotes } from "@/hooks/use-observer-notes";
+import { useRaterScores } from "@/hooks/use-rater-scores";
+import { sessionAgreement } from "@/lib/agreement";
 import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
 import {
   PenLine,
   Play,
   Eye,
+  Scale,
   Copy,
   Check,
   Trash2,
@@ -120,6 +123,7 @@ function SessionDetailPage() {
     interviewAnswerIds,
   );
   const { data: observerNotes } = useObserverNotes(session?.id);
+  const { data: raterScores } = useRaterScores(session?.id);
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
@@ -142,6 +146,12 @@ function SessionDetailPage() {
               </Link>
             </Button>
           )}
+          <Button variant="outline" asChild>
+            <Link to="/sessions/$sessionId/corate" params={{ sessionId }}>
+              <Scale className="mr-2 h-4 w-4" />
+              Co-rate
+            </Link>
+          </Button>
           {session.status !== "completed" && (
             <Button asChild>
               <Link
@@ -274,6 +284,13 @@ function SessionDetailPage() {
                 0,
               )}
             />
+
+            {(raterScores?.length ?? 0) > 0 && (
+              <AgreementCard
+                taskResults={taskResults}
+                raterScores={raterScores!}
+              />
+            )}
 
             {(observerNotes?.length ?? 0) > 0 && (
               <Card className="bg-transparent backdrop-blur-md">
@@ -843,6 +860,95 @@ function DeleteSessionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function fmtPct(x: number) {
+  return `${Math.round(x * 100)}%`;
+}
+function fmtKappa(k: number | null) {
+  return k == null ? "—" : k.toFixed(2);
+}
+
+function AgreementCard({
+  taskResults,
+  raterScores,
+}: {
+  taskResults: import("@/types").TaskResultWithRelations[];
+  raterScores: import("@/types").RaterScore[];
+}) {
+  const primary = taskResults
+    .filter((tr) => !tr.template_tasks.is_practice)
+    .map((tr) => ({
+      task_id: tr.task_id,
+      completion_status: tr.completion_status,
+      action_count: tr.action_count,
+      error_count: tr.error_count,
+      hesitation_count: tr.hesitation_count,
+      seq_rating: tr.seq_rating,
+    }));
+  const agreements = sessionAgreement(primary, raterScores);
+  if (agreements.length === 0) return null;
+
+  return (
+    <Card className="bg-transparent backdrop-blur-md">
+      <CardHeader>
+        <CardTitle>Inter-rater Agreement</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Each co-rater scored the tasks independently; values compare
+          them against the primary evaluator. Completion status uses
+          Cohen's kappa (with the Landis &amp; Koch band); counts show
+          exact-match rate and mean absolute difference.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {agreements.map((a) => (
+          <div key={a.raterId} className="rounded-md border p-3">
+            <p className="mb-2 text-sm font-medium">
+              {a.raterEmail ?? `${a.raterId.slice(0, 8)}…`}{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                ({a.completion.n} shared task
+                {a.completion.n === 1 ? "" : "s"})
+              </span>
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] text-muted-foreground">
+                  Completion (kappa)
+                </p>
+                <p className="text-lg font-bold leading-tight">
+                  {fmtKappa(a.completion.kappa)}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {a.completion.label}, {fmtPct(a.completion.observed)} agree
+                </p>
+              </div>
+              {(
+                [
+                  ["Actions", a.actions],
+                  ["Errors", a.errors],
+                  ["Hesitations", a.hesitations],
+                  ["SEQ", a.seq],
+                ] as const
+              ).map(([label, m]) => (
+                <div key={label}>
+                  <p className="text-[10px] text-muted-foreground">
+                    {label} (exact / MAD)
+                  </p>
+                  <p className="text-lg font-bold leading-tight">
+                    {fmtPct(m.exact)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    MAD {m.meanAbsDiff.toFixed(1)}
+                    {m.pearson != null && `, r ${m.pearson.toFixed(2)}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
