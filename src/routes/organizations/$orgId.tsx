@@ -8,6 +8,13 @@ import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -508,16 +515,14 @@ function MembersCard({
             </Badge>
           )}
         {isOwner && !isMe ? (
-          <select
+          <Select
             value={m.role}
-            aria-label={`Role of ${m.member_email || "member"}`}
-            className="h-7 shrink-0 rounded-md border bg-transparent px-1.5 text-xs capitalize"
-            onChange={(e) =>
+            onValueChange={(v) =>
               setRole.mutate(
                 {
                   org_id: org.id,
                   user_id: m.user_id,
-                  role: e.target.value as "owner" | "member" | "student",
+                  role: v as "owner" | "member" | "student",
                 },
                 {
                   onSuccess: () => toast.success("Role updated"),
@@ -526,10 +531,19 @@ function MembersCard({
               )
             }
           >
-            <option value="owner">owner</option>
-            <option value="member">member</option>
-            <option value="student">student</option>
-          </select>
+            <SelectTrigger
+              size="sm"
+              aria-label={`Role of ${m.member_email || "member"}`}
+              className="shrink-0 capitalize"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="owner">Owner</SelectItem>
+              <SelectItem value="member">Member</SelectItem>
+              <SelectItem value="student">Student</SelectItem>
+            </SelectContent>
+          </Select>
         ) : (
           <Badge
             variant={roleBadgeVariant(m.role)}
@@ -715,17 +729,20 @@ function InvitesCard({ org }: { org: OrganizationWithRelations }) {
             className="h-8 min-w-0 flex-1 text-sm"
             aria-label="Invite label"
           />
-          <select
+          <Select
             value={inviteRole}
-            onChange={(e) =>
-              setInviteRole(e.target.value as "member" | "student")
-            }
-            aria-label="Invite role"
-            className="h-8 shrink-0 rounded-md border bg-transparent px-2 text-sm"
+            onValueChange={(v) => setInviteRole(v as "member" | "student")}
           >
-            <option value="member">Member (full access)</option>
-            <option value="student">Student (assigned projects only)</option>
-          </select>
+            <SelectTrigger size="sm" aria-label="Invite role" className="shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="member">Member (full access)</SelectItem>
+              <SelectItem value="student">
+                Student (assigned projects only)
+              </SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             type="submit"
             variant="outline"
