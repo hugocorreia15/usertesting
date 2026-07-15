@@ -159,6 +159,19 @@ function HelpPage() {
               anonymous. Every joined session also gets a{" "}
               <strong>join code</strong> the participant can use to resume.
             </p>
+            <p>
+              <strong>Task order</strong> can be <em>fixed</em> (template
+              order), <em>shuffled</em> (independent random order per
+              participant), or <em>Latin square</em>. Latin square rotates the
+              starting task by one position for each successive participant:
+              with tasks A-B-C, participant 1 runs A-B-C, participant 2 runs
+              B-C-A, participant 3 runs C-A-B. Across a multiple of N
+              participants every task appears in every position equally often,
+              which cancels learning and fatigue effects out of position
+              averages instead of merely randomizing them. Tasks marked as{" "}
+              <em>practice</em> are pinned before the rotation and excluded
+              from all metrics.
+            </p>
           </HelpSection>
 
           {/* ── 3. Live Session ──────────────────────────────────── */}

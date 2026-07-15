@@ -15,9 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useTemplates, useDeleteTemplate } from "@/hooks/use-templates";
+import { useTemplates, useDeleteTemplate, useDuplicateTemplate } from "@/hooks/use-templates";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Pencil, CalendarDays, FileText, Download, FileBarChart, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Pencil, Copy, CalendarDays, FileText, Download, FileBarChart, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
@@ -31,7 +31,21 @@ export const Route = createFileRoute("/templates/")({
 function TemplatesPage() {
   const { data: templates, isLoading } = useTemplates();
   const deleteTemplate = useDeleteTemplate();
+  const duplicateTemplate = useDuplicateTemplate();
   const navigate = useNavigate();
+
+  const handleDuplicate = (id: string) => {
+    duplicateTemplate.mutate(id, {
+      onSuccess: (newId) => {
+        toast.success("Template duplicated");
+        navigate({
+          to: "/templates/$templateId",
+          params: { templateId: newId },
+        });
+      },
+      onError: () => toast.error("Failed to duplicate template"),
+    });
+  };
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
@@ -102,6 +116,17 @@ function TemplatesPage() {
                 }}
               >
                 <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={duplicateTemplate.isPending}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDuplicate(t.id);
+                }}
+              >
+                <Copy className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"

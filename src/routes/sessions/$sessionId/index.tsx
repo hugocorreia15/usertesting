@@ -39,6 +39,7 @@ import {
   PolarTick,
   ChartScroll,
 } from "@/components/charts/chart-axis";
+import { ExportableChart } from "@/components/charts/exportable-chart";
 import {
   SignedAudio,
   SignedVideo,
@@ -903,7 +904,7 @@ function SessionCharts({
             <CardTitle>Task Completion Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
+            <ExportableChart filename="session-task-completion-status"><ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={completionPieData}
@@ -935,7 +936,7 @@ function SessionCharts({
                 </Pie>
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </PieChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></ExportableChart>
           </CardContent>
         </Card>
 
@@ -945,7 +946,7 @@ function SessionCharts({
               <CardTitle>SEQ Ratings per Task</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartScroll><ResponsiveContainer width="100%" height={280}>
+              <ExportableChart filename="session-seq-ratings-per-task"><ChartScroll><ResponsiveContainer width="100%" height={280}>
                 <BarChart data={seqData} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis {...TASK_AXIS_PROPS} />
@@ -958,7 +959,7 @@ function SessionCharts({
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer></ChartScroll>
+              </ResponsiveContainer></ChartScroll></ExportableChart>
             </CardContent>
           </Card>
         )}
@@ -971,7 +972,7 @@ function SessionCharts({
             <CardTitle>Time vs Optimal (seconds)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartScroll><ResponsiveContainer width="100%" height={300}>
+            <ExportableChart filename="session-time-vs-optimal-seconds"><ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={timeData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -991,7 +992,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer></ChartScroll>
+            </ResponsiveContainer></ChartScroll></ExportableChart>
           </CardContent>
         </Card>
 
@@ -1000,7 +1001,7 @@ function SessionCharts({
             <CardTitle>Actions vs Optimal</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartScroll><ResponsiveContainer width="100%" height={300}>
+            <ExportableChart filename="session-actions-vs-optimal"><ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={actionData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -1020,7 +1021,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer></ChartScroll>
+            </ResponsiveContainer></ChartScroll></ExportableChart>
           </CardContent>
         </Card>
       </div>
@@ -1032,7 +1033,7 @@ function SessionCharts({
             <CardTitle>Errors & Hesitations per Task</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartScroll><ResponsiveContainer width="100%" height={300}>
+            <ExportableChart filename="session-errors-hesitations-per-task"><ChartScroll><ResponsiveContainer width="100%" height={300}>
               <BarChart data={issuesData} margin={CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis {...TASK_AXIS_PROPS} />
@@ -1052,7 +1053,7 @@ function SessionCharts({
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </ResponsiveContainer></ChartScroll>
+            </ResponsiveContainer></ChartScroll></ExportableChart>
           </CardContent>
         </Card>
 
@@ -1062,7 +1063,7 @@ function SessionCharts({
               <CardTitle>Errors by Task</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartScroll><ResponsiveContainer width="100%" height={300}>
+              <ExportableChart filename="session-errors-by-task"><ChartScroll><ResponsiveContainer width="100%" height={300}>
                 <BarChart
                   data={taskResults
                     .filter((tr) => tr.error_count > 0)
@@ -1083,7 +1084,7 @@ function SessionCharts({
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer></ChartScroll>
+              </ResponsiveContainer></ChartScroll></ExportableChart>
             </CardContent>
           </Card>
         )}
@@ -1098,7 +1099,7 @@ function SessionCharts({
             <CardTitle>Task Performance Radar</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
+            <ExportableChart filename="session-task-performance-radar"><ResponsiveContainer width="100%" height={400}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="var(--color-border)" />
                 <PolarAngleAxis dataKey="task" tick={<PolarTick />} />
@@ -1134,7 +1135,7 @@ function SessionCharts({
                 <Legend {...TOP_LEGEND_PROPS} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
               </RadarChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer></ExportableChart>
           </CardContent>
         </Card>
       )}

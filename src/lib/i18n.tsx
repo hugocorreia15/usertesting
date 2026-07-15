@@ -109,6 +109,13 @@ const en = {
     scaleLow: "Strongly Disagree",
     scaleHigh: "Strongly Agree",
   },
+  media: {
+    photoTooLarge: "Photo is too large ({size} MB, max {max} MB).",
+    audioTooLarge: "Recording is too large ({size} MB, max {max} MB).",
+    videoTooLarge: "Recording is too large ({size} MB, max {max} MB).",
+    audioLimitNote: "Recordings stop automatically after 3 minutes.",
+    videoLimitNote: "Recordings stop automatically after 2 minutes.",
+  },
   instruments: {
     slideToAnswer: "slide to answer",
     tlxDescription:
@@ -230,6 +237,13 @@ const pt: Dict = {
     ],
     scaleLow: "Discordo totalmente",
     scaleHigh: "Concordo totalmente",
+  },
+  media: {
+    photoTooLarge: "A fotografia é demasiado grande ({size} MB, máx. {max} MB).",
+    audioTooLarge: "A gravação é demasiado grande ({size} MB, máx. {max} MB).",
+    videoTooLarge: "A gravação é demasiado grande ({size} MB, máx. {max} MB).",
+    audioLimitNote: "As gravações param automaticamente após 3 minutos.",
+    videoLimitNote: "As gravações param automaticamente após 2 minutos.",
   },
   instruments: {
     slideToAnswer: "deslize para responder",

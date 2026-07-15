@@ -3,6 +3,8 @@ import { supabase } from "@/lib/supabase";
 import type {
   Template,
   TemplateWithRelations,
+  TemplateTaskWithQuestions,
+  TemplateCode,
   TaskGroup,
   TemplateTask,
   TemplateErrorType,
@@ -413,6 +415,164 @@ async function syncParticipantFields(
       .in("id", toDelete);
     if (error) throw error;
   }
+}
+
+// ── Duplicate ──────────────────────────────────────
+
+type TemplateSnapshot = Omit<TemplateWithRelations, "template_tasks" | "template_codes"> & {
+  template_tasks: TemplateTaskWithQuestions[];
+  template_codes: TemplateCode[];
+};
+
+export function useDuplicateTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const userId = await getCurrentUserId();
+
+      // 1. Fetch the full source template (code book without answer_codes —
+      //    tags are session data and must not be copied)
+      const { data, error } = await supabase
+        .from("templates")
+        .select(
+          "*, task_groups(*), template_tasks(*, task_questions(*)), template_error_types(*), template_questions(*), template_participant_fields(*), template_codes(*)",
+        )
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      const source = data as TemplateSnapshot;
+
+      // 2. Insert the new template
+      const { data: template, error: tErr } = await supabase
+        .from("templates")
+        .insert({
+          name: `${source.name} (copy)`,
+          description: source.description,
+          user_id: userId,
+          is_public: false,
+          instruments: source.instruments ?? [],
+        })
+        .select()
+        .single();
+      if (tErr) throw tErr;
+      const newTemplate = template as Template;
+
+      // 3. Insert groups, mapping old → new ids
+      const groupIdMap = new Map<string, string>();
+      if (source.task_groups.length > 0) {
+        const { data: newGroups, error: gErr } = await supabase
+          .from("task_groups")
+          .insert(
+            source.task_groups.map((g) => ({
+              template_id: newTemplate.id,
+              name: g.name,
+              sort_order: g.sort_order,
+            })),
+          )
+          .select();
+        if (gErr) throw gErr;
+        source.task_groups.forEach((g, i) =>
+          groupIdMap.set(g.id, (newGroups as TaskGroup[])[i].id),
+        );
+      }
+
+      // 4. Insert tasks, mapping old → new ids
+      const taskIdMap = new Map<string, string>();
+      if (source.template_tasks.length > 0) {
+        const { data: newTasks, error: tkErr } = await supabase
+          .from("template_tasks")
+          .insert(
+            source.template_tasks.map((t) => ({
+              template_id: newTemplate.id,
+              group_id: t.group_id ? groupIdMap.get(t.group_id) ?? null : null,
+              sort_order: t.sort_order,
+              name: t.name,
+              description: t.description,
+              optimal_time_seconds: t.optimal_time_seconds,
+              optimal_actions: t.optimal_actions,
+              is_practice: t.is_practice,
+            })),
+          )
+          .select();
+        if (tkErr) throw tkErr;
+        source.template_tasks.forEach((t, i) =>
+          taskIdMap.set(t.id, (newTasks as TemplateTask[])[i].id),
+        );
+      }
+
+      // 5. Insert task questions, remapped to the new tasks
+      const allQuestions = source.template_tasks.flatMap((t) =>
+        (t.task_questions ?? []).map((q) => ({
+          task_id: taskIdMap.get(t.id)!,
+          sort_order: q.sort_order,
+          question_text: q.question_text,
+          question_type: q.question_type,
+          options: q.options,
+          rating_min: q.rating_min,
+          rating_max: q.rating_max,
+        })),
+      );
+      if (allQuestions.length > 0) {
+        const { error: qErr } = await supabase.from("task_questions").insert(allQuestions);
+        if (qErr) throw qErr;
+      }
+
+      // 6. Insert error types
+      if (source.template_error_types.length > 0) {
+        const { error: eErr } = await supabase.from("template_error_types").insert(
+          source.template_error_types.map((e) => ({
+            template_id: newTemplate.id,
+            code: e.code,
+            label: e.label,
+          })),
+        );
+        if (eErr) throw eErr;
+      }
+
+      // 7. Insert interview questions
+      if (source.template_questions.length > 0) {
+        const { error: iErr } = await supabase.from("template_questions").insert(
+          source.template_questions.map((q) => ({
+            template_id: newTemplate.id,
+            sort_order: q.sort_order,
+            question_text: q.question_text,
+          })),
+        );
+        if (iErr) throw iErr;
+      }
+
+      // 8. Insert participant fields
+      if (source.template_participant_fields.length > 0) {
+        const { error: fErr } = await supabase.from("template_participant_fields").insert(
+          source.template_participant_fields.map((f) => ({
+            template_id: newTemplate.id,
+            label: f.label,
+            field_type: f.field_type,
+            options: f.options,
+            sort_order: f.sort_order,
+          })),
+        );
+        if (fErr) throw fErr;
+      }
+
+      // 9. Insert code book (codes only — never answer_codes)
+      if ((source.template_codes ?? []).length > 0) {
+        const { error: cErr } = await supabase.from("template_codes").insert(
+          source.template_codes.map((c) => ({
+            template_id: newTemplate.id,
+            code: c.code,
+            description: c.description,
+            color: c.color,
+            sort_order: c.sort_order,
+          })),
+        );
+        if (cErr) throw cErr;
+      }
+
+      return newTemplate.id;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["templates"] }),
+  });
 }
 
 export function useDeleteTemplate() {

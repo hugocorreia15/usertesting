@@ -4,7 +4,7 @@ import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useTemplate, useDeleteTemplate } from "@/hooks/use-templates";
+import { useTemplate, useDeleteTemplate, useDuplicateTemplate } from "@/hooks/use-templates";
 import { useSessionsByTemplateWithRelations, useSessionsRealtime } from "@/hooks/use-sessions";
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
 import { exportReportPdf } from "@/lib/export-report-pdf";
@@ -22,7 +22,7 @@ import { TemplateParticipantsTab } from "@/components/templates/template-partici
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
 import { CodeBookEditor } from "@/components/coding/code-book-editor";
 import { CodeMatrix } from "@/components/coding/code-matrix";
-import { Download, FileBarChart, Trash2, Plus, Database } from "lucide-react";
+import { Download, FileBarChart, Trash2, Plus, Database, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/templates/$templateId/")({
@@ -42,6 +42,7 @@ function TemplateDetailPage() {
     useSessionsByTemplateWithRelations(templateId);
   useSessionsRealtime();
   const deleteTemplate = useDeleteTemplate();
+  const duplicateTemplate = useDuplicateTemplate();
 
   const [exportingReport, setExportingReport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -93,6 +94,25 @@ function TemplateDetailPage() {
       description={template.description || undefined}
       actions={
         <>
+          <Button
+            variant="outline"
+            disabled={duplicateTemplate.isPending}
+            onClick={() =>
+              duplicateTemplate.mutate(templateId, {
+                onSuccess: (newId) => {
+                  toast.success("Template duplicated");
+                  navigate({
+                    to: "/templates/$templateId",
+                    params: { templateId: newId },
+                  });
+                },
+                onError: () => toast.error("Failed to duplicate template"),
+              })
+            }
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {duplicateTemplate.isPending ? "Duplicating..." : "Duplicate"}
+          </Button>
           <Button
             variant="outline"
             onClick={() => exportTemplatePdf(template)}

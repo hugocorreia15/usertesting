@@ -40,6 +40,7 @@ import {
   TOP_LEGEND_PROPS,
   ChartScroll,
 } from "@/components/charts/chart-axis";
+import { ExportableChart } from "@/components/charts/exportable-chart";
 
 export const Route = createFileRoute("/analytics/")({
   component: AnalyticsPage,
@@ -194,7 +195,7 @@ function AnalyticsPage() {
               <CardTitle>Task Completion</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartScroll><ResponsiveContainer width="100%" height={300}>
+              <ExportableChart filename="analytics-task-completion"><ChartScroll><ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics.taskCompletion} margin={CHART_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis {...TASK_AXIS_PROPS} />
@@ -224,7 +225,7 @@ function AnalyticsPage() {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer></ChartScroll>
+              </ResponsiveContainer></ChartScroll></ExportableChart>
             </CardContent>
           </Card>
 
@@ -235,7 +236,7 @@ function AnalyticsPage() {
                 <CardTitle>Time per Task (seconds)</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartScroll><ResponsiveContainer width="100%" height={300}>
+                <ExportableChart filename="analytics-time-per-task-seconds"><ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -255,7 +256,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer></ChartScroll>
+                </ResponsiveContainer></ChartScroll></ExportableChart>
               </CardContent>
             </Card>
 
@@ -264,7 +265,7 @@ function AnalyticsPage() {
                 <CardTitle>Actions per Task</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartScroll><ResponsiveContainer width="100%" height={300}>
+                <ExportableChart filename="analytics-actions-per-task"><ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.timeEfficiency} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -284,7 +285,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer></ChartScroll>
+                </ResponsiveContainer></ChartScroll></ExportableChart>
               </CardContent>
             </Card>
           </div>
@@ -297,7 +298,7 @@ function AnalyticsPage() {
                   <CardTitle>Errors by Type</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ExportableChart filename="analytics-errors-by-type"><ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={analytics.errorsByType}
@@ -320,7 +321,7 @@ function AnalyticsPage() {
                       </Pie>
                       <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ResponsiveContainer></ExportableChart>
                 </CardContent>
               </Card>
             )}
@@ -330,7 +331,7 @@ function AnalyticsPage() {
                 <CardTitle>Errors by Task</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartScroll><ResponsiveContainer width="100%" height={300}>
+                <ExportableChart filename="analytics-errors-by-task"><ChartScroll><ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analytics.errorsByTask} margin={CHART_MARGIN}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis {...TASK_AXIS_PROPS} />
@@ -343,7 +344,7 @@ function AnalyticsPage() {
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
-                </ResponsiveContainer></ChartScroll>
+                </ResponsiveContainer></ChartScroll></ExportableChart>
               </CardContent>
             </Card>
           </div>

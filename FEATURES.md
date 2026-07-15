@@ -127,10 +127,14 @@ notes) becomes a small follow-up.
 **Accept:** two accounts in one org see and edit the same templates;
 a third account sees nothing.
 
-### P2.8 Polish grab-bag  *(fillers between larger items)*
-Template duplication; chart PNG/SVG export for papers; media size
-limits + client-side compression on capture; Latin-square note in help
-page; bump CI actions to v5.
+### P2.8 Polish grab-bag — SHIPPED
+Template duplication (deep copy incl. groups/tasks/questions/error
+types/fields/code book, never session data); chart PNG (3x)/SVG export
+button on all 17 titled charts (session detail, analytics, template
+overview) for paper figures; media capture hardening (photos downscaled
+to 1600 px JPEG q0.8, size caps 5/20/50 MB, recording auto-stop 3 min
+audio / 2 min video, localized notes); Latin-square explainer in the
+help page; CI actions bumped to v5.
 
 ## Explicitly deferred
 
