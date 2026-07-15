@@ -176,6 +176,17 @@ Help page section 8 "Organizations & Classrooms": roles incl. student,
 invite codes, project sharing/assignment, repo link, classroom recipe,
 media caveat.
 
+### P3.5 Participant live-query split — SHIPPED
+Load-test fix: the participant client's 4-level nested select (session +
+task definitions + questions + answers), re-fetched on every realtime
+tick, caused 57014 statement timeouts near 15 concurrent participants.
+Now split: static half (template instruments/questions + task
+definitions) fetched once per session (staleTime Infinity), light live
+half (status, progress, answers) on ticks; merged in
+src/lib/participant-live.ts (pure, tested; null-merge triggers a static
+refetch if a session is rebuilt). Hook API unchanged. k6 journey
+scenario mirrors the split.
+
 ## Explicitly deferred
 
 - PWA/offline evaluator mode (large surface).

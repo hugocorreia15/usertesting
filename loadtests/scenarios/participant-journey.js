@@ -155,21 +155,32 @@ export default function () {
     sessionsCreated.add(1);
   });
 
-  // ── Participant live view: one big nested fetch ──
+  // ── Participant live view: static definitions once + light live ──
+  // (mirrors the P3.5 split: the heavy 4-level select is gone from the
+  // per-tick path)
   let live;
   group("fetch live session", () => {
-    const rows = api.select(
+    const staticRows = api.select(
+      `test_sessions?id=eq.${session.id}&select=` +
+        `id,templates(instruments,template_questions(id,question_text,sort_order)),` +
+        `task_results(id,template_tasks(id,name,description,task_questions(*)))`,
+      "GET participant static",
+    );
+    const liveRows = api.select(
       `test_sessions?id=eq.${session.id}&select=` +
         `id,status,user_id,join_code,template_id,current_task_index,` +
-        `templates(instruments,template_questions(id,question_text,sort_order)),` +
         `instrument_answers(id,instrument,item_number,score),` +
-        `task_results(id,sort_order,seq_rating,completion_status,` +
-        `template_tasks(id,name,description,task_questions(*)),task_question_answers(*)),` +
+        `task_results(id,sort_order,seq_rating,completion_status,task_question_answers(*)),` +
         `interview_answers(id,question_id,answer_text),` +
         `sus_answers(id,question_number,score)`,
-      "GET participant live session",
+      "GET participant live",
     );
-    live = rows[0];
+    // merge like the client does
+    const defs = {};
+    for (const tr of staticRows[0].task_results) defs[tr.id] = tr.template_tasks;
+    live = liveRows[0];
+    live.templates = staticRows[0].templates;
+    for (const tr of live.task_results) tr.template_tasks = defs[tr.id];
     check(live, {
       "session has all tasks": (l) =>
         l && l.task_results.length === liveTaskIds.length,

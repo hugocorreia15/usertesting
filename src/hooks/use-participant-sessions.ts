@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type {
-  TestSessionWithRelations,
-  TaskQuestion,
-  TaskQuestionAnswer,
-} from "@/types";
+import type { TestSessionWithRelations } from "@/types";
+import {
+  mergeParticipantSession,
+  type ParticipantStaticData,
+  type ParticipantLiveData,
+} from "@/lib/participant-live";
 
 export function useParticipantSessions() {
   return useQuery({
@@ -85,62 +86,52 @@ export function useSessionByJoinCode(code: string | undefined) {
 }
 
 // ── Participant live (anon-safe, realtime) ──
+// Split into a fetch-once STATIC query (template/task definitions) and
+// a LIGHT live query re-fetched on realtime ticks; merged back into the
+// historical shape by src/lib/participant-live.ts. The old combined
+// 4-level select was the load-test bottleneck (statement timeouts at
+// ~15 concurrent participants).
 
-export interface ParticipantLiveTaskResult {
-  id: string;
-  sort_order: number;
-  seq_rating: number | null;
-  completion_status: string | null;
-  template_tasks: {
-    id: string;
-    name: string;
-    description: string | null;
-    task_questions: TaskQuestion[];
-  };
-  task_question_answers: TaskQuestionAnswer[];
+export type {
+  ParticipantLiveTaskResult,
+  ParticipantLiveSession,
+} from "@/lib/participant-live";
+
+async function fetchParticipantStatic(sessionId: string) {
+  const { data, error } = await supabase
+    .from("test_sessions")
+    .select(
+      `id,
+       templates(instruments, template_questions(id, question_text, sort_order)),
+       task_results(id, template_tasks(id, name, description, task_questions(*)))`,
+    )
+    .eq("id", sessionId)
+    .single();
+  if (error) throw error;
+  return data as unknown as ParticipantStaticData;
 }
 
-export interface ParticipantLiveSession {
-  id: string;
-  status: string;
-  user_id: string;
-  join_code: string | null;
-  template_id: string;
-  current_task_index: number;
-  task_results: ParticipantLiveTaskResult[];
-  sus_answers: { id: string; question_number: number; score: number }[];
-  interview_answers: { id: string; question_id: string; answer_text: string | null }[];
-  instrument_answers: { id: string; instrument: string; item_number: number; score: number }[];
-  templates: {
-    instruments: string[] | null;
-    template_questions: { id: string; question_text: string; sort_order: number }[];
-  };
-}
-
-async function fetchParticipantSession(sessionId: string) {
+async function fetchParticipantLive(sessionId: string) {
   const { data, error } = await supabase
     .from("test_sessions")
     .select(
       `id, status, user_id, join_code, template_id, current_task_index,
-       templates(instruments, template_questions(id, question_text, sort_order)),
        instrument_answers(id, instrument, item_number, score),
-       task_results(
-         id, sort_order, seq_rating, completion_status,
-         template_tasks(id, name, description, task_questions(*)),
-         task_question_answers(*)
-       ),
+       task_results(id, sort_order, seq_rating, completion_status,
+         task_question_answers(*)),
        interview_answers(id, question_id, answer_text),
        sus_answers(id, question_number, score)`,
     )
     .eq("id", sessionId)
     .single();
   if (error) throw error;
-  return data as unknown as ParticipantLiveSession;
+  return data as unknown as ParticipantLiveData;
 }
 
 export function useParticipantLiveSession(sessionId: string | null) {
   const qc = useQueryClient();
   const queryKey = ["participant-live", sessionId];
+  const staticKey = ["participant-static", sessionId];
 
   // Supabase Realtime: re-fetch when session or task_results change
   useEffect(() => {
@@ -179,11 +170,39 @@ export function useParticipantLiveSession(sessionId: string | null) {
     };
   }, [sessionId, qc]);
 
-  return useQuery({
+  // Static half: definitions can't change mid-session, never refetch.
+  const staticQuery = useQuery({
+    queryKey: staticKey,
+    enabled: !!sessionId,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60,
+    queryFn: () => fetchParticipantStatic(sessionId!),
+  });
+
+  const liveQuery = useQuery({
     queryKey,
     enabled: !!sessionId,
-    queryFn: () => fetchParticipantSession(sessionId!),
+    queryFn: () => fetchParticipantLive(sessionId!),
   });
+
+  const merged = useMemo(() => {
+    if (!staticQuery.data || !liveQuery.data) return undefined;
+    return mergeParticipantSession(staticQuery.data, liveQuery.data);
+  }, [staticQuery.data, liveQuery.data]);
+
+  // A null merge means a task result had no static definition (the
+  // session was rebuilt) — refresh the static half once.
+  useEffect(() => {
+    if (merged === null) {
+      qc.invalidateQueries({ queryKey: staticKey });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [merged]);
+
+  return {
+    data: merged ?? undefined,
+    isLoading: staticQuery.isLoading || liveQuery.isLoading,
+  };
 }
 
 export function useSubmitParticipantAnswers() {
