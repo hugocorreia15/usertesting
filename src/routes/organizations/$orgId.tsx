@@ -29,6 +29,10 @@ import {
   useCreateInvite,
   useRevokeInvite,
   useRemoveMember,
+  useOrgGroups,
+  useCreateGroup,
+  useDeleteGroup,
+  useSetMemberRole,
   type OrgTemplateRow,
 } from "@/hooks/use-orgs";
 import type { OrganizationMember, OrganizationWithRelations } from "@/types";
@@ -44,6 +48,8 @@ import {
   Trash2,
   UserCheck,
   UserMinus,
+  FolderKanban,
+  Users2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -135,8 +141,10 @@ function OrgDetailPage() {
     >
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="min-w-0 space-y-4 lg:col-span-2">
+          <GroupsSection org={org} isOwner={isOwner} />
+
           <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
-            Project groups
+            All shared templates
           </h2>
 
           {projectsLoading && (
@@ -322,6 +330,134 @@ function ProjectCard({
   );
 }
 
+function GroupsSection({
+  org,
+  isOwner,
+}: {
+  org: OrganizationWithRelations;
+  isOwner: boolean;
+}) {
+  const { data: groups, isLoading } = useOrgGroups(org.id);
+  const createGroup = useCreateGroup();
+  const deleteGroup = useDeleteGroup();
+  const [name, setName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const add = () => {
+    const n = name.trim();
+    if (!n) return;
+    createGroup.mutate(
+      { org_id: org.id, name: n },
+      {
+        onSuccess: () => setName(""),
+        onError: () => toast.error("Failed to create group"),
+      },
+    );
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+          <FolderKanban className="h-3.5 w-3.5" />
+          Groups
+        </h2>
+      </div>
+
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading groups...</p>
+      ) : (groups?.length ?? 0) === 0 ? (
+        <p className="rounded-md border border-dashed px-3 py-2 text-sm text-muted-foreground">
+          No groups yet. Groups are sub-teams (e.g. a student pair) that hold
+          their own project templates.
+        </p>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {groups!.map((g) => (
+            <Card
+              key={g.id}
+              data-animate-card
+              className="bg-transparent backdrop-blur-md"
+            >
+              <CardContent className="flex items-center justify-between gap-2 py-3">
+                <Link
+                  to="/organizations/$orgId/groups/$groupId"
+                  params={{ orgId: org.id, groupId: g.id }}
+                  className="min-w-0 flex-1"
+                >
+                  <p className="truncate font-medium">{g.name}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Users2 className="h-3 w-3" />
+                    {g.org_group_members.length}{" "}
+                    {g.org_group_members.length === 1 ? "member" : "members"}
+                  </p>
+                </Link>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                    aria-label={`Delete ${g.name}`}
+                    onClick={() => setDeleteTarget({ id: g.id, name: g.name })}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {isOwner && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            add();
+          }}
+          className="flex flex-wrap items-center gap-2"
+        >
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="New group name (e.g. Group 1)"
+            className="h-8 min-w-0 flex-1 text-sm"
+            aria-label="New group name"
+          />
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            disabled={createGroup.isPending || !name.trim()}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Create group
+          </Button>
+        </form>
+      )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Delete group"
+        description={`Delete "${deleteTarget?.name}"? Its templates return to the organization ungrouped; nothing is deleted. Members lose their group assignment.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          deleteGroup.mutate(
+            { id: deleteTarget.id, org_id: org.id },
+            {
+              onSuccess: () => toast.success("Group deleted"),
+              onError: () => toast.error("Failed to delete group"),
+            },
+          );
+        }}
+      />
+    </div>
+  );
+}
+
 function MembersCard({
   org,
   userId,
@@ -337,6 +473,7 @@ function MembersCard({
 }) {
   const navigate = useNavigate();
   const removeMember = useRemoveMember();
+  const setRole = useSetMemberRole();
   const [removeTarget, setRemoveTarget] = useState<OrganizationMember | null>(
     null,
   );
@@ -370,12 +507,37 @@ function MembersCard({
               unassigned
             </Badge>
           )}
-        <Badge
-          variant={roleBadgeVariant(m.role)}
-          className="shrink-0 capitalize text-xs"
-        >
-          {m.role}
-        </Badge>
+        {isOwner && !isMe ? (
+          <select
+            value={m.role}
+            aria-label={`Role of ${m.member_email || "member"}`}
+            className="h-7 shrink-0 rounded-md border bg-transparent px-1.5 text-xs capitalize"
+            onChange={(e) =>
+              setRole.mutate(
+                {
+                  org_id: org.id,
+                  user_id: m.user_id,
+                  role: e.target.value as "owner" | "member" | "student",
+                },
+                {
+                  onSuccess: () => toast.success("Role updated"),
+                  onError: (err) => toast.error(err.message),
+                },
+              )
+            }
+          >
+            <option value="owner">owner</option>
+            <option value="member">member</option>
+            <option value="student">student</option>
+          </select>
+        ) : (
+          <Badge
+            variant={roleBadgeVariant(m.role)}
+            className="shrink-0 capitalize text-xs"
+          >
+            {m.role}
+          </Badge>
+        )}
         {isMe ? (
           <Button
             variant="ghost"

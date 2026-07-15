@@ -187,6 +187,20 @@ src/lib/participant-live.ts (pure, tested; null-merge triggers a static
 refetch if a session is rebuilt). Hook API unchanged. k6 journey
 scenario mirrors the split.
 
+### P3.7 First-class organization groups + role management — SHIPPED
+org_groups + org_group_members (migration 047): named sub-teams inside
+an org, each holding members and one or more project templates
+(templates.org_group_id). Group members get full edit of the group's
+templates and read their sessions (can_access_org_template /
+can_read_org_session extended; all cross-table checks in SECURITY
+DEFINER helpers per the 043 lesson). Org detail page: Groups section
+(owner create/delete, cards link to group page) + per-member role
+dropdown (set_member_role RPC, last-owner guard). New group detail page
+(/organizations/$orgId/groups/$groupId): attach/detach templates
+(set_template_group RPC, also shares to org + moves sessions), add/
+remove members, session counts, repo links. Students see only their
+own groups.
+
 ## Backlog (candidate features, ranked 2026-07-15)
 
 1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a

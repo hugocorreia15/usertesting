@@ -4,6 +4,7 @@ export interface Template {
   description: string | null;
   user_id: string | null;
   org_id: string | null;
+  org_group_id: string | null;
   repo_url: string | null;
   is_public: boolean;
   instruments: string[];
@@ -253,6 +254,21 @@ export interface OrganizationInvite {
 export interface TemplateMember {
   template_id: string;
   user_id: string;
+  created_at: string;
+}
+
+// First-class org groups (migration 047)
+export interface OrgGroup {
+  id: string;
+  org_id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface OrgGroupMember {
+  group_id: string;
+  user_id: string;
+  member_email: string | null;
   created_at: string;
 }
 
