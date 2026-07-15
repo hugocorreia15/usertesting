@@ -45,6 +45,7 @@ function fakeTemplate(): TemplateWithRelations {
     description: null,
     user_id: "u1",
     org_id: null,
+    repo_url: null,
     is_public: false,
     created_at: "",
     updated_at: "",

@@ -22,8 +22,15 @@ import { TemplateParticipantsTab } from "@/components/templates/template-partici
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
 import { CodeBookEditor } from "@/components/coding/code-book-editor";
 import { CodeMatrix } from "@/components/coding/code-matrix";
-import { Download, FileBarChart, Trash2, Plus, Database, Copy, Building2, Check } from "lucide-react";
-import { useMyOrgs, useSetTemplateOrg } from "@/hooks/use-orgs";
+import { Download, FileBarChart, Trash2, Plus, Database, Copy, Building2, Check, Github, UserCheck } from "lucide-react";
+import { DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  useMyOrgs,
+  useSetTemplateOrg,
+  useTemplateMembers,
+  useAssignTemplateMember,
+  useUnassignTemplateMember,
+} from "@/hooks/use-orgs";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -47,6 +54,17 @@ function TemplateDetailPage() {
   const { user } = useAuth();
   const { data: orgs } = useMyOrgs();
   const setTemplateOrg = useSetTemplateOrg();
+  const sharedOrg = orgs?.find((o) => o.id === template?.org_id);
+  const amOrgOwner = !!sharedOrg?.organization_members.some(
+    (m) => m.user_id === user?.id && m.role === "owner",
+  );
+  const { data: projectMembers } = useTemplateMembers(
+    amOrgOwner ? templateId : undefined,
+  );
+  const assignMember = useAssignTemplateMember();
+  const unassignMember = useUnassignTemplateMember();
+  const orgStudents =
+    sharedOrg?.organization_members.filter((m) => m.role === "student") ?? [];
   const duplicateTemplate = useDuplicateTemplate();
 
   const [exportingReport, setExportingReport] = useState(false);
@@ -99,6 +117,66 @@ function TemplateDetailPage() {
       description={template.description || undefined}
       actions={
         <>
+          {template.repo_url && (
+            <Button variant="outline" asChild>
+              <a href={template.repo_url} target="_blank" rel="noreferrer">
+                <Github className="mr-2 h-4 w-4" />
+                Repository
+              </a>
+            </Button>
+          )}
+          {amOrgOwner && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <UserCheck className="mr-2 h-4 w-4" />
+                  Project members ({projectMembers?.length ?? 0})
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72">
+                <DropdownMenuLabel>
+                  Students assigned to this project
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {orgStudents.length === 0 ? (
+                  <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                    No students in {sharedOrg?.name} yet — invite them with a
+                    student invite code first.
+                  </p>
+                ) : (
+                  orgStudents.map((m) => {
+                    const assigned = !!projectMembers?.some(
+                      (pm) => pm.user_id === m.user_id,
+                    );
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={m.user_id}
+                        checked={assigned}
+                        onSelect={(e) => e.preventDefault()}
+                        onCheckedChange={() => {
+                          const input = {
+                            template_id: templateId,
+                            user_id: m.user_id,
+                          };
+                          if (assigned)
+                            unassignMember.mutate(input, {
+                              onError: () =>
+                                toast.error("Failed to unassign"),
+                            });
+                          else
+                            assignMember.mutate(input, {
+                              onError: () => toast.error("Failed to assign"),
+                            });
+                        }}
+                      >
+                        {m.member_email ?? `${m.user_id.slice(0, 8)}…`}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {user?.id === template.user_id && (orgs?.length ?? 0) > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

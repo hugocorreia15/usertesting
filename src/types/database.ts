@@ -4,6 +4,7 @@ export interface Template {
   description: string | null;
   user_id: string | null;
   org_id: string | null;
+  repo_url: string | null;
   is_public: boolean;
   instruments: string[];
   created_at: string;
@@ -204,7 +205,7 @@ export interface Organization {
 export interface OrganizationMember {
   org_id: string;
   user_id: string;
-  role: "owner" | "member";
+  role: "owner" | "member" | "student";
   member_email: string | null;
   created_at: string;
 }
@@ -214,11 +215,17 @@ export interface OrganizationInvite {
   org_id: string;
   code: string;
   label: string | null;
-  role: "owner" | "member";
+  role: "owner" | "member" | "student";
   invited_by: string;
   accepted_by: string | null;
   accepted_at: string | null;
   expires_at: string | null;
+  created_at: string;
+}
+
+export interface TemplateMember {
+  template_id: string;
+  user_id: string;
   created_at: string;
 }
 

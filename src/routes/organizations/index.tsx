@@ -208,6 +208,7 @@ function OrgCard({
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [inviteLabel, setInviteLabel] = useState("");
+  const [inviteRole, setInviteRole] = useState<"member" | "student">("member");
 
   const myMembership = org.organization_members.find(
     (m) => m.user_id === userId,
@@ -220,7 +221,11 @@ function OrgCard({
 
   const handleGenerateInvite = () => {
     createInvite.mutate(
-      { org_id: org.id, label: inviteLabel.trim() || undefined },
+      {
+        org_id: org.id,
+        label: inviteLabel.trim() || undefined,
+        role: inviteRole,
+      },
       {
         onSuccess: async (invite) => {
           setInviteLabel("");
@@ -273,7 +278,13 @@ function OrgCard({
                     )}
                   </span>
                   <Badge
-                    variant={m.role === "owner" ? "default" : "secondary"}
+                    variant={
+                      m.role === "owner"
+                        ? "default"
+                        : m.role === "student"
+                          ? "outline"
+                          : "secondary"
+                    }
                     className="shrink-0 capitalize text-xs"
                   >
                     {m.role}
@@ -356,6 +367,17 @@ function OrgCard({
                 className="h-8 min-w-0 flex-1 text-sm"
                 aria-label="Invite label"
               />
+              <select
+                value={inviteRole}
+                onChange={(e) =>
+                  setInviteRole(e.target.value as "member" | "student")
+                }
+                aria-label="Invite role"
+                className="h-8 shrink-0 rounded-md border bg-transparent px-2 text-sm"
+              >
+                <option value="member">Member (full access)</option>
+                <option value="student">Student (assigned projects only)</option>
+              </select>
               <Button
                 type="submit"
                 variant="outline"

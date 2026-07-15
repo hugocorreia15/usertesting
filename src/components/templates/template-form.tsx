@@ -36,6 +36,7 @@ interface TemplateFormProps {
 export interface TemplateFormData {
   name: string;
   description: string;
+  repo_url: string;
   is_public: boolean;
   groups: TaskGroupItem[];
   tasks: TaskItem[];
@@ -52,6 +53,7 @@ export function TemplateForm({
 }: TemplateFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
+  const [repoUrl, setRepoUrl] = useState(initial?.repo_url ?? "");
 
   // Build a group_id → group_key lookup from initial data
   const [taskGroups, setTaskGroups] = useState<TaskGroupItem[]>(() => {
@@ -137,6 +139,7 @@ export function TemplateForm({
       await onSubmit({
         name,
         description,
+        repo_url: repoUrl.trim(),
         is_public: isPublic,
         groups: taskGroups,
         tasks,
@@ -174,6 +177,16 @@ export function TemplateForm({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the purpose of this test"
               rows={3}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="repo_url">Repository URL (optional)</Label>
+            <Input
+              id="repo_url"
+              type="url"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              placeholder="https://github.com/org/project"
             />
           </div>
           <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3">

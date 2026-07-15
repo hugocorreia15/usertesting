@@ -145,6 +145,23 @@ to 1600 px JPEG q0.8, size caps 5/20/50 MB, recording auto-stop 3 min
 audio / 2 min video, localized notes); Latin-square explainer in the
 help page; CI actions bumped to v5.
 
+## Phase 3 (post-roadmap requests)
+
+### P3.1 Student role + per-project scoping — SHIPPED
+'student' role on org members/invites (migration 042); template_members
+assignment table managed by org owners (Project members dropdown on
+template detail); students see ONLY assigned org templates with FULL
+edit (tasks/questions/code book/tagging) and read their project's
+sessions; everything else invisible. 041 org policies replaced by
+can_access_org_template / can_read_org_session SECURITY DEFINER
+helpers; per-user policies still untouched. Invite generator gained a
+Member/Student role selector. Classroom flow: one org, professor owner
+sees all, each pair/trio assigned to its own project template.
+
+### P3.2 Project repository link — SHIPPED
+templates.repo_url (migration 042) + optional URL field in the template
+form; Repository button (GitHub icon) on template detail opens it.
+
 ## Explicitly deferred
 
 - PWA/offline evaluator mode (large surface).

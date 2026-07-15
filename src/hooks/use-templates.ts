@@ -103,6 +103,7 @@ interface ParticipantFieldInput {
 interface CreateTemplateInput {
   name: string;
   description?: string;
+  repo_url?: string;
   is_public?: boolean;
   groups: GroupInput[];
   tasks: TaskInput[];
@@ -126,6 +127,7 @@ export function useCreateTemplate() {
         .insert({
           name: input.name,
           description: input.description || null,
+          repo_url: input.repo_url || null,
           user_id: userId,
           is_public: input.is_public ?? false,
           instruments: input.instruments ?? [],
@@ -226,6 +228,7 @@ export function useUpdateTemplate() {
         .update({
           name: input.name,
           description: input.description || null,
+          repo_url: input.repo_url || null,
           is_public: input.is_public ?? false,
           instruments: input.instruments ?? [],
           updated_at: new Date().toISOString(),

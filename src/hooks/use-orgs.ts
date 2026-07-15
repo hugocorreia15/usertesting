@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type { Organization, OrganizationWithRelations } from "@/types";
+import type { Organization, OrganizationWithRelations, TemplateMember } from "@/types";
 
 async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -73,7 +73,11 @@ export function useDeleteOrg() {
 export function useCreateInvite() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { org_id: string; label?: string }) => {
+    mutationFn: async (input: {
+      org_id: string;
+      label?: string;
+      role?: "member" | "student";
+    }) => {
       const user = await getCurrentUser();
       const code = crypto.randomUUID().slice(0, 8);
       const { data, error } = await supabase
@@ -82,6 +86,7 @@ export function useCreateInvite() {
           org_id: input.org_id,
           code,
           label: input.label || null,
+          role: input.role ?? "member",
           invited_by: user.id,
         })
         .select()
@@ -161,5 +166,52 @@ export function useSetTemplateOrg() {
       qc.invalidateQueries({ queryKey: ["templates", input.template_id] });
       qc.invalidateQueries({ queryKey: ["sessions"] });
     },
+  });
+}
+
+// ── Project members (student scoping, migration 042) ──
+// Org owners assign 'student' members to specific templates; students
+// only ever see the org templates they are assigned to.
+
+export function useTemplateMembers(templateId: string | undefined) {
+  return useQuery({
+    queryKey: ["template-members", templateId],
+    enabled: !!templateId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("template_members")
+        .select("*")
+        .eq("template_id", templateId!);
+      if (error) throw error;
+      return data as TemplateMember[];
+    },
+  });
+}
+
+export function useAssignTemplateMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { template_id: string; user_id: string }) => {
+      const { error } = await supabase.from("template_members").insert(input);
+      if (error) throw error;
+    },
+    onSuccess: (_d, input) =>
+      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] }),
+  });
+}
+
+export function useUnassignTemplateMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { template_id: string; user_id: string }) => {
+      const { error } = await supabase
+        .from("template_members")
+        .delete()
+        .eq("template_id", input.template_id)
+        .eq("user_id", input.user_id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, input) =>
+      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] }),
   });
 }

@@ -20,6 +20,7 @@ function NewTemplatePage() {
       const template = await createTemplate.mutateAsync({
         name: data.name,
         description: data.description || undefined,
+        repo_url: data.repo_url || undefined,
         is_public: data.is_public,
         groups: data.groups.map((g, i) => ({
           id: g.key,
