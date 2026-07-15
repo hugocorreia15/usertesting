@@ -15,6 +15,7 @@ import { ErrorLogger } from "@/components/live/error-logger";
 import { HesitationLogger } from "@/components/live/hesitation-logger";
 import { SeqRating } from "@/components/live/seq-rating";
 import { TaskQuestionsDialog, type TaskQuestionAnswerData } from "@/components/live/task-questions";
+import { AutoEventsPanel } from "@/components/live/auto-events-panel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ClipboardCheck, CheckCircle2, Undo2 } from "lucide-react";
@@ -469,6 +470,15 @@ function LiveSessionPage() {
           {undoStack.length > 0 ? undoStack[undoStack.length - 1].kind : "event"}
         </Button>
       </div>
+
+      <AutoEventsPanel
+        sessionId={sessionId}
+        joinCode={session.join_code}
+        evaluatorActionTotal={
+          taskResults.reduce((sum, tr) => sum + (tr.action_count ?? 0), 0) +
+          actionCount
+        }
+      />
 
       <ConfirmDialog
         open={showResetConfirm}

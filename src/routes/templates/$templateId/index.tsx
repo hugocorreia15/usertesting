@@ -9,6 +9,7 @@ import { useSessionsByTemplateWithRelations, useSessionsRealtime } from "@/hooks
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
 import { exportReportPdf } from "@/lib/export-report-pdf";
 import { exportDataZip, exportDataJson } from "@/lib/export-data";
+import { fetchAutoEventsForSessions } from "@/hooks/use-auto-events";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,14 +61,17 @@ function TemplateDetailPage() {
     }
   };
 
-  const handleExportData = (format: "csv" | "json") => {
+  const handleExportData = async (format: "csv" | "json") => {
     if (!template || !sessions || sessions.length === 0) {
       toast.info("No sessions to export");
       return;
     }
     try {
-      if (format === "csv") exportDataZip(template, sessions);
-      else exportDataJson(template, sessions);
+      const autoEvents = await fetchAutoEventsForSessions(
+        sessions.map((s) => s.id),
+      ).catch(() => []);
+      if (format === "csv") exportDataZip(template, sessions, autoEvents);
+      else exportDataJson(template, sessions, autoEvents);
     } catch {
       toast.error("Failed to export data");
     }

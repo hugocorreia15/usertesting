@@ -54,6 +54,7 @@ import {
 } from "@/hooks/use-sessions";
 import { useTemplateCodes, useSessionAnswerCodes } from "@/hooks/use-codes";
 import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
+import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
 import {
   PenLine,
   Play,
@@ -252,6 +253,15 @@ function SessionDetailPage() {
             </div>
 
             <EventTimelines taskResults={taskResults} />
+
+            <AutoEventsSummary
+              sessionId={session.id}
+              sessionStartedAt={session.started_at}
+              evaluatorActionTotal={taskResults.reduce(
+                (sum, tr) => sum + (tr.action_count ?? 0),
+                0,
+              )}
+            />
 
             <SessionCharts taskResults={taskResults} />
           </div>

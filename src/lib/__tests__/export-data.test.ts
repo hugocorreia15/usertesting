@@ -276,4 +276,44 @@ describe("buildExportTables", () => {
     const csv = toCsv(tables.sessions);
     expect(csv).toContain('"Ana, the ""tester"""');
   });
+
+  it("exports auto events only for the exported sessions", () => {
+    const autoEvent = (
+      id: string,
+      sessionId: string,
+      eventType: "click" | "keydown" | "navigation",
+      occurredAt: string,
+    ) => ({
+      id,
+      session_id: sessionId,
+      event_type: eventType,
+      occurred_at: occurredAt,
+      path: null,
+      detail: null,
+      created_at: "",
+    });
+    const withEvents = buildExportTables(fakeTemplate(), [fakeSession()], [
+      autoEvent("ae1", "s1", "click", "2026-07-14T10:00:05Z"),
+      autoEvent("ae2", "s1", "navigation", "2026-07-14T10:01:00Z"),
+      autoEvent("ae3", "s-other", "keydown", "2026-07-14T10:02:00Z"),
+    ]);
+    const t = withEvents.auto_events;
+    expect(t.headers).toEqual([
+      "session_id",
+      "event_type",
+      "occurred_at",
+      "path",
+      "detail",
+    ]);
+    expect(t.rows).toHaveLength(2);
+    const col = (name: string) => t.headers.indexOf(name);
+    expect(t.rows[0][col("event_type")]).toBe("click");
+    expect(t.rows[0][col("occurred_at")]).toBe("2026-07-14T10:00:05Z");
+    expect(t.rows[1][col("event_type")]).toBe("navigation");
+    expect(t.rows[1][col("occurred_at")]).toBe("2026-07-14T10:01:00Z");
+
+    // omitting the third argument still yields the (empty) table
+    expect(tables.auto_events).toBeDefined();
+    expect(tables.auto_events.rows).toHaveLength(0);
+  });
 });

@@ -266,6 +266,18 @@ time from the stored task results; per-task error, hesitation, and action
 counts are persisted when the task completes, alongside the individual
 timestamped log entries they summarize.
 
+Because evaluator-counted actions are a manual measure, the platform can
+optionally instrument browser-based systems under test directly: a
+dependency-free script embedded in the tested system streams click,
+keypress, and navigation events (element descriptors and key classes
+only, never typed text) into the running session, keyed by its join code
+and accepted server-side only while the session is in progress. The
+evaluator cockpit shows the automatic counts beside the manual tally
+during the session, the results view charts the captured event stream
+over session time, and the events export as a raw table, enabling a
+manual-versus-automatic count comparison as an internal validity check
+on the action measure.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/ui-live.png}

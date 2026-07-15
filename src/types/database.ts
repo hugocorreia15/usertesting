@@ -191,6 +191,17 @@ export interface SessionInvitation {
   expires_at: string | null;
 }
 
+// Auto-instrumentation events (migration 040)
+export interface AutoEvent {
+  id: string;
+  session_id: string;
+  event_type: "click" | "keydown" | "navigation";
+  occurred_at: string;
+  path: string | null;
+  detail: string | null;
+  created_at: string;
+}
+
 // Qualitative coding (migration 039)
 export interface TemplateCode {
   id: string;

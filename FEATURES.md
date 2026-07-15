@@ -99,14 +99,14 @@ picker on open task answers and interview answers in session detail;
 answer_codes export table resolving source/question/answer text;
 "Qualitative Coding" subsection in the paper.
 
-### P2.5 Auto-instrumentation snippet  *(medium-high — ROADMAP 1.3)*
-Embeddable `<script>` for browser-based systems under test: posts
-click/keydown/navigation events (with timestamps) to an ingest endpoint
-keyed by join code; auto_events table + RLS; live-view overlay toggle
-comparing auto vs evaluator counts; export table.
-**Accept:** a demo page with the snippet streams events into an active
-session; correlation view renders. **Paper:** enables the manual-vs-auto
-count validity study (Evaluation section material).
+### P2.5 Auto-instrumentation snippet — SHIPPED
+public/avalux-instrument.js (dependency-free, batched every 2 s,
+privacy-safe: element descriptors + key classes only, never typed text)
+posts click/keydown/navigation events into auto_events (migration 040,
+anon insert only while session in_progress); live cockpit panel toggles
+auto vs manual counts (with prefilled demo-page link); session detail
+shows counts + per-minute stacked timeline; auto_events export table;
+public/instrument-demo.html playground; paper paragraph in Measures.
 
 ### P2.6 Participant client i18n (PT/EN) + WCAG pass  *(medium)*
 Localize participant-facing strings (join, live view, SUS, instruments,

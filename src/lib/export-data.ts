@@ -6,6 +6,7 @@
 import { zipSync, strToU8 } from "fflate";
 import { calculateSusScore } from "@/lib/sus";
 import type {
+  AutoEvent,
   TemplateWithRelations,
   TestSessionWithRelations,
 } from "@/types";
@@ -32,6 +33,7 @@ export function toCsv(table: ExportTable): string {
 export function buildExportTables(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
+  autoEvents: AutoEvent[] = [],
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
     template.template_questions.map((q) => [q.id, q.question_text]),
@@ -267,6 +269,16 @@ export function buildExportTables(
     }
   }
 
+  // Auto-captured interaction events, restricted to the sessions
+  // exported above; events from other sessions are skipped.
+  const sessionIds = new Set(sessions.map((s) => s.id));
+  const autoEventsT: ExportTable = {
+    headers: ["session_id", "event_type", "occurred_at", "path", "detail"],
+    rows: autoEvents
+      .filter((e) => sessionIds.has(e.session_id))
+      .map((e) => [e.session_id, e.event_type, e.occurred_at, e.path, e.detail]),
+  };
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -277,6 +289,7 @@ export function buildExportTables(
     sus_answers: susT,
     instrument_answers: instrumentT,
     answer_codes: answerCodesT,
+    auto_events: autoEventsT,
   };
 }
 
@@ -300,8 +313,9 @@ function slug(name: string): string {
 export function exportDataZip(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
+  autoEvents: AutoEvent[] = [],
 ) {
-  const tables = buildExportTables(template, sessions);
+  const tables = buildExportTables(template, sessions, autoEvents);
   const files: Record<string, Uint8Array> = {};
   for (const [name, table] of Object.entries(tables)) {
     files[`${name}.csv`] = strToU8(toCsv(table));
@@ -316,8 +330,9 @@ export function exportDataZip(
 export function exportDataJson(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
+  autoEvents: AutoEvent[] = [],
 ) {
-  const tables = buildExportTables(template, sessions);
+  const tables = buildExportTables(template, sessions, autoEvents);
   const payload = {
     template: { id: template.id, name: template.name },
     exported_at: new Date().toISOString(),

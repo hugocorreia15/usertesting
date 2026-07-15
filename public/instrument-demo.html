@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Avalux instrumentation demo</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 640px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    fieldset { border: 1px solid #8884; border-radius: 8px; margin-bottom: 1.5rem; padding: 1rem; }
+    label { display: block; font-size: .85rem; margin-top: .5rem; }
+    input { width: 100%; box-sizing: border-box; padding: .4rem .5rem; margin-top: .15rem;
+            border: 1px solid #8886; border-radius: 6px; background: transparent; color: inherit; }
+    button { padding: .5rem .9rem; border-radius: 6px; border: 1px solid #8886;
+             background: #6366f1; color: white; cursor: pointer; margin: .25rem .25rem 0 0; }
+    button.secondary { background: transparent; color: inherit; }
+    #status { font-size: .85rem; opacity: .8; }
+    .page { display: none; padding: 1rem; border: 1px dashed #8886; border-radius: 8px; margin-top: 1rem; }
+    .page.active { display: block; }
+  </style>
+</head>
+<body>
+  <h1>Instrumentation demo</h1>
+  <p>
+    A stand-in "system under test". Fill in the session's join code (URL
+    and anon key prefill from query params), start instrumentation, then
+    interact below — every click, keypress, and navigation streams into
+    the running Avalux session.
+  </p>
+
+  <fieldset>
+    <legend>Setup</legend>
+    <label>Supabase URL <input id="cfg-url" placeholder="https://xyz.supabase.co" /></label>
+    <label>Anon key <input id="cfg-key" placeholder="eyJ…" /></label>
+    <label>Session join code <input id="cfg-code" placeholder="ab12cd34" /></label>
+    <button id="start">Start instrumentation</button>
+    <p id="status">Not started. The session must be in progress for events to be accepted.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Playground</legend>
+    <button class="secondary" id="btn-a">Add to cart</button>
+    <button class="secondary" id="btn-b">Checkout</button>
+    <label>Search products <input id="search" placeholder="type here — only key events are recorded, never text" /></label>
+    <nav style="margin-top:.75rem">
+      <a href="#home">Home</a> · <a href="#products">Products</a> · <a href="#cart">Cart</a>
+    </nav>
+    <div id="home" class="page active">Home page content.</div>
+    <div id="products" class="page">Product list. <button class="secondary">Blue backpack</button></div>
+    <div id="cart" class="page">Cart contents.</div>
+  </fieldset>
+
+  <script>
+    // Prefill from query params, remember in localStorage
+    var qs = new URLSearchParams(location.search);
+    ["url", "key", "code"].forEach(function (k) {
+      var el = document.getElementById("cfg-" + k);
+      el.value = qs.get(k) || localStorage.getItem("avalux-demo-" + k) || "";
+    });
+
+    document.getElementById("start").addEventListener("click", function () {
+      var url = document.getElementById("cfg-url").value.trim();
+      var key = document.getElementById("cfg-key").value.trim();
+      var code = document.getElementById("cfg-code").value.trim();
+      if (!url || !key || !code) {
+        document.getElementById("status").textContent = "Fill in all three fields first.";
+        return;
+      }
+      ["url", "key", "code"].forEach(function (k) {
+        localStorage.setItem(
+          "avalux-demo-" + k,
+          document.getElementById("cfg-" + k).value.trim(),
+        );
+      });
+      var s = document.createElement("script");
+      s.src = "/avalux-instrument.js";
+      s.setAttribute("data-supabase-url", url);
+      s.setAttribute("data-anon-key", key);
+      s.setAttribute("data-join-code", code);
+      document.body.appendChild(s);
+      document.getElementById("status").textContent =
+        "Instrumentation loaded — interact below and watch the live panel in Avalux.";
+      this.disabled = true;
+    });
+
+    // Tiny hash router so navigation events fire
+    window.addEventListener("hashchange", function () {
+      var target = location.hash.slice(1) || "home";
+      document.querySelectorAll(".page").forEach(function (p) {
+        p.classList.toggle("active", p.id === target);
+      });
+    });
+  </script>
+</body>
+</html>
