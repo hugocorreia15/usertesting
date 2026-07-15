@@ -26,6 +26,7 @@ import { Route as TemplatesNewRouteImport } from './routes/templates/new'
 import { Route as SessionsNewRouteImport } from './routes/sessions/new'
 import { Route as ParticipantsNewRouteImport } from './routes/participants/new'
 import { Route as ParticipantsParticipantIdRouteImport } from './routes/participants/$participantId'
+import { Route as OrganizationsOrgIdRouteImport } from './routes/organizations/$orgId'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as TemplatesTemplateIdIndexRouteImport } from './routes/templates/$templateId/index'
 import { Route as SessionsSessionIdIndexRouteImport } from './routes/sessions/$sessionId/index'
@@ -120,6 +121,11 @@ const ParticipantsParticipantIdRoute =
     path: '/participants/$participantId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const OrganizationsOrgIdRoute = OrganizationsOrgIdRouteImport.update({
+  id: '/organizations/$orgId',
+  path: '/organizations/$orgId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCodeRoute = JoinCodeRouteImport.update({
   id: '/join/$code',
   path: '/join/$code',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/join/$code': typeof JoinCodeRoute
+  '/organizations/$orgId': typeof OrganizationsOrgIdRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/join/$code': typeof JoinCodeRoute
+  '/organizations/$orgId': typeof OrganizationsOrgIdRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/join/$code': typeof JoinCodeRoute
+  '/organizations/$orgId': typeof OrganizationsOrgIdRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/join/$code'
+    | '/organizations/$orgId'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/join/$code'
+    | '/organizations/$orgId'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/join/$code'
+    | '/organizations/$orgId'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -326,6 +338,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   JoinCodeRoute: typeof JoinCodeRoute
+  OrganizationsOrgIdRoute: typeof OrganizationsOrgIdRoute
   ParticipantsParticipantIdRoute: typeof ParticipantsParticipantIdRoute
   ParticipantsNewRoute: typeof ParticipantsNewRoute
   SessionsNewRoute: typeof SessionsNewRoute
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticipantsParticipantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/organizations/$orgId': {
+      id: '/organizations/$orgId'
+      path: '/organizations/$orgId'
+      fullPath: '/organizations/$orgId'
+      preLoaderRoute: typeof OrganizationsOrgIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/$code': {
       id: '/join/$code'
       path: '/join/$code'
@@ -526,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   JoinCodeRoute: JoinCodeRoute,
+  OrganizationsOrgIdRoute: OrganizationsOrgIdRoute,
   ParticipantsParticipantIdRoute: ParticipantsParticipantIdRoute,
   ParticipantsNewRoute: ParticipantsNewRoute,
   SessionsNewRoute: SessionsNewRoute,

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
@@ -251,12 +251,19 @@ function OrgCard({
             {memberCount} {memberCount === 1 ? "member" : "members"}
           </p>
         </div>
-        <Badge
-          variant={myRole === "owner" ? "default" : "secondary"}
-          className="shrink-0 capitalize"
-        >
-          {myRole}
-        </Badge>
+        <div className="flex shrink-0 items-center gap-2">
+          <Badge
+            variant={myRole === "owner" ? "default" : "secondary"}
+            className="capitalize"
+          >
+            {myRole}
+          </Badge>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/organizations/$orgId" params={{ orgId: org.id }}>
+              Open
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1.5">

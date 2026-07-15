@@ -187,6 +187,27 @@ src/lib/participant-live.ts (pure, tested; null-merge triggers a static
 refetch if a session is rebuilt). Hook API unchanged. k6 journey
 scenario mirrors the split.
 
+## Backlog (candidate features, ranked 2026-07-15)
+
+1. **Inter-rater reliability mode** — second evaluator logs the same
+   live session independently (observe page is most of the plumbing);
+   compute Cohen's kappa on error categories + ICC on counts. Named in
+   the paper's Future Work evaluation track; would let that study run
+   on the platform itself.
+2. **Findings → GitHub issues** — projects carry repo links; one-click
+   "create issue" from a coded quote or error cluster closes the
+   finding → issue → fix → retest loop for student teams.
+3. **Cross-iteration comparison** — compare two templates (design v1 vs
+   v2): SUS delta with CIs, per-task time/error deltas. Made for
+   iterative coursework re-tests.
+4. **Screening & quotas on shared links** — screener questions with
+   accept/reject + per-demographic caps (from the deferred pile).
+5. **Custom instrument builder** — user-defined questionnaires beyond
+   SUS/TLX/UEQ-S, generalizing the instruments machinery.
+6. **AI-assisted coding suggestions** — suggest code-book tags for open
+   answers; needs API key + cost/privacy decisions, so ranked last for
+   an academic tool.
+
 ## Explicitly deferred
 
 - PWA/offline evaluator mode (large surface).

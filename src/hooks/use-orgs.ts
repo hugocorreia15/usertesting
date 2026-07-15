@@ -195,8 +195,10 @@ export function useAssignTemplateMember() {
       const { error } = await supabase.from("template_members").insert(input);
       if (error) throw error;
     },
-    onSuccess: (_d, input) =>
-      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] }),
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] });
+      qc.invalidateQueries({ queryKey: ["org-templates"] });
+    },
   });
 }
 
@@ -211,7 +213,42 @@ export function useUnassignTemplateMember() {
         .eq("user_id", input.user_id);
       if (error) throw error;
     },
-    onSuccess: (_d, input) =>
-      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] }),
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["template-members", input.template_id] });
+      qc.invalidateQueries({ queryKey: ["org-templates"] });
+    },
+  });
+}
+
+// ── Org detail page data: the org's projects ("groups") ──
+// One row per org-shared template with its assigned students and a
+// session count. RLS shapes this per viewer: owners/members get every
+// project, students only their own — the page works for both.
+
+export interface OrgTemplateRow {
+  id: string;
+  name: string;
+  description: string | null;
+  repo_url: string | null;
+  user_id: string | null;
+  template_members: { template_id: string; user_id: string }[];
+  test_sessions: { count: number }[];
+}
+
+export function useOrgTemplates(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ["org-templates", orgId],
+    enabled: !!orgId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("templates")
+        .select(
+          "id, name, description, repo_url, user_id, template_members(template_id, user_id), test_sessions(count)",
+        )
+        .eq("org_id", orgId!)
+        .order("name");
+      if (error) throw error;
+      return data as unknown as OrgTemplateRow[];
+    },
   });
 }
