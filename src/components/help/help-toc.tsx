@@ -44,11 +44,20 @@ function useActiveSection(entries: TocEntry[]) {
   }, [entries]);
 
   const navigateTo = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    const scroller = document.querySelector("main");
+    if (!el || !scroller) return;
     setActive(id);
     pinUntil.current = Date.now() + 900;
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Explicitly smooth-scroll the app's scroll container (<main>), which
+    // is more reliable than scrollIntoView inside a nested scrollport.
+    // A small offset keeps the heading clear of the top edge.
+    const top =
+      scroller.scrollTop +
+      el.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top -
+      16;
+    scroller.scrollTo({ top, behavior: "smooth" });
     history.replaceState(null, "", `#${id}`);
   }, []);
 
