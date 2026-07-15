@@ -60,7 +60,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/organizations/$orgId")({
+export const Route = createFileRoute("/organizations/$orgId/")({
   component: OrgDetailPage,
 });
 
