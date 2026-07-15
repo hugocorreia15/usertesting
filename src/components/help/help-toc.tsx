@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Collapsible,
   CollapsibleContent,
@@ -15,15 +16,19 @@ export interface TocEntry {
 // Scrollspy: the app scrolls inside <main> (not the window), so both
 // the listener and the activation threshold are relative to it. A
 // section is active while its anchor is the last one above the top
-// band of the scrollport.
+// band of the scrollport. Clicking a link pins the highlight to the
+// target while the smooth scroll settles, so the indicator glides
+// once instead of sweeping through every section in between.
 function useActiveSection(entries: TocEntry[]) {
   const [active, setActive] = useState<string | null>(entries[0]?.id ?? null);
+  const pinUntil = useRef(0);
 
   useEffect(() => {
     const scroller = document.querySelector("main");
     if (!scroller) return;
 
     const onScroll = () => {
+      if (Date.now() < pinUntil.current) return;
       const threshold = scroller.getBoundingClientRect().top + 120;
       let current = entries[0]?.id ?? null;
       for (const e of entries) {
@@ -38,39 +43,67 @@ function useActiveSection(entries: TocEntry[]) {
     return () => scroller.removeEventListener("scroll", onScroll);
   }, [entries]);
 
-  return active;
+  const navigateTo = useCallback((id: string) => {
+    setActive(id);
+    pinUntil.current = Date.now() + 900;
+    document
+      .getElementById(id)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", `#${id}`);
+  }, []);
+
+  return { active, navigateTo };
 }
 
 function TocLinks({
   entries,
   active,
+  indicatorId,
+  onNavigate,
 }: {
   entries: TocEntry[];
   active: string | null;
+  /** distinct per rendered list so the pill never jumps between them */
+  indicatorId: string;
+  onNavigate: (id: string) => void;
 }) {
   return (
     <nav className="space-y-1">
-      {entries.map((e) => (
-        <a
-          key={e.id}
-          href={`#${e.id}`}
-          aria-current={active === e.id ? "location" : undefined}
-          className={cn(
-            "block rounded-md px-2 py-1.5 text-sm transition-colors",
-            active === e.id
-              ? "bg-primary/10 font-medium text-primary"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground",
-          )}
-        >
-          {e.label}
-        </a>
-      ))}
+      {entries.map((e) => {
+        const isActive = active === e.id;
+        return (
+          <a
+            key={e.id}
+            href={`#${e.id}`}
+            aria-current={isActive ? "location" : undefined}
+            onClick={(ev) => {
+              ev.preventDefault();
+              onNavigate(e.id);
+            }}
+            className={cn(
+              "relative block rounded-md px-2 py-1.5 text-sm transition-colors duration-200",
+              isActive
+                ? "text-sidebar-accent-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            {isActive && (
+              <motion.div
+                layoutId={indicatorId}
+                className="absolute inset-0 rounded-md border-l-2 border-primary bg-sidebar-accent shadow-[inset_0_0_12px_rgba(99,102,241,0.08)]"
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{e.label}</span>
+          </a>
+        );
+      })}
     </nav>
   );
 }
 
 export function HelpToc({ entries }: { entries: TocEntry[] }) {
-  const active = useActiveSection(entries);
+  const { active, navigateTo } = useActiveSection(entries);
 
   return (
     <>
@@ -80,7 +113,12 @@ export function HelpToc({ entries }: { entries: TocEntry[] }) {
           <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             On this page
           </p>
-          <TocLinks entries={entries} active={active} />
+          <TocLinks
+            entries={entries}
+            active={active}
+            indicatorId="help-toc-desktop"
+            onNavigate={navigateTo}
+          />
         </div>
       </aside>
 
@@ -94,7 +132,12 @@ export function HelpToc({ entries }: { entries: TocEntry[] }) {
           <ChevronDown className="h-4 w-4" />
         </CollapsibleTrigger>
         <CollapsibleContent className="border-t px-2 py-2">
-          <TocLinks entries={entries} active={active} />
+          <TocLinks
+            entries={entries}
+            active={active}
+            indicatorId="help-toc-mobile"
+            onNavigate={navigateTo}
+          />
         </CollapsibleContent>
       </Collapsible>
     </>
