@@ -12,8 +12,7 @@ import {
   ChevronRight,
   Menu,
   LogOut,
-  User,
-} from "lucide-react";
+  User, Building2 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -38,6 +37,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Users,
   ClipboardList,
   BarChart3,
+  Building2,
   BookOpen,
 };
 

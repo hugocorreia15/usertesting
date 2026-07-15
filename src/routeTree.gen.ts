@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates/index'
 import { Route as SessionsIndexRouteImport } from './routes/sessions/index'
 import { Route as ParticipantsIndexRouteImport } from './routes/participants/index'
+import { Route as OrganizationsIndexRouteImport } from './routes/organizations/index'
 import { Route as MyTemplatesIndexRouteImport } from './routes/my-templates/index'
 import { Route as MySessionsIndexRouteImport } from './routes/my-sessions/index'
 import { Route as HelpIndexRouteImport } from './routes/help/index'
@@ -70,6 +71,11 @@ const SessionsIndexRoute = SessionsIndexRouteImport.update({
 const ParticipantsIndexRoute = ParticipantsIndexRouteImport.update({
   id: '/participants/',
   path: '/participants/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizationsIndexRoute = OrganizationsIndexRouteImport.update({
+  id: '/organizations/',
+  path: '/organizations/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyTemplatesIndexRoute = MyTemplatesIndexRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/help/': typeof HelpIndexRoute
   '/my-sessions/': typeof MySessionsIndexRoute
   '/my-templates/': typeof MyTemplatesIndexRoute
+  '/organizations/': typeof OrganizationsIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpIndexRoute
   '/my-sessions': typeof MySessionsIndexRoute
   '/my-templates': typeof MyTemplatesIndexRoute
+  '/organizations': typeof OrganizationsIndexRoute
   '/participants': typeof ParticipantsIndexRoute
   '/sessions': typeof SessionsIndexRoute
   '/templates': typeof TemplatesIndexRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/help/': typeof HelpIndexRoute
   '/my-sessions/': typeof MySessionsIndexRoute
   '/my-templates/': typeof MyTemplatesIndexRoute
+  '/organizations/': typeof OrganizationsIndexRoute
   '/participants/': typeof ParticipantsIndexRoute
   '/sessions/': typeof SessionsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/help/'
     | '/my-sessions/'
     | '/my-templates/'
+    | '/organizations/'
     | '/participants/'
     | '/sessions/'
     | '/templates/'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/my-sessions'
     | '/my-templates'
+    | '/organizations'
     | '/participants'
     | '/sessions'
     | '/templates'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/help/'
     | '/my-sessions/'
     | '/my-templates/'
+    | '/organizations/'
     | '/participants/'
     | '/sessions/'
     | '/templates/'
@@ -309,6 +321,7 @@ export interface RootRouteChildren {
   HelpIndexRoute: typeof HelpIndexRoute
   MySessionsIndexRoute: typeof MySessionsIndexRoute
   MyTemplatesIndexRoute: typeof MyTemplatesIndexRoute
+  OrganizationsIndexRoute: typeof OrganizationsIndexRoute
   ParticipantsIndexRoute: typeof ParticipantsIndexRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/participants'
       fullPath: '/participants/'
       preLoaderRoute: typeof ParticipantsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organizations/': {
+      id: '/organizations/'
+      path: '/organizations'
+      fullPath: '/organizations/'
+      preLoaderRoute: typeof OrganizationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-templates/': {
@@ -493,6 +513,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpIndexRoute: HelpIndexRoute,
   MySessionsIndexRoute: MySessionsIndexRoute,
   MyTemplatesIndexRoute: MyTemplatesIndexRoute,
+  OrganizationsIndexRoute: OrganizationsIndexRoute,
   ParticipantsIndexRoute: ParticipantsIndexRoute,
   SessionsIndexRoute: SessionsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,

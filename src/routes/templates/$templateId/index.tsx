@@ -22,7 +22,9 @@ import { TemplateParticipantsTab } from "@/components/templates/template-partici
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
 import { CodeBookEditor } from "@/components/coding/code-book-editor";
 import { CodeMatrix } from "@/components/coding/code-matrix";
-import { Download, FileBarChart, Trash2, Plus, Database, Copy } from "lucide-react";
+import { Download, FileBarChart, Trash2, Plus, Database, Copy, Building2, Check } from "lucide-react";
+import { useMyOrgs, useSetTemplateOrg } from "@/hooks/use-orgs";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/templates/$templateId/")({
@@ -42,6 +44,9 @@ function TemplateDetailPage() {
     useSessionsByTemplateWithRelations(templateId);
   useSessionsRealtime();
   const deleteTemplate = useDeleteTemplate();
+  const { user } = useAuth();
+  const { data: orgs } = useMyOrgs();
+  const setTemplateOrg = useSetTemplateOrg();
   const duplicateTemplate = useDuplicateTemplate();
 
   const [exportingReport, setExportingReport] = useState(false);
@@ -94,6 +99,53 @@ function TemplateDetailPage() {
       description={template.description || undefined}
       actions={
         <>
+          {user?.id === template.user_id && (orgs?.length ?? 0) > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  {orgs?.find((o) => o.id === template.org_id)?.name ??
+                    "Not shared"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() =>
+                    setTemplateOrg.mutate(
+                      { template_id: templateId, org_id: null },
+                      {
+                        onSuccess: () => toast.success("Template is private"),
+                        onError: (e) => toast.error(e.message),
+                      },
+                    )
+                  }
+                >
+                  {!template.org_id && <Check className="mr-2 h-4 w-4" />}
+                  Not shared (only me)
+                </DropdownMenuItem>
+                {orgs?.map((o) => (
+                  <DropdownMenuItem
+                    key={o.id}
+                    onClick={() =>
+                      setTemplateOrg.mutate(
+                        { template_id: templateId, org_id: o.id },
+                        {
+                          onSuccess: () =>
+                            toast.success(`Shared with ${o.name}`),
+                          onError: (e) => toast.error(e.message),
+                        },
+                      )
+                    }
+                  >
+                    {template.org_id === o.id && (
+                      <Check className="mr-2 h-4 w-4" />
+                    )}
+                    {o.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <Button
             variant="outline"
             disabled={duplicateTemplate.isPending}

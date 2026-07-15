@@ -101,6 +101,7 @@ function TemplatesPage() {
                 <Badge variant={t.is_public ? "default" : "outline"}>
                   {t.is_public ? "Public" : "Private"}
                 </Badge>
+                {t.org_id && <Badge variant="secondary">Shared</Badge>}
               </div>
             </CardContent>
             <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100">

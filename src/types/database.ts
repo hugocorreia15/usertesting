@@ -3,6 +3,7 @@ export interface Template {
   name: string;
   description: string | null;
   user_id: string | null;
+  org_id: string | null;
   is_public: boolean;
   instruments: string[];
   created_at: string;
@@ -89,6 +90,7 @@ export interface TestSession {
   completed_at: string | null;
   notes: string | null;
   user_id: string | null;
+  org_id: string | null;
   join_code: string | null;
   current_task_index: number;
   task_order_strategy: "fixed" | "shuffled" | "latin_square";
@@ -189,6 +191,40 @@ export interface SessionInvitation {
   response_count: number;
   created_at: string;
   expires_at: string | null;
+}
+
+// Teams / organizations (migration 041)
+export interface Organization {
+  id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+}
+
+export interface OrganizationMember {
+  org_id: string;
+  user_id: string;
+  role: "owner" | "member";
+  member_email: string | null;
+  created_at: string;
+}
+
+export interface OrganizationInvite {
+  id: string;
+  org_id: string;
+  code: string;
+  label: string | null;
+  role: "owner" | "member";
+  invited_by: string;
+  accepted_by: string | null;
+  accepted_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export interface OrganizationWithRelations extends Organization {
+  organization_members: OrganizationMember[];
+  organization_invites: OrganizationInvite[];
 }
 
 // Auto-instrumentation events (migration 040)

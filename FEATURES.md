@@ -118,14 +118,23 @@ label associations on every join-form field (incl. custom fields and
 selects), range inputs labeled. Verified in-browser: ?lang=pt renders
 the join flow in Portuguese, default stays EN.
 
-### P2.7 Teams / organizations  *(large — do last, prerequisite for
-multi-evaluator observation)*
-org + membership tables; template/session ownership by org; RLS rewrite
-(user_id → org membership checks) behind a compatibility view; invite
-flow; role: owner/member. Then ROADMAP 2.3 (spectator role + observer
-notes) becomes a small follow-up.
-**Accept:** two accounts in one org see and edit the same templates;
-a third account sees nothing.
+### P2.7 Teams / organizations — SHIPPED
+organizations + members (owner/member) + code-based invites (migration
+041, accept_org_invite RPC, is_org_member/is_org_owner SECURITY DEFINER
+helpers — no RLS recursion). Sharing is ADDITIVE: all user_id policies
+untouched, org policies OR on top, so single-user flows cannot regress.
+Org templates: member-editable incl. code book + collaborative tagging;
+org sessions: member-readable (editing stays with creator until the
+spectator role); sessions inherit the template org via BEFORE INSERT
+trigger (anon join flow included); set_template_org RPC moves existing
+sessions on share/unshare. /organizations page (create, invite codes,
+join, members, leave); share dropdown on template detail; Shared badge
+on lists. Known v1 limitation: session media stays creator-only
+(storage policies untouched).
+**Verify (needs two accounts):** share a template from account A's
+detail page, join the org from account B via invite code → B sees and
+edits the template and reads its sessions; a third account sees
+nothing.
 
 ### P2.8 Polish grab-bag — SHIPPED
 Template duplication (deep copy incl. groups/tasks/questions/error
