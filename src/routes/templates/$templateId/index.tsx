@@ -10,6 +10,7 @@ import { exportTemplatePdf } from "@/lib/export-template-pdf";
 import { exportReportPdf } from "@/lib/export-report-pdf";
 import { exportDataZip, exportDataJson } from "@/lib/export-data";
 import { fetchAutoEventsForSessions } from "@/hooks/use-auto-events";
+import { fetchObserverNotesForSessions } from "@/hooks/use-observer-notes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,11 +92,14 @@ function TemplateDetailPage() {
       return;
     }
     try {
-      const autoEvents = await fetchAutoEventsForSessions(
-        sessions.map((s) => s.id),
-      ).catch(() => []);
-      if (format === "csv") exportDataZip(template, sessions, autoEvents);
-      else exportDataJson(template, sessions, autoEvents);
+      const ids = sessions.map((s) => s.id);
+      const autoEvents = await fetchAutoEventsForSessions(ids).catch(() => []);
+      const observerNotes = await fetchObserverNotesForSessions(ids).catch(
+        () => [],
+      );
+      if (format === "csv")
+        exportDataZip(template, sessions, autoEvents, observerNotes);
+      else exportDataJson(template, sessions, autoEvents, observerNotes);
     } catch {
       toast.error("Failed to export data");
     }

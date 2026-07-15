@@ -194,6 +194,17 @@ export interface SessionInvitation {
   expires_at: string | null;
 }
 
+// Spectator observation notes (migration 045)
+export interface ObserverNote {
+  id: string;
+  session_id: string;
+  author_id: string;
+  author_email: string | null;
+  note: string;
+  task_index: number | null;
+  created_at: string;
+}
+
 // Teams / organizations (migration 041)
 export interface Organization {
   id: string;

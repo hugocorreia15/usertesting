@@ -17,10 +17,10 @@
 \title{Avalux: An Open Integrated Platform for Moderated Usability Testing
 with Real-Time Evaluator--Participant Synchronization}
 
-\author{\IEEEauthorblockN{Hugo Correia}
-\IEEEauthorblockA{\textit{Affiliation placeholder}\\
-City, Country\\
-email@placeholder.pt}}
+\author{\IEEEauthorblockN{Hugo Correia, Bernardo Marques, and Samuel Silva}
+\IEEEauthorblockA{IEETA / DETI, University of Aveiro\\
+Aveiro, Portugal\\
+\{hf.correia, bernardo.marques, sss\}@ua.pt}}
 
 \maketitle
 
@@ -324,7 +324,10 @@ through additive membership policies layered over the per-user rules,
 so collaboration never widens anonymous participants' access. A
 restricted student role scopes selected members to individually
 assigned templates, supporting classroom deployments in which each
-student group runs its own project under a supervising account.
+student group runs its own project under a supervising account, and
+anyone with read access to a running session can follow it on a
+read-only observation view, attaching timestamped observer notes that
+export alongside the session data.
 
 \subsection{Analysis and Reporting}
 Session dashboards chart completion status, time and action counts against
@@ -611,18 +614,17 @@ report latency, SUS and workload on the toolchain), an inter-rater
 reliability study of the live-logging instrument, and a
 manual-versus-automatic action-count comparison using the
 instrumentation events of Section~III to bound manual logging error.
-The \emph{platform} track continues with a more flexible task model and
-live multi-evaluator observation, for which the organization layer is
-the prerequisite already in place. The event timelines, raw data export,
-order counterbalancing, additional questionnaires, retroactive
-anonymization, auto-instrumentation, qualitative coding, Portuguese
-participant client, and organizations described in Section~III were
-themselves motivated by the two studies and shipped since they
-concluded.
+The \emph{platform} track continues with a more flexible task model.
+The event timelines, raw data export, order counterbalancing,
+additional questionnaires, retroactive anonymization,
+auto-instrumentation, qualitative coding, Portuguese participant
+client, organizations, and live session observation described in
+Section~III were themselves motivated by the two studies and shipped
+since they concluded.
 
 \section*{Availability}
 The platform is deployed at \url{https://avalux.pt}. Its source, comprising the
-application, the database schema (41 SQL migrations), the seeded protocol
+application, the database schema (45 SQL migrations), the seeded protocol
 of study~2, the in-application tutorial, and the report generator, is
 available under the MIT license at
 \url{https://github.com/hugocorreia15/usertesting}. Anonymized session

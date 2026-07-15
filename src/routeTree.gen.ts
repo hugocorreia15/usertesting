@@ -30,6 +30,7 @@ import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as TemplatesTemplateIdIndexRouteImport } from './routes/templates/$templateId/index'
 import { Route as SessionsSessionIdIndexRouteImport } from './routes/sessions/$sessionId/index'
 import { Route as MySessionsSessionIdIndexRouteImport } from './routes/my-sessions/$sessionId/index'
+import { Route as SessionsSessionIdObserveRouteImport } from './routes/sessions/$sessionId/observe'
 import { Route as SessionsSessionIdLiveRouteImport } from './routes/sessions/$sessionId/live'
 import { Route as SessionsSessionIdEditRouteImport } from './routes/sessions/$sessionId/edit'
 
@@ -141,6 +142,12 @@ const MySessionsSessionIdIndexRoute =
     path: '/my-sessions/$sessionId/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const SessionsSessionIdObserveRoute =
+  SessionsSessionIdObserveRouteImport.update({
+    id: '/sessions/$sessionId/observe',
+    path: '/sessions/$sessionId/observe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SessionsSessionIdLiveRoute = SessionsSessionIdLiveRouteImport.update({
   id: '/sessions/$sessionId/live',
   path: '/sessions/$sessionId/live',
@@ -173,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/templates/': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
   '/my-sessions/$sessionId/': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId/': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId/': typeof TemplatesTemplateIdIndexRoute
@@ -198,6 +206,7 @@ export interface FileRoutesByTo {
   '/templates': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
   '/my-sessions/$sessionId': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId': typeof TemplatesTemplateIdIndexRoute
@@ -224,6 +233,7 @@ export interface FileRoutesById {
   '/templates/': typeof TemplatesIndexRoute
   '/sessions/$sessionId/edit': typeof SessionsSessionIdEditRoute
   '/sessions/$sessionId/live': typeof SessionsSessionIdLiveRoute
+  '/sessions/$sessionId/observe': typeof SessionsSessionIdObserveRoute
   '/my-sessions/$sessionId/': typeof MySessionsSessionIdIndexRoute
   '/sessions/$sessionId/': typeof SessionsSessionIdIndexRoute
   '/templates/$templateId/': typeof TemplatesTemplateIdIndexRoute
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/templates/'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/sessions/$sessionId/observe'
     | '/my-sessions/$sessionId/'
     | '/sessions/$sessionId/'
     | '/templates/$templateId/'
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/templates'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/sessions/$sessionId/observe'
     | '/my-sessions/$sessionId'
     | '/sessions/$sessionId'
     | '/templates/$templateId'
@@ -301,6 +313,7 @@ export interface FileRouteTypes {
     | '/templates/'
     | '/sessions/$sessionId/edit'
     | '/sessions/$sessionId/live'
+    | '/sessions/$sessionId/observe'
     | '/my-sessions/$sessionId/'
     | '/sessions/$sessionId/'
     | '/templates/$templateId/'
@@ -327,6 +340,7 @@ export interface RootRouteChildren {
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   SessionsSessionIdEditRoute: typeof SessionsSessionIdEditRoute
   SessionsSessionIdLiveRoute: typeof SessionsSessionIdLiveRoute
+  SessionsSessionIdObserveRoute: typeof SessionsSessionIdObserveRoute
   MySessionsSessionIdIndexRoute: typeof MySessionsSessionIdIndexRoute
   SessionsSessionIdIndexRoute: typeof SessionsSessionIdIndexRoute
   TemplatesTemplateIdIndexRoute: typeof TemplatesTemplateIdIndexRoute
@@ -481,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MySessionsSessionIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions/$sessionId/observe': {
+      id: '/sessions/$sessionId/observe'
+      path: '/sessions/$sessionId/observe'
+      fullPath: '/sessions/$sessionId/observe'
+      preLoaderRoute: typeof SessionsSessionIdObserveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sessions/$sessionId/live': {
       id: '/sessions/$sessionId/live'
       path: '/sessions/$sessionId/live'
@@ -519,6 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesIndexRoute: TemplatesIndexRoute,
   SessionsSessionIdEditRoute: SessionsSessionIdEditRoute,
   SessionsSessionIdLiveRoute: SessionsSessionIdLiveRoute,
+  SessionsSessionIdObserveRoute: SessionsSessionIdObserveRoute,
   MySessionsSessionIdIndexRoute: MySessionsSessionIdIndexRoute,
   SessionsSessionIdIndexRoute: SessionsSessionIdIndexRoute,
   TemplatesTemplateIdIndexRoute: TemplatesTemplateIdIndexRoute,

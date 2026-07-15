@@ -7,6 +7,7 @@ import { zipSync, strToU8 } from "fflate";
 import { calculateSusScore } from "@/lib/sus";
 import type {
   AutoEvent,
+  ObserverNote,
   TemplateWithRelations,
   TestSessionWithRelations,
 } from "@/types";
@@ -34,6 +35,7 @@ export function buildExportTables(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
+  observerNotes: ObserverNote[] = [],
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
     template.template_questions.map((q) => [q.id, q.question_text]),
@@ -279,6 +281,19 @@ export function buildExportTables(
       .map((e) => [e.session_id, e.event_type, e.occurred_at, e.path, e.detail]),
   };
 
+  const observerNotesT: ExportTable = {
+    headers: ["session_id", "author_email", "task_index", "note", "created_at"],
+    rows: observerNotes
+      .filter((n) => sessionIds.has(n.session_id))
+      .map((n) => [
+        n.session_id,
+        n.author_email,
+        n.task_index,
+        n.note,
+        n.created_at,
+      ]),
+  };
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -290,6 +305,7 @@ export function buildExportTables(
     instrument_answers: instrumentT,
     answer_codes: answerCodesT,
     auto_events: autoEventsT,
+    observer_notes: observerNotesT,
   };
 }
 
@@ -314,8 +330,9 @@ export function exportDataZip(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
+  observerNotes: ObserverNote[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes);
   const files: Record<string, Uint8Array> = {};
   for (const [name, table] of Object.entries(tables)) {
     files[`${name}.csv`] = strToU8(toCsv(table));
@@ -331,8 +348,9 @@ export function exportDataJson(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
   autoEvents: AutoEvent[] = [],
+  observerNotes: ObserverNote[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes);
   const payload = {
     template: { id: template.id, name: template.name },
     exported_at: new Date().toISOString(),

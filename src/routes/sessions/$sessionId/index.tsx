@@ -54,11 +54,13 @@ import {
   useAnonymizeSession,
 } from "@/hooks/use-sessions";
 import { useTemplateCodes, useSessionAnswerCodes } from "@/hooks/use-codes";
+import { useObserverNotes } from "@/hooks/use-observer-notes";
 import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
 import {
   PenLine,
   Play,
+  Eye,
   Copy,
   Check,
   Trash2,
@@ -117,6 +119,7 @@ function SessionDetailPage() {
     taskAnswerIds,
     interviewAnswerIds,
   );
+  const { data: observerNotes } = useObserverNotes(session?.id);
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
@@ -131,6 +134,14 @@ function SessionDetailPage() {
       description={`${session.participants.name} — ${session.evaluator_name}`}
       actions={
         <div className="flex gap-2">
+          {session.status === "in_progress" && (
+            <Button variant="outline" asChild>
+              <Link to="/sessions/$sessionId/observe" params={{ sessionId }}>
+                <Eye className="mr-2 h-4 w-4" />
+                Observe
+              </Link>
+            </Button>
+          )}
           {session.status !== "completed" && (
             <Button asChild>
               <Link
@@ -263,6 +274,30 @@ function SessionDetailPage() {
                 0,
               )}
             />
+
+            {(observerNotes?.length ?? 0) > 0 && (
+              <Card className="bg-transparent backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle>Observer Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {observerNotes!.map((n) => (
+                    <div key={n.id} className="rounded-md border p-3">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span>{n.author_email ?? `${n.author_id.slice(0, 8)}…`}</span>
+                        {n.task_index != null && (
+                          <Badge variant="outline" className="text-xs">
+                            task {n.task_index + 1}
+                          </Badge>
+                        )}
+                        <span>{new Date(n.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="mt-1 text-sm">{n.note}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             <SessionCharts taskResults={taskResults} />
           </div>

@@ -12,6 +12,7 @@ import {
   BarChart3,
   FileDown,
   Users,
+  Building2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/help/")({
@@ -26,6 +27,7 @@ const TOC: TocEntry[] = [
   { id: "analytics", label: "5. Analytics & Results" },
   { id: "exports", label: "6. PDF Exports" },
   { id: "participants-mgmt", label: "7. Managing Participants" },
+  { id: "organizations", label: "8. Organizations & Classrooms" },
 ];
 
 function HelpPage() {
@@ -338,6 +340,61 @@ function HelpPage() {
                 stay out of your participants list.
               </li>
             </ul>
+          </HelpSection>
+
+          {/* ── 8. Organizations & classrooms ────────────────────── */}
+          <HelpSection
+            id="organizations"
+            title="8. Organizations & Classrooms"
+            icon={<Building2 className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              An <strong>organization</strong> lets several evaluators work on
+              the same study. Create one at{" "}
+              <Link to="/organizations" className="text-primary hover:underline">
+                Organization
+              </Link>
+              , then generate <strong>invite codes</strong> others use to join
+              (each code works once). Members join with one of three roles:
+            </p>
+            <ul>
+              <li>
+                <strong>Owner</strong> — manages membership and invites,
+                assigns projects, can delete the organization. The creator is
+                the first owner.
+              </li>
+              <li>
+                <strong>Member</strong> — sees and edits every template shared
+                with the organization and reads all of its sessions
+                (co-supervisors, colleagues).
+              </li>
+              <li>
+                <strong>Student</strong> — sees <em>only</em> the projects an
+                owner assigns to them, with full editing there; everything
+                else in the organization stays invisible. Made for classroom
+                use: one organization per class, one invite code per role.
+              </li>
+            </ul>
+            <p>
+              <strong>Sharing a project</strong>: on a template's detail page
+              the creator picks the organization from the sharing dropdown;
+              existing and future sessions of that template follow
+              automatically. Owners then use{" "}
+              <em>Project members</em> (same page) to tick which students work
+              on that project — a pair or trio per template is the typical
+              classroom setup. Each template can also carry a{" "}
+              <strong>repository URL</strong> (set in the template form),
+              shown as a Repository button on its detail page.
+            </p>
+            <p>
+              A typical class: the professor creates the organization and one
+              template per student group, shares each template, hands out
+              student invite codes, and assigns each group to its project.
+              Students edit their protocol and run their own sessions; the
+              professor sees every project, session, and analysis from one
+              account. Note that participant-captured media (photos,
+              recordings) stays visible only to whoever ran the session.
+            </p>
           </HelpSection>
         </div>
       </div>

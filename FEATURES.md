@@ -162,6 +162,20 @@ sees all, each pair/trio assigned to its own project template.
 templates.repo_url (migration 042) + optional URL field in the template
 form; Repository button (GitHub icon) on template detail opens it.
 
+### P3.3 Spectator observation + observer notes — SHIPPED (was ROADMAP 2.3)
+observer_notes table (migration 045, can_note_session definer helper —
+recursion-safe per the 043 lesson); read-only /sessions/:id/observe
+page (live task progress on a 3 s refresh, current-task banner, notes
+composer) for anyone with session read access (creator, org members,
+assigned students); Observe button on in_progress session detail;
+Observer Notes card on session overview; observer_notes export table;
+paper: observation moved from Future Work to Section III.
+
+### P3.4 Organizations help section — SHIPPED
+Help page section 8 "Organizations & Classrooms": roles incl. student,
+invite codes, project sharing/assignment, repo link, classroom recipe,
+media caveat.
+
 ## Explicitly deferred
 
 - PWA/offline evaluator mode (large surface).
