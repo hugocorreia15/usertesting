@@ -22,9 +22,19 @@ import { ParticipantLiveView } from "@/components/participant/participant-live-v
 import { Loader2 } from "lucide-react";
 import { useLang, format } from "@/lib/i18n";
 import { LangToggle } from "@/components/participant/lang-toggle";
+import { ParticipantFieldInput } from "@/components/participants/participant-field-input";
 import { toast } from "sonner";
+import { setParticipantCodes } from "@/lib/supabase";
 
 export const Route = createFileRoute("/join/$code")({
+  // Runs before any query on this route. Participant-facing RLS is
+  // possession-based (migration 048), so the code from the URL has to be
+  // attached to requests before the first one goes out. It may be an
+  // invitation code or a session join code; both headers are sent and each
+  // policy checks the one for its own table.
+  beforeLoad: ({ params }) => {
+    setParticipantCodes({ invite: params.code, join: params.code });
+  },
   component: JoinPage,
 });
 
@@ -317,55 +327,17 @@ function JoinPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {customFields.map((field) => (
                   <div key={field.id} className="space-y-2">
-                    <Label htmlFor={`cf-${field.id}`}>{field.label}</Label>
-                    {field.field_type === "textarea" ? (
-                      <Textarea
-                        id={`cf-${field.id}`}
-                        rows={3}
-                        value={customValues[field.id] ?? ""}
-                        onChange={(e) =>
-                          setCustomValues((v) => ({
-                            ...v,
-                            [field.id]: e.target.value,
-                          }))
-                        }
-                      />
-                    ) : field.field_type === "select" ? (
-                      <Select
-                        value={customValues[field.id] ?? ""}
-                        onValueChange={(val) =>
-                          setCustomValues((v) => ({ ...v, [field.id]: val }))
-                        }
-                      >
-                        <SelectTrigger
-                          className="w-full"
-                          id={`cf-${field.id}`}
-                        >
-                          <SelectValue placeholder={dict.join.selectOption} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(field.options ?? []).map((opt) => (
-                            <SelectItem key={opt} value={opt}>
-                              {opt}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        id={`cf-${field.id}`}
-                        type={
-                          field.field_type === "number" ? "number" : "text"
-                        }
-                        value={customValues[field.id] ?? ""}
-                        onChange={(e) =>
-                          setCustomValues((v) => ({
-                            ...v,
-                            [field.id]: e.target.value,
-                          }))
-                        }
-                      />
-                    )}
+                    <Label id={`pf-${field.id}-label`} htmlFor={`pf-${field.id}`}>
+                      {field.label}
+                    </Label>
+                    <ParticipantFieldInput
+                      field={field}
+                      value={customValues[field.id] ?? ""}
+                      onChange={(next) =>
+                        setCustomValues((v) => ({ ...v, [field.id]: next }))
+                      }
+                      selectPlaceholder={dict.join.selectOption}
+                    />
                   </div>
                 ))}
               </div>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { setParticipantCodes, supabase } from "@/lib/supabase";
 import type { SessionInvitation } from "@/types";
 import { orderSessionTasks, type TaskOrderStrategy } from "@/lib/task-order";
 
@@ -110,17 +110,19 @@ export function useJoinSession() {
         ? participant.name
         : `Participant-${crypto.randomUUID().slice(0, 6)}`;
 
-      // 1. Create participant under the evaluator's user_id
-      const { data: newParticipant, error: pErr } = await supabase
-        .from("participants")
-        .insert({
-          ...participant,
-          name: participantName,
-          user_id: invitation.user_id,
-          is_anonymous: isAnonymous,
-        })
-        .select()
-        .single();
+      // 1. Create participant under the evaluator's user_id.
+      // The id is generated here rather than read back: `.select()` after the
+      // insert would need an anon SELECT policy on participants, and the one
+      // that used to exist (migration 023) exposed every participant's name,
+      // e-mail and notes to anonymous clients.
+      const newParticipantId = crypto.randomUUID();
+      const { error: pErr } = await supabase.from("participants").insert({
+        ...participant,
+        id: newParticipantId,
+        name: participantName,
+        user_id: invitation.user_id,
+        is_anonymous: isAnonymous,
+      });
       if (pErr) throw pErr;
 
       // 1b. Persist custom template-defined participant field values
@@ -132,7 +134,7 @@ export function useJoinSession() {
           .from("participant_field_values")
           .insert(
             filledCustom.map((v) => ({
-              participant_id: newParticipant.id,
+              participant_id: newParticipantId,
               field_id: v.field_id,
               value: v.value,
             })),
@@ -143,11 +145,14 @@ export function useJoinSession() {
       // 2. Create test session with unique join code
       const strategy = invitation.task_order_strategy ?? "fixed";
       const joinCode = crypto.randomUUID().slice(0, 8);
+      // The session's own code becomes the possession proof for every write
+      // that follows (session, task skeleton, interview skeleton).
+      setParticipantCodes({ invite: invitation.code, join: joinCode });
       const { data: session, error: sErr } = await supabase
         .from("test_sessions")
         .insert({
           template_id: invitation.template_id,
-          participant_id: newParticipant.id,
+          participant_id: newParticipantId,
           evaluator_name: invitation.evaluator_name,
           user_id: invitation.user_id,
           status: "planned",

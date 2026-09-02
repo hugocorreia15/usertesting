@@ -18,7 +18,7 @@ import { SkaterGame } from "@/components/layout/skater-game";
 import { AnimatedBackground } from "@/components/layout/animated-background";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import ClickSpark from "@/components/ClickSpark";
-import { supabase } from "@/lib/supabase";
+import { clearParticipantCodes, supabase } from "@/lib/supabase";
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -26,6 +26,13 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location }) => {
+    // Root runs before the matched child, so the join route re-sets these
+    // immediately after. Anywhere else, a code left over from a join link
+    // visited earlier in this tab stops being sent.
+    if (!location.pathname.startsWith("/join")) {
+      clearParticipantCodes();
+    }
+
     const {
       data: { session },
     } = await supabase.auth.getSession();
