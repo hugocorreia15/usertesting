@@ -1,0 +1,14 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# Synced from ../public by scripts/sync-assets.mjs, not tracked twice
+public/help
+public/logo.png
+public/logo.svg
+public/logo_name.png
+public/logo_name.svg
