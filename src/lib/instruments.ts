@@ -5,6 +5,25 @@
 export const INSTRUMENT_KEYS = ["nasa_tlx", "ueq_s"] as const;
 export type InstrumentKey = (typeof INSTRUMENT_KEYS)[number];
 
+/**
+ * SUS keeps its own table and component, but it is selected the same way as
+ * the others: by appearing in `templates.instruments` (migration 049). It used
+ * to be implicit and unconditional.
+ */
+export const SUS_KEY = "sus";
+
+/**
+ * Whether a template administers SUS.
+ *
+ * Templates created before 049 were backfilled with 'sus', so an empty array
+ * now genuinely means "no SUS" rather than "not recorded".
+ */
+export function administersSus(
+  instruments: string[] | null | undefined,
+): boolean {
+  return (instruments ?? []).includes(SUS_KEY);
+}
+
 export interface InstrumentItem {
   number: number;
   prompt: string;

@@ -82,6 +82,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SUS_QUESTIONS, calculateSusScore, getSusLabel } from "@/lib/sus";
+import { administersSus } from "@/lib/instruments";
 
 export const Route = createFileRoute("/sessions/$sessionId/")({
   component: SessionDetailPage,
@@ -131,6 +132,13 @@ function SessionDetailPage() {
   const taskResults = session.task_results?.sort(
     (a, b) => a.sort_order - b.sort_order,
   ) ?? [];
+
+  // SUS is opt-in per template (migration 049). Answers already collected keep
+  // the tab visible even if the template later opts out, so no recorded data
+  // becomes unreachable.
+  const showSusTab =
+    administersSus(session.templates?.instruments) ||
+    (session.sus_answers?.length ?? 0) > 0;
 
   return (
     <PageWrapper
@@ -218,7 +226,7 @@ function SessionDetailPage() {
           <TabsTrigger value="errors">Error Log</TabsTrigger>
           <TabsTrigger value="hesitations">Hesitations</TabsTrigger>
           <TabsTrigger value="interview">Interview</TabsTrigger>
-          <TabsTrigger value="sus">SUS</TabsTrigger>
+          {showSusTab && <TabsTrigger value="sus">SUS</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="tasks">

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import type { ParticipantFieldType } from "@/lib/participant-fields";
 import type {
   Template,
   TemplateWithRelations,
@@ -95,8 +96,10 @@ interface TaskInput {
 interface ParticipantFieldInput {
   id?: string;
   label: string;
-  field_type: "text" | "number" | "textarea" | "select";
+  field_type: ParticipantFieldType;
   options: string[] | null;
+  rating_min?: number;
+  rating_max?: number;
   sort_order: number;
 }
 
@@ -396,6 +399,8 @@ async function syncParticipantFields(
           label: f.label,
           field_type: f.field_type,
           options: f.options,
+          rating_min: f.rating_min ?? 1,
+          rating_max: f.rating_max ?? 5,
           sort_order: f.sort_order,
         })),
       );
@@ -552,6 +557,8 @@ export function useDuplicateTemplate() {
             label: f.label,
             field_type: f.field_type,
             options: f.options,
+            rating_min: f.rating_min ?? 1,
+            rating_max: f.rating_max ?? 5,
             sort_order: f.sort_order,
           })),
         );

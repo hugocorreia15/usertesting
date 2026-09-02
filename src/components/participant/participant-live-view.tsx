@@ -12,6 +12,7 @@ import { SusQuestionnaire } from "@/components/live/sus-questionnaire";
 import { InstrumentForm } from "@/components/live/instrument-form";
 import {
   INSTRUMENTS,
+  administersSus,
   instrumentsComplete,
   type InstrumentKey,
 } from "@/lib/instruments";
@@ -69,7 +70,10 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   }
 
   // Session completed — only show "done" if participant already filled SUS
-  const susAlreadyDone = (session.sus_answers?.length ?? 0) > 0 || susSubmitted;
+  const susAlreadyDone =
+    !administersSus(session.templates?.instruments) ||
+    (session.sus_answers?.length ?? 0) > 0 ||
+    susSubmitted;
   if (session.status === "completed" && susAlreadyDone) {
     return (
       <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
@@ -155,6 +159,11 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   const sessionCompleted = session.status === "completed";
   const allTaskQuestionsAnswered = !pendingTask && sessionCompleted;
   const hasSusAnswers = (session.sus_answers?.length ?? 0) > 0 || susSubmitted;
+  // SUS is opt-in per template since migration 049. A template that does not
+  // administer it skips straight from the interview to the remaining
+  // instruments, so "satisfied" is what the flow below branches on.
+  const susEnabled = administersSus(session.templates?.instruments);
+  const susSatisfied = !susEnabled || hasSusAnswers;
 
   // Interview questions
   const interviewQuestions = [...(session.templates?.template_questions ?? [])].sort(
@@ -194,7 +203,7 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
 
   if (!pendingTask) {
     // Every questionnaire completed — thank you screen
-    if (hasSusAnswers && !nextInstrument) {
+    if (susSatisfied && !nextInstrument) {
       return (
         <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
           <CardContent className="flex flex-col items-center gap-4 pt-6">
@@ -209,7 +218,7 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     }
 
     // SUS done → remaining instruments, one at a time
-    if (hasSusAnswers && nextInstrument) {
+    if (susSatisfied && nextInstrument) {
       return (
         <InstrumentForm
           key={nextInstrument}
@@ -241,7 +250,12 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     }
 
     // Interview done (or no interview questions) → show SUS
-    if (allTaskQuestionsAnswered && (allInterviewAnswered || !hasInterviewQuestions) && !hasSusAnswers) {
+    if (
+      allTaskQuestionsAnswered &&
+      (allInterviewAnswered || !hasInterviewQuestions) &&
+      susEnabled &&
+      !hasSusAnswers
+    ) {
       return (
         <SusQuestionnaire
           onSubmit={handleSusSubmit}

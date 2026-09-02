@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -8,12 +9,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import {
+  PARTICIPANT_FIELD_TYPES,
+  needsOptions,
+  type ParticipantFieldType,
+} from "@/lib/participant-fields";
 
 export interface ParticipantFieldItem {
   key: string;
   label: string;
-  field_type: "text" | "number" | "textarea" | "select";
+  field_type: ParticipantFieldType;
   options: string[];
+  rating_min: number;
+  rating_max: number;
   sort_order: number;
 }
 
@@ -21,13 +29,6 @@ interface ParticipantFieldEditorProps {
   items: ParticipantFieldItem[];
   onChange: (items: ParticipantFieldItem[]) => void;
 }
-
-const TYPES = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "textarea", label: "Long text" },
-  { value: "select", label: "Dropdown" },
-] as const;
 
 export function ParticipantFieldEditor({
   items,
@@ -39,8 +40,10 @@ export function ParticipantFieldEditor({
       {
         key: crypto.randomUUID(),
         label: "",
-        field_type: "text",
+        field_type: "textarea",
         options: [],
+        rating_min: 1,
+        rating_max: 5,
         sort_order: items.length,
       },
     ]);
@@ -81,11 +84,11 @@ export function ParticipantFieldEditor({
                 })
               }
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TYPES.map((t) => (
+                {PARTICIPANT_FIELD_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
                   </SelectItem>
@@ -102,7 +105,7 @@ export function ParticipantFieldEditor({
             </Button>
           </div>
 
-          {item.field_type === "select" && (
+          {needsOptions(item.field_type) && (
             <Input
               placeholder="Options, comma-separated (e.g. Sales, Support, Engineering)"
               value={item.options.join(", ")}
@@ -115,6 +118,33 @@ export function ParticipantFieldEditor({
                 })
               }
             />
+          )}
+
+          {item.field_type === "rating" && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor={`min-${item.key}`} className="text-xs text-muted-foreground">
+                Scale
+              </Label>
+              <Input
+                id={`min-${item.key}`}
+                type="number"
+                className="w-20"
+                value={item.rating_min}
+                onChange={(e) =>
+                  update(item.key, { rating_min: Number(e.target.value) })
+                }
+              />
+              <span className="text-xs text-muted-foreground">to</span>
+              <Input
+                type="number"
+                className="w-20"
+                aria-label="Rating maximum"
+                value={item.rating_max}
+                onChange={(e) =>
+                  update(item.key, { rating_max: Number(e.target.value) })
+                }
+              />
+            </div>
           )}
         </div>
       ))}

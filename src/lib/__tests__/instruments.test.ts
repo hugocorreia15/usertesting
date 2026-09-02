@@ -1,10 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
+  INSTRUMENT_KEYS,
+  NASA_TLX,
+  SUS_KEY,
+  UEQ_S,
+  administersSus,
+  instrumentsComplete,
   scoreTlx,
   scoreUeqS,
-  instrumentsComplete,
-  NASA_TLX,
-  UEQ_S,
 } from "../instruments";
 
 function rows(instrument: string, scores: number[]) {
@@ -86,5 +89,26 @@ describe("instrumentsComplete", () => {
   it("item definitions are consistent", () => {
     expect(NASA_TLX.items).toHaveLength(6);
     expect(UEQ_S.items).toHaveLength(8);
+  });
+});
+
+describe("administersSus", () => {
+  it("is true only when the template opted in", () => {
+    expect(administersSus(["sus"])).toBe(true);
+    expect(administersSus(["sus", "nasa_tlx"])).toBe(true);
+    expect(administersSus(["nasa_tlx"])).toBe(false);
+  });
+
+  it("treats an empty or missing selection as no SUS", () => {
+    // Templates predating migration 049 were backfilled with 'sus', so an
+    // empty array now means "opted out" rather than "not recorded".
+    expect(administersSus([])).toBe(false);
+    expect(administersSus(null)).toBe(false);
+    expect(administersSus(undefined)).toBe(false);
+  });
+
+  it("does not leak SUS into the generic instrument list", () => {
+    // SUS keeps its own table and form; the instrument loop must skip it.
+    expect(INSTRUMENT_KEYS).not.toContain(SUS_KEY);
   });
 });

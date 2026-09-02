@@ -1,3 +1,4 @@
+import { needsOptions } from "@/lib/participant-fields";
 import {
   TemplateForm,
   type TemplateFormData,
@@ -65,9 +66,11 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
             label: f.label.trim(),
             field_type: f.field_type,
             options:
-              f.field_type === "select" && f.options.length > 0
+              needsOptions(f.field_type) && f.options.length > 0
                 ? f.options
                 : null,
+            rating_min: f.rating_min,
+            rating_max: f.rating_max,
             sort_order: i,
           })),
         instruments: data.instruments,

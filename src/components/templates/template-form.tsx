@@ -23,7 +23,7 @@ import {
   type ParticipantFieldItem,
 } from "@/components/templates/participant-field-editor";
 import { Checkbox } from "@/components/ui/checkbox";
-import { INSTRUMENT_KEYS, INSTRUMENTS } from "@/lib/instruments";
+import { INSTRUMENT_KEYS, INSTRUMENTS, SUS_KEY } from "@/lib/instruments";
 import type { TemplateWithRelations, TemplateTaskWithQuestions } from "@/types";
 import { toast } from "sonner";
 
@@ -119,6 +119,8 @@ export function TemplateForm({
         label: f.label,
         field_type: f.field_type,
         options: (f.options as string[]) ?? [],
+        rating_min: f.rating_min ?? 1,
+        rating_max: f.rating_max ?? 5,
         sort_order: f.sort_order,
       })),
   );
@@ -252,9 +254,21 @@ export function TemplateForm({
             Standardized instruments the participant answers at the end of a
             session.
           </p>
-          <label className="flex items-center gap-2 text-sm opacity-70">
-            <Checkbox checked disabled />
-            SUS — System Usability Scale (always on)
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={instruments.includes(SUS_KEY)}
+              onCheckedChange={(checked) =>
+                setInstruments((prev) =>
+                  checked
+                    ? [...prev, SUS_KEY]
+                    : prev.filter((k) => k !== SUS_KEY),
+                )
+              }
+            />
+            SUS — System Usability Scale
+            <span className="text-xs text-muted-foreground">
+              — perceived usability, 10 items
+            </span>
           </label>
           {INSTRUMENT_KEYS.map((key) => (
             <label key={key} className="flex items-center gap-2 text-sm">

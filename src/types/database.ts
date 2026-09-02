@@ -1,3 +1,4 @@
+import type { ParticipantFieldType } from "@/lib/participant-fields";
 export interface Template {
   id: string;
   name: string;
@@ -53,7 +54,9 @@ export interface TemplateParticipantField {
   id: string;
   template_id: string;
   label: string;
-  field_type: "text" | "number" | "textarea" | "select";
+  field_type: ParticipantFieldType;
+  rating_min: number | null;
+  rating_max: number | null;
   options: string[] | null;
   sort_order: number;
   created_at: string;
