@@ -3,6 +3,8 @@ import { PageWrapper } from "@/components/layout/page-wrapper";
 import { HelpSection } from "@/components/help/help-section";
 import { HelpScreenshot } from "@/components/help/help-screenshot";
 import { HelpToc, type TocEntry } from "@/components/help/help-toc";
+import { HelpVideo } from "@/components/help/help-video";
+import { hasTutorialVideo } from "@/lib/tutorial-video";
 import { Badge } from "@/components/ui/badge";
 import {
   FileText,
@@ -13,6 +15,7 @@ import {
   FileDown,
   Users,
   Building2,
+  PlayCircle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/help/")({
@@ -20,6 +23,9 @@ export const Route = createFileRoute("/help/")({
 });
 
 const TOC: TocEntry[] = [
+  ...(hasTutorialVideo
+    ? [{ id: "video", label: "Video walkthrough" }]
+    : []),
   { id: "templates", label: "1. Creating Templates" },
   { id: "sessions", label: "2. Creating Sessions" },
   { id: "live", label: "3. Running a Live Session" },
@@ -40,6 +46,21 @@ function HelpPage() {
         <HelpToc entries={TOC} />
 
         <div className="min-w-0 space-y-6">
+          {/* ── Video walkthrough ────────────────────────────────── */}
+          {hasTutorialVideo && (
+            <HelpSection
+              id="video"
+              title="Video walkthrough"
+              icon={<PlayCircle className="h-5 w-5 text-primary" />}
+            >
+              <p>
+                A five-minute tour of every feature, in the same order as the
+                sections below. Use the jump links to go straight to a chapter.
+              </p>
+              <HelpVideo />
+            </HelpSection>
+          )}
+
           {/* ── 1. Templates ─────────────────────────────────────── */}
           <HelpSection
             id="templates"
