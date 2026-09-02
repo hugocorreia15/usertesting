@@ -201,6 +201,56 @@ dropdown (set_member_role RPC, last-owner guard). New group detail page
 remove members, session counts, repo links. Students see only their
 own groups.
 
+### P3.8 Security: anon access made possession-based — SHIPPED (needs migration applied)
+Audit found the entire participant dataset readable by any anonymous client
+holding the public anon key: participant names/e-mails/notes, free-text and
+instrument answers, session results, private study designs, and live join
+codes. Cause was systemic, not a single policy: every anon policy in the join
+flow used an existence predicate (`user_id IS NOT NULL`, `join_code IS NOT
+NULL`, `EXISTS(active invitation)`) instead of checking the caller holds the
+secret, and several 007-era policies had no `TO` clause so they applied to
+`PUBLIC` (authenticated included) and OR-ed past every correct org policy.
+Migration 048 introduces `current_join_code()` / `current_invite_code()` read
+from PostgREST request headers plus SECURITY DEFINER possession helpers, and
+rewrites ~20 policies across 12 tables and storage. The client attaches the
+code it holds per request (`src/lib/supabase.ts`), set in the join route's
+`beforeLoad` and cleared elsewhere. The participant id is now generated
+client-side so the join no longer needs an anon SELECT on participants.
+`scripts/verify-anon-rls.mjs` proves the holes are closed; it reported 14
+failures before the fix. Rollout order and rollback in
+`docs/security/048-rollout.md`.
+**Apply order:** deploy the app first, then run migration 048, then re-run the
+verifier and smoke-test a real join.
+
+### P3.9 Optional SUS + richer participant fields — SHIPPED (needs migration applied)
+SUS was hard-wired on (034: "implicit and always on"); it is now an entry in
+`templates.instruments` like NASA-TLX and UEQ-S, with migration 049
+backfilling `sus` into every existing template so no running study changes
+behaviour. `administersSus()` gates the participant flow, and the session
+detail SUS tab stays visible whenever answers exist, so opting out never hides
+collected data. Template-scoped participant fields gained Multiple Choice and
+Rating (with configurable bounds) alongside the existing types, which are
+relabelled in the UI as "Open Text" and "Single Choice" rather than renamed in
+the database, so no live row was rewritten. Multi-select answers encode as a
+JSON array via `src/lib/participant-fields.ts`, which tolerates legacy plain
+strings. One shared `ParticipantFieldInput` renders the join form and the
+participant record so the two cannot drift.
+**Deferred:** Audio/Video/Photo participant fields — capture happens on the
+join form before a session row exists, so the storage path and its RLS need
+their own design.
+
+### P3.10 Template editor split into sections — SHIPPED
+The edit form was six stacked cards in one scroll, and Tasks dominated it
+(`task-list-editor` renders nested per-task question editors, ~305 lines,
+against ~56 for Error Types), so Participant Fields and Questionnaires sat
+below an unbounded task list and Save was at the very bottom. `TemplateForm`
+now renders one section at a time behind a pill tab row carrying item counts,
+with a sticky footer holding Save and an unsaved-changes indicator (a snapshot
+comparison against the form as it loaded, re-baselined after each save).
+Section state lives above the panels, so switching never loses edits, and
+saving with an empty name jumps back to Basics where the field is. Applies to
+both the Edit tab and /templates/new, which share the component.
+
 ## Backlog (candidate features, ranked 2026-07-15)
 
 1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a
