@@ -20,7 +20,7 @@ export type TutorialVideo = {
 
 export const TUTORIAL_VIDEO: TutorialVideo = {
   provider: "youtube",
-  source: "",
+  source: "https://youtu.be/FIeoc_4YQao",
 };
 
 /**
