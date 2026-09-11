@@ -47,7 +47,7 @@ The client must send the headers before the policies start requiring them.
    request; `src/routes/join/$code.tsx` sets them in `beforeLoad`. Deployed
    ahead of the migration these are inert — the old policies ignore them.
 2. **Then run the migration** in the Supabase SQL editor.
-3. **Verify:** `node scripts/verify-anon-rls.mjs` — every check must pass.
+3. **Verify:** `node scripts/verify/anon-rls.mjs` — every check must pass.
 4. **Smoke-test a real join**: open an invitation link in a private window,
    join, answer a task question, upload one media answer, and confirm the
    evaluator cockpit sees it.

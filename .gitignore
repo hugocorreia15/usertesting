@@ -27,3 +27,6 @@ yarn-error.log*
 # testing
 coverage/
 .vercel
+
+# Third-party papers kept locally for reference, not redistributed
+docs/papers/

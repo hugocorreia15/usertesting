@@ -4,15 +4,32 @@
  * participant or session data.
  *
  * Run before and after applying migration 048:
- *   node scripts/verify-anon-rls.mjs
+ *   node scripts/verify/anon-rls.mjs
  *
  * Reads VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY from .env.local.
  * Read-only: it issues GETs and never writes.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join, resolve } from "node:path";
+
+// Walk up from this file to the repository root, so the script keeps working
+// wherever it is moved to and whatever directory it is run from.
+function findEnvFile() {
+  const fromCwd = resolve(process.cwd(), ".env.local");
+  if (existsSync(fromCwd)) return fromCwd;
+  let dir = dirname(fileURLToPath(import.meta.url));
+  for (let i = 0; i < 5; i++) {
+    const candidate = join(dir, ".env.local");
+    if (existsSync(candidate)) return candidate;
+    dir = dirname(dir);
+  }
+  console.error("Could not find .env.local from the working directory or above this script.");
+  process.exit(2);
+}
 
 const env = Object.fromEntries(
-  readFileSync(new URL("../.env.local", import.meta.url), "utf8")
+  readFileSync(findEnvFile(), "utf8")
     .split("\n")
     .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
     .map((l) => {

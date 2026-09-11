@@ -216,7 +216,7 @@ rewrites ~20 policies across 12 tables and storage. The client attaches the
 code it holds per request (`src/lib/supabase.ts`), set in the join route's
 `beforeLoad` and cleared elsewhere. The participant id is now generated
 client-side so the join no longer needs an anon SELECT on participants.
-`scripts/verify-anon-rls.mjs` proves the holes are closed; it reported 14
+`scripts/verify/anon-rls.mjs` proves the holes are closed; it reported 14
 failures before the fix. Rollout order and rollback in
 `docs/security/048-rollout.md`.
 **Apply order:** deploy the app first, then run migration 048, then re-run the
