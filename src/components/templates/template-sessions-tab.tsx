@@ -191,6 +191,11 @@ export function TemplateSessionsTab({ sessions }: TemplateSessionsTabProps) {
                 >
                   {session.status.replace("_", " ")}
                 </span>
+                {session.is_pilot && (
+                  <Badge variant="outline" className="ml-2">
+                    Pilot
+                  </Badge>
+                )}
                 <span className="text-xs text-muted-foreground">
                   {new Date(session.created_at).toLocaleDateString()}
                 </span>

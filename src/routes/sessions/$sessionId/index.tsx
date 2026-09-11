@@ -47,11 +47,16 @@ import {
 } from "@/components/media/signed-media";
 import { EventTimeline } from "@/components/charts/event-timeline";
 import { scoreTlx, scoreUeqS } from "@/lib/instruments";
-import type { TaskResultWithRelations, InstrumentAnswer } from "@/types";
+import type {
+  TaskResultWithRelations,
+  InstrumentAnswer,
+  TestSessionWithRelations,
+} from "@/types";
 import {
   useSession,
   useDeleteSession,
   useAnonymizeSession,
+  useUpdateSession,
 } from "@/hooks/use-sessions";
 import { useTemplateCodes, useSessionAnswerCodes } from "@/hooks/use-codes";
 import { useObserverNotes } from "@/hooks/use-observer-notes";
@@ -69,6 +74,7 @@ import {
   Trash2,
   Loader2,
   ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -195,10 +201,19 @@ function SessionDetailPage() {
         <JoinCodeBanner joinCode={session.join_code} />
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Badge variant="secondary" className="capitalize">
           {session.status.replace("_", " ")}
         </Badge>
+        {session.is_pilot && (
+          <Badge
+            variant="outline"
+            title="Run before the protocol was approved; excluded from this template's analytics and report."
+          >
+            Pilot
+          </Badge>
+        )}
+        <ConsentBadge session={session} />
         {session.started_at && (
           <Badge variant="outline">
             Started: {new Date(session.started_at).toLocaleString()}
@@ -1289,5 +1304,53 @@ function SessionCharts({
         </Card>
       )}
     </div>
+  );
+}
+
+
+/**
+ * Consent state for a session. Participants who join by link tick the
+ * template's consent text and the timestamp is recorded automatically; for a
+ * session the evaluator ran in person, consent was taken on paper or verbally
+ * and is recorded here, so "consent on file for every participant" can
+ * actually be checked.
+ */
+function ConsentBadge({ session }: { session: TestSessionWithRelations }) {
+  const updateSession = useUpdateSession();
+
+  if (session.consent_accepted_at) {
+    return (
+      <Badge variant="outline" className="gap-1">
+        <ShieldCheck className="h-3 w-3 text-green-600 dark:text-green-400" />
+        Consent{" "}
+        {session.consent_method === "join_form" ? "accepted" : "recorded"}{" "}
+        {new Date(session.consent_accepted_at).toLocaleDateString()}
+      </Badge>
+    );
+  }
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-6 gap-1 px-2 text-xs"
+      disabled={updateSession.isPending}
+      onClick={() =>
+        updateSession.mutate(
+          {
+            id: session.id,
+            consent_accepted_at: new Date().toISOString(),
+            consent_method: "recorded_by_evaluator",
+          },
+          {
+            onSuccess: () => toast.success("Consent recorded"),
+            onError: () => toast.error("Failed to record consent"),
+          },
+        )
+      }
+    >
+      <ShieldCheck className="h-3 w-3" />
+      Record consent obtained
+    </Button>
   );
 }

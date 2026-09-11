@@ -107,6 +107,7 @@ interface CreateTemplateInput {
   name: string;
   description?: string;
   repo_url?: string;
+  consent_text?: string;
   is_public?: boolean;
   groups: GroupInput[];
   tasks: TaskInput[];
@@ -131,6 +132,7 @@ export function useCreateTemplate() {
           name: input.name,
           description: input.description || null,
           repo_url: input.repo_url || null,
+          consent_text: input.consent_text || null,
           user_id: userId,
           is_public: input.is_public ?? false,
           instruments: input.instruments ?? [],
@@ -232,6 +234,7 @@ export function useUpdateTemplate() {
           name: input.name,
           description: input.description || null,
           repo_url: input.repo_url || null,
+          consent_text: input.consent_text || null,
           is_public: input.is_public ?? false,
           instruments: input.instruments ?? [],
           updated_at: new Date().toISOString(),

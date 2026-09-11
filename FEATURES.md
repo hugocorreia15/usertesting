@@ -304,6 +304,72 @@ that honestly says consent is recorded outside the platform.
    Schwind's consent generator is the reference; today consent lives
    outside the platform and the paper's ethics row says so.
 
+### P3.13 Instructor gate (opt-in per template) — SHIPPED (needs migration applied)
+Closes the first gap the pedagogy literature exposed. An org owner sets a
+template's review mode: **off** (default, and what every existing template
+gets), **advisory** (workflow and status visible, nothing blocked), or
+**required**.
+
+Deliberately *not* EngageCSEdu's model. Rose blocks all testing until the
+instructor approves; that protects participants but makes the instructor the
+critical path for a whole cohort, and Schwind et al. warn that heavy
+supervision "calls into question the independence of the student's research
+work". So the gate closes on **recruiting, not rehearsal**: while a required
+review is unapproved, join links are refused, but a session run directly is
+auto-marked `is_pilot` and excluded from the template's analytics and PDF
+report (the same exclusion shape as practice tasks). The instructor then
+reviews with the protocol review's findings *and* the pilot data in hand,
+which is better review material than a document, and the student has
+something useful to do while waiting.
+
+Any protocol edit (tasks, task questions, groups, error types, interview
+questions, participant fields, instruments) after approval or submission
+drops the status to draft via triggers, so what was approved is what runs.
+
+Security note: students hold UPDATE on org templates, so the review columns
+cannot be plain columns; a BEFORE UPDATE trigger refuses any write to them
+unless a transaction-local flag set by the three SECURITY DEFINER functions
+(`set_template_review_mode`, `request_template_review`, `review_template`) is
+on. Column-level REVOKE would not work, since a table-level UPDATE grant
+cannot be narrowed per column. Invitation INSERT is gated in RLS by
+`template_recruiting_allowed()`, so the block holds even if the UI is
+bypassed; 035's single FOR ALL invitation policy is split per verb, because
+its WITH CHECK would otherwise also block deactivating a link.
+
+### P3.14 Consent capture — SHIPPED (needs migration applied)
+The second gap. A template may carry `consent_text`; when set, the join form
+shows it before any field and requires a checkbox, and acceptance is
+timestamped on the session (`consent_accepted_at`, `consent_method =
+join_form`). For sessions the evaluator runs in person, as in both case
+studies, a "Record consent obtained" control on the session marks it
+`recorded_by_evaluator`, so the paper's ethics row ("consent on file for
+every participant") is checkable rather than aspirational. Both columns
+export with the sessions table. Consent text is EN/PT-agnostic: it is the
+author's own text, shown verbatim, with only the surrounding labels
+localized.
+
+### P3.15 Organization settings dialog — SHIPPED (needs migration applied)
+The organization had no settings at all: no rename (despite orgs_update
+allowing it since 041), and delete lived only on the list page. Owner-only
+dialog on the org detail header now holds rename, delete (moved from the
+list, which links here instead), and three defaults a project inherits when
+it is shared into the org (migration 051):
+
+- **review mode** — taken outright, since it is the org's policy not the
+  team's choice;
+- **consent text** and **instruments** — copied only when the template has
+  none, so a team's own work is never clobbered.
+
+Instruments as an org default is the addition worth naming: a class whose
+teams each pick different questionnaires cannot compare results, which is the
+comparability the paper's classroom study depends on.
+
+Changing a default does NOT rewrite existing projects; forcing approval onto
+a running study would be worse than the setting appearing not to apply. Each
+default carries an opt-in "Apply to the N existing projects" checkbox, and
+apply_org_defaults() returns how many it touched. Both functions set the 050
+transaction-local flag, since review_mode is otherwise unwritable.
+
 ## Backlog (candidate features, ranked 2026-07-15)
 
 1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a

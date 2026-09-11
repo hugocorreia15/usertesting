@@ -50,6 +50,7 @@ export interface TemplateFormData {
   questions: QuestionItem[];
   participant_fields: ParticipantFieldItem[];
   instruments: string[];
+  consent_text: string;
 }
 
 const SECTION_IDS = [
@@ -70,6 +71,7 @@ export function TemplateForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [repoUrl, setRepoUrl] = useState(initial?.repo_url ?? "");
+  const [consentText, setConsentText] = useState(initial?.consent_text ?? "");
 
   // Build a group_id → group_key lookup from initial data
   const [taskGroups, setTaskGroups] = useState<TaskGroupItem[]>(() => {
@@ -158,6 +160,7 @@ export function TemplateForm({
     questions,
     participant_fields: participantFields,
     instruments,
+    consent_text: consentText,
   };
 
   // Compared against the form as it loaded, so the save bar can say whether
@@ -262,6 +265,21 @@ export function TemplateForm({
                   placeholder="https://github.com/org/project"
                 />
               </div>
+          <div className="space-y-2">
+            <Label htmlFor="consent_text">Consent text (optional)</Label>
+            <Textarea
+              id="consent_text"
+              value={consentText}
+              onChange={(e) => setConsentText(e.target.value)}
+              placeholder="What participants are told before they take part: purpose, what is recorded, how data is stored, that they can withdraw."
+              rows={5}
+            />
+            <p className="text-xs text-muted-foreground">
+              Shown on the join form before any data is collected, with a
+              required checkbox. Acceptance is timestamped on the session.
+              Leave empty for no consent step.
+            </p>
+          </div>
               <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3">
                 <div className="space-y-0.5">
                   <Label htmlFor="is_public">Visibility</Label>

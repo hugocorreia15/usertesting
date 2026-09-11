@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,7 @@ function JoinPage() {
   const joinSession = useJoinSession();
   const [saving, setSaving] = useState(false);
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
+  const [consentGiven, setConsentGiven] = useState(false);
 
   const {
     register,
@@ -146,6 +148,11 @@ function JoinPage() {
 
   const onSubmit = async (data: JoinFormValues) => {
     if (has("name") && !data.name?.trim()) return;
+    // Consent is required before any of the participant's data is written.
+    if (needsConsent && !consentGiven) {
+      toast.error(dict.join.consentRequired);
+      return;
+    }
     setSaving(true);
     try {
       const session = await joinSession.mutateAsync({
@@ -163,6 +170,7 @@ function JoinPage() {
         custom_field_values: Object.entries(customValues).map(
           ([field_id, value]) => ({ field_id, value }),
         ),
+        consent_accepted: needsConsent && consentGiven,
       });
       navigate({
         to: "/join/$code",
@@ -177,6 +185,8 @@ function JoinPage() {
     }
   };
 
+  const consentText = template.consent_text?.trim() ?? "";
+  const needsConsent = consentText.length > 0;
   const hasAnyField = fields.length > 0;
   const customFields = [...(template.template_participant_fields ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order,
@@ -211,6 +221,28 @@ function JoinPage() {
       </Card>
 
       <form onSubmit={handleSubmit(onSubmit)}>
+        {needsConsent && (
+          <Card className="mb-4 bg-transparent backdrop-blur-md">
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {dict.join.consentTitle}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                {consentText}
+              </p>
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox
+                  checked={consentGiven}
+                  onCheckedChange={(c) => setConsentGiven(c === true)}
+                  aria-describedby="consent-text"
+                />
+                <span id="consent-text">{dict.join.consentAgree}</span>
+              </label>
+            </CardContent>
+          </Card>
+        )}
         {hasAnyField && (
           <Card className="bg-transparent backdrop-blur-md">
             <CardHeader>
@@ -346,7 +378,10 @@ function JoinPage() {
         )}
 
         <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={saving}>
+          <Button
+            type="submit"
+            disabled={saving || (needsConsent && !consentGiven)}
+          >
             {saving ? dict.join.joining : dict.join.join}
           </Button>
         </div>

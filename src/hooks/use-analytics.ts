@@ -205,7 +205,8 @@ export function useTemplateAnalytics(templateId: string | undefined) {
           "*, templates(*), participants(*), task_results(*, template_tasks(*), error_logs(*), hesitation_logs(*)), interview_answers(*), sus_answers(*)",
         )
         .eq("template_id", templateId!)
-        .eq("status", "completed");
+        .eq("status", "completed")
+        .eq("is_pilot", false);
       if (sErr) throw sErr;
 
       return computeAnalytics(

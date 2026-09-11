@@ -96,13 +96,15 @@ interface JoinSessionInput {
     notes?: string;
   };
   custom_field_values?: { field_id: string; value: string }[];
+  /** True when the participant ticked the template's consent text. */
+  consent_accepted?: boolean;
 }
 
 export function useJoinSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: JoinSessionInput) => {
-      const { invitation, participant, custom_field_values } = input;
+      const { invitation, participant, custom_field_values, consent_accepted } = input;
 
       const collectsName = invitation.collected_fields.includes("name");
       const isAnonymous = !collectsName;
@@ -158,6 +160,12 @@ export function useJoinSession() {
           status: "planned",
           join_code: joinCode,
           task_order_strategy: strategy,
+          ...(consent_accepted
+            ? {
+                consent_accepted_at: new Date().toISOString(),
+                consent_method: "join_form",
+              }
+            : {}),
         })
         .select()
         .single();

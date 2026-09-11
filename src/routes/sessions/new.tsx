@@ -18,6 +18,13 @@ import { useParticipants } from "@/hooks/use-participants";
 import { useCreateSession } from "@/hooks/use-sessions";
 import { useCreateInvitation } from "@/hooks/use-invitations";
 import { useAuth } from "@/hooks/use-auth";
+import { useMyOrgs } from "@/hooks/use-orgs";
+import {
+  recruitingAllowed,
+  sessionWouldBePilot,
+  type OrgRole,
+} from "@/lib/review-gate";
+import { AlertTriangle } from "lucide-react";
 import { TaskSelector } from "@/components/sessions/task-selector";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -91,8 +98,23 @@ function NewSessionPage() {
     }
   }, [selectedTemplate]);
 
+  // Instructor gate: recruiting waits for approval, rehearsal does not.
+  // The database enforces both (migration 050); this only explains it first.
+  const { data: myOrgs } = useMyOrgs();
+  const gateOrgRole: OrgRole = selectedTemplate?.org_id
+    ? ((myOrgs
+        ?.find((o) => o.id === selectedTemplate.org_id)
+        ?.organization_members.find((m) => m.user_id === user?.id)
+        ?.role as OrgRole | undefined) ?? "none")
+    : "none";
+  const linksAllowed =
+    !selectedTemplate || recruitingAllowed(selectedTemplate, gateOrgRole);
+  const willBePilot =
+    !!selectedTemplate && sessionWouldBePilot(selectedTemplate, gateOrgRole);
+
   const canCreateDirect = templateId && participantId && selectedTaskIds.length > 0;
-  const canGenerateLink = templateId && selectedTaskIds.length > 0;
+  const canGenerateLink =
+    templateId && selectedTaskIds.length > 0 && linksAllowed;
 
   const getOrderedSelectedIds = () => {
     return orderedTasks.filter((t) => selectedTaskIds.includes(t.id)).map((t) => t.id);
@@ -255,6 +277,16 @@ function NewSessionPage() {
                 </Select>
               </div>
 
+              {willBePilot && (
+                <p className="mb-3 flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-xs leading-relaxed">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <span>
+                    Awaiting instructor approval, so this session will be
+                    recorded as a pilot and excluded from the template's
+                    analytics.
+                  </span>
+                </p>
+              )}
               <div className="flex gap-3">
                 <Button
                   disabled={!canCreateDirect || createSession.isPending}
@@ -292,6 +324,17 @@ function NewSessionPage() {
                 }}
               />
 
+              {!linksAllowed && (
+                <p className="flex items-start gap-2 rounded-md border bg-muted/40 p-3 text-xs leading-relaxed">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <span>
+                    This protocol is awaiting instructor approval, so join
+                    links cannot be created yet. You can still run a session
+                    directly to rehearse it; it will be recorded as a pilot and
+                    left out of the template's analytics.
+                  </span>
+                </p>
+              )}
               {!generatedLink ? (
                 <Button
                   disabled={!canGenerateLink || createInvitation.isPending}

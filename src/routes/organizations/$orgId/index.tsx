@@ -6,6 +6,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
+import { OrgSettingsDialog } from "@/components/organizations/org-settings-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -138,12 +139,17 @@ function OrgDetailPage() {
       title={org.name}
       description={`${memberCount} ${memberCount === 1 ? "member" : "members"} · ${projectCount} ${projectCount === 1 ? "project" : "projects"}`}
       actions={
-        <Button variant="outline" asChild>
-          <Link to="/organizations">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            All organizations
-          </Link>
-        </Button>
+        <>
+          {isOwner && (
+            <OrgSettingsDialog org={org} projectCount={projectCount} />
+          )}
+          <Button variant="outline" asChild>
+            <Link to="/organizations">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              All organizations
+            </Link>
+          </Button>
+        </>
       }
     >
       <div className="grid gap-6 lg:grid-cols-3">

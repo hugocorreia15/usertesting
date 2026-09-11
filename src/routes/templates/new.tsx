@@ -22,6 +22,7 @@ function NewTemplatePage() {
         name: data.name,
         description: data.description || undefined,
         repo_url: data.repo_url || undefined,
+        consent_text: data.consent_text || undefined,
         is_public: data.is_public,
         groups: data.groups.map((g, i) => ({
           id: g.key,

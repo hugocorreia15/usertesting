@@ -436,3 +436,67 @@ export function useSetMemberRole() {
     },
   });
 }
+
+/**
+ * Organization settings, owner only.
+ *
+ * Renaming and the three defaults are plain column updates guarded by the
+ * orgs_update policy (owner). The defaults reach a template when it is
+ * shared into the organization; changing one later does not rewrite
+ * existing projects, which is what useApplyOrgDefaults is for.
+ */
+export function useUpdateOrg() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      orgId,
+      ...updates
+    }: {
+      orgId: string;
+      name?: string;
+      default_review_mode?: string;
+      default_consent_text?: string | null;
+      default_instruments?: string[];
+    }) => {
+      const { error } = await supabase
+        .from("organizations")
+        .update(updates)
+        .eq("id", orgId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+}
+
+/** Retrofits the chosen defaults onto every project already shared with the org. */
+export function useApplyOrgDefaults() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      orgId,
+      review,
+      consent,
+      instruments,
+    }: {
+      orgId: string;
+      review: boolean;
+      consent: boolean;
+      instruments: boolean;
+    }) => {
+      const { data, error } = await supabase.rpc("apply_org_defaults", {
+        org_id_in: orgId,
+        apply_review: review,
+        apply_consent: consent,
+        apply_instruments: instruments,
+      });
+      if (error) throw error;
+      return (data as number) ?? 0;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["organizations"] });
+      qc.invalidateQueries({ queryKey: ["templates"] });
+    },
+  });
+}

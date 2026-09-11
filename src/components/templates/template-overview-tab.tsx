@@ -10,6 +10,10 @@ import {
   ChartScroll,
 } from "@/components/charts/chart-axis";
 import { ExportableChart } from "@/components/charts/exportable-chart";
+import { ProtocolReviewCard } from "@/components/templates/protocol-review-card";
+import { ReviewGateCard } from "@/components/templates/review-gate-card";
+import type { OrgRole } from "@/lib/review-gate";
+import type { TemplateWithRelations } from "@/types";
 import {
   BarChart,
   Bar,
@@ -33,33 +37,57 @@ import {
 
 interface TemplateOverviewTabProps {
   templateId: string;
+  template?: TemplateWithRelations;
+  orgRole?: OrgRole;
+  canEdit?: boolean;
 }
 
-export function TemplateOverviewTab({ templateId }: TemplateOverviewTabProps) {
+export function TemplateOverviewTab({
+  templateId,
+  template,
+  orgRole = "none",
+  canEdit = false,
+}: TemplateOverviewTabProps) {
   const { data: analytics, isLoading } = useTemplateAnalytics(templateId);
+
+  // The review is most useful before any session exists, so it renders
+  // ahead of the analytics rather than inside their empty state.
+  const review = template ? (
+    <>
+      <ReviewGateCard template={template} role={orgRole} canEdit={canEdit} />
+      <ProtocolReviewCard template={template} />
+    </>
+  ) : null;
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-xl" />
-        ))}
+      <div className="space-y-6">
+        {review}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!analytics || analytics.summary.totalSessions === 0) {
     return (
-      <EmptyState
-        variant="sessions"
-        title="No completed sessions"
-        description="Complete some test sessions for this template to see analytics."
-      />
+      <div className="space-y-6">
+        {review}
+        <EmptyState
+          variant="sessions"
+          title="No completed sessions"
+          description="Complete some test sessions for this template to see analytics."
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {review}
       {/* Summary stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card data-animate-card className="bg-transparent backdrop-blur-md">

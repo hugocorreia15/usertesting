@@ -1,3 +1,4 @@
+import type { ReviewMode, ReviewStatus } from "@/lib/review-gate";
 import type { ParticipantFieldType } from "@/lib/participant-fields";
 export interface Template {
   id: string;
@@ -9,6 +10,14 @@ export interface Template {
   repo_url: string | null;
   is_public: boolean;
   instruments: string[];
+  review_mode: ReviewMode;
+  review_status: ReviewStatus;
+  review_note: string | null;
+  review_submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  approval_invalidated_at: string | null;
+  consent_text: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -99,6 +108,9 @@ export interface TestSession {
   join_code: string | null;
   current_task_index: number;
   task_order_strategy: "fixed" | "shuffled" | "latin_square";
+  is_pilot: boolean;
+  consent_accepted_at: string | null;
+  consent_method: "join_form" | "recorded_by_evaluator" | null;
   created_at: string;
 }
 
@@ -230,6 +242,9 @@ export interface Organization {
   id: string;
   name: string;
   created_by: string;
+  default_review_mode: ReviewMode;
+  default_consent_text: string | null;
+  default_instruments: string[];
   created_at: string;
 }
 

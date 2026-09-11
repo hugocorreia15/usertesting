@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TemplateOverviewTab } from "@/components/templates/template-overview-tab";
+import type { OrgRole } from "@/lib/review-gate";
 import { TemplateSessionsTab } from "@/components/templates/template-sessions-tab";
 import { TemplateParticipantsTab } from "@/components/templates/template-participants-tab";
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
@@ -65,6 +66,13 @@ function TemplateDetailPage() {
   );
   const assignMember = useAssignTemplateMember();
   const unassignMember = useUnassignTemplateMember();
+  const myMembership = sharedOrg?.organization_members.find(
+    (m) => m.user_id === user?.id,
+  );
+  const orgRole: OrgRole = template?.org_id
+    ? ((myMembership?.role as OrgRole | undefined) ?? "none")
+    : "none";
+  const canEditTemplate = user?.id === template?.user_id || orgRole !== "none";
   const orgStudents =
     sharedOrg?.organization_members.filter((m) => m.role === "student") ?? [];
   const duplicateTemplate = useDuplicateTemplate();
@@ -323,7 +331,12 @@ function TemplateDetailPage() {
         </div>
 
         <TabsContent value="overview" className="mt-6">
-          <TemplateOverviewTab templateId={templateId} />
+          <TemplateOverviewTab
+            templateId={templateId}
+            template={template}
+            orgRole={orgRole}
+            canEdit={canEditTemplate}
+          />
         </TabsContent>
 
         <TabsContent value="sessions" className="mt-6">

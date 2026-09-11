@@ -59,6 +59,9 @@ const en = {
     invalidLinkHint:
       "This link is no longer active. Please contact the evaluator for a new one.",
     joinFailed: "Failed to join session. Please try again.",
+    consentTitle: "Before you begin",
+    consentAgree: "I have read the information above and agree to take part.",
+    consentRequired: "Please confirm your consent to continue.",
   },
   live: {
     loadingSession: "Loading session...",
@@ -187,6 +190,9 @@ const pt: Dict = {
     invalidLinkHint:
       "Esta ligação já não está ativa. Contacte o avaliador para obter uma nova.",
     joinFailed: "Não foi possível entrar na sessão. Tente novamente.",
+    consentTitle: "Antes de começar",
+    consentAgree: "Li a informação acima e aceito participar.",
+    consentRequired: "Confirme o seu consentimento para continuar.",
   },
   live: {
     loadingSession: "A carregar a sessão...",

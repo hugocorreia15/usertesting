@@ -26,7 +26,6 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   useMyOrgs,
   useCreateOrg,
-  useDeleteOrg,
   useCreateInvite,
   useRevokeInvite,
   useAcceptInvite,
@@ -43,6 +42,7 @@ import {
   LogOut,
   Plus,
   Trash2,
+  Settings,
   UserMinus,
   Users,
 } from "lucide-react";
@@ -205,7 +205,6 @@ function OrgCard({
   userId: string;
 }) {
   const removeMember = useRemoveMember();
-  const deleteOrg = useDeleteOrg();
   const createInvite = useCreateInvite();
   const revokeInvite = useRevokeInvite();
 
@@ -213,7 +212,6 @@ function OrgCard({
     null,
   );
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [inviteLabel, setInviteLabel] = useState("");
   const [inviteRole, setInviteRole] = useState<"member" | "student">("member");
 
@@ -418,11 +416,13 @@ function OrgCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-              onClick={() => setDeleteOpen(true)}
+              className="h-7 px-2 text-xs text-muted-foreground"
+              asChild
             >
-              <Trash2 className="mr-1 h-3.5 w-3.5" />
-              Delete organization
+              <Link to="/organizations/$orgId" params={{ orgId: org.id }}>
+                <Settings className="mr-1 h-3.5 w-3.5" />
+                Settings and defaults
+              </Link>
             </Button>
           </div>
         )}
@@ -464,19 +464,6 @@ function OrgCard({
         }}
       />
 
-      <ConfirmDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title="Delete organization"
-        description={`Delete "${org.name}"? Templates shared with this organization will revert to private and members will lose shared access. This action cannot be undone.`}
-        onConfirm={() => {
-          deleteOrg.mutate(org.id, {
-            onSuccess: () => toast.success("Organization deleted"),
-            onError: (e) =>
-              toast.error(e.message || "Failed to delete organization"),
-          });
-        }}
-      />
     </Card>
   );
 }

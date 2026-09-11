@@ -71,3 +71,41 @@ which restores the exposure, so treat it as a last resort.
   arbitrary row creation. Rate limiting is a separate concern.
 - `error_logs` and `hesitation_logs` were empty at audit time, so their
   exposure could not be determined either way. Worth re-checking with data.
+
+---
+
+## Migration 050: instructor gate and consent
+
+Applied the same way, and independent of 048. It adds columns with defaults,
+seven functions, eight triggers and four policies. No row is rewritten and
+nothing is deleted; every existing template gets `review_mode = 'off'`, so
+behaviour is unchanged until an organization owner turns the gate on.
+
+After applying, check the guard holds. As a student or member on an org
+template with `review_mode = 'required'`:
+
+- updating `review_status` directly must fail with `insufficient_privilege`;
+- creating an invitation must fail the RLS check until approved;
+- creating a session must succeed and arrive with `is_pilot = true`;
+- editing a task after approval must return the status to `draft`.
+
+`node scripts/verify/anon-rls.mjs` must still pass: 050 adds no anonymous
+read path, and the consent columns live on rows the participant already
+reaches through their join code.
+
+## Migration 051: organization defaults
+
+Adds three columns to `organizations` (all defaulted, so existing orgs are
+unchanged), replaces `set_template_org` so sharing inherits them, and adds
+`apply_org_defaults` for explicit retrofit. Apply after 050, which it
+depends on: both functions set the transaction-local flag that 050's guard
+trigger checks before allowing a write to `review_mode`.
+
+After applying, as an organization owner:
+
+- renaming the organization must succeed, and must fail as a member;
+- sharing a template into an org with `default_review_mode = 'required'`
+  must leave that template gated;
+- sharing a template that already has its own consent text must keep it;
+- `apply_org_defaults` must return the number of projects touched, and must
+  fail with `insufficient_privilege` when called by a member.

@@ -57,6 +57,9 @@ export function buildExportTables(
       "completed_at",
       "sus_score",
       "notes",
+      "is_pilot",
+      "consent_accepted_at",
+      "consent_method",
     ],
     rows: sessions.map((s) => [
       s.id,
@@ -68,6 +71,9 @@ export function buildExportTables(
       s.completed_at,
       calculateSusScore(s.sus_answers || []),
       s.notes,
+      s.is_pilot ? "true" : "false",
+      s.consent_accepted_at,
+      s.consent_method,
     ]),
   };
 

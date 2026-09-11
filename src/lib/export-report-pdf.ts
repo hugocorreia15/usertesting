@@ -234,8 +234,12 @@ function drawHorizontalBarChart(
 
 export function exportReportPdf(
   template: TemplateWithRelations,
-  sessions: TestSessionWithRelations[],
+  allSessions: TestSessionWithRelations[],
 ) {
+  // Pilots rehearse an unapproved protocol; they are excluded here exactly as
+  // they are from the template's analytics, so the report and the dashboard
+  // never disagree.
+  const sessions = allSessions.filter((s) => !s.is_pilot);
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 14;
