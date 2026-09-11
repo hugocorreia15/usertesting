@@ -30,3 +30,7 @@ coverage/
 
 # Third-party papers kept locally for reference, not redistributed
 docs/papers/
+
+# Supabase CLI scratch state: version pins and cached project metadata,
+# rewritten on every CLI run. No secrets, but pure diff noise.
+supabase/.temp/
