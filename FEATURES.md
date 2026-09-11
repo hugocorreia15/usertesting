@@ -251,6 +251,28 @@ Section state lives above the panels, so switching never loses edits, and
 saving with an empty name jumps back to Basics where the field is. Applies to
 both the Edit tab and /templates/new, which share the component.
 
+### P3.11 Protocol review — SHIPPED
+The pedagogical framing added to the paper (Section III, "Pedagogical
+Design") distinguishes features that make method quality observable from
+features that give feedback, and notes the platform had none of the second
+kind. This is the first. `src/lib/protocol-review.ts` (pure, 19 tests)
+checks a template against common novice mistakes: tasks whose wording
+walks the participant through the interface (procedural verbs and quoted
+labels warn; interface nouns alone only note, since in a hardware study
+"panel" and "button" are the device under test, which the Study 1
+template demonstrated on the first live run),
+tasks without a description (no success criterion) or without an optimal
+path, missing error taxonomy, no post-session instrument, no practice
+task once there are four or more measured tasks, over-long task text, and
+a long flat task list with no groups; plus a session-time advisory to
+counterbalance order from four measured tasks, since order strategy is
+chosen per session and cannot be checked on the template. Every finding
+carries a one-line rationale and links to the relevant /help anchor.
+Rendered as a card at the top of the template Overview tab, ahead of the
+analytics empty state, because it matters most before any session exists.
+Advisory only; nothing blocks. `docs/classroom-study-design.md` is the
+evaluation that would test the paper's empirical claim.
+
 ### P3.12 Pedagogical positioning against the field — PAPER ONLY
 Three papers and a teaching resource from the advisor (kept locally in
 docs/papers/, gitignored) reframed the pedagogy section. Lima and
