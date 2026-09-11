@@ -109,11 +109,13 @@ function JoinPage() {
   if (existingSession) {
     return (
       <div className="mx-auto max-w-2xl space-y-6 pt-12">
-        <div className="relative text-center">
-          <h1 className="text-2xl font-bold">
+        <div className="space-y-2">
+          <div className="flex justify-end">
+            <LangToggle />
+          </div>
+          <h1 className="text-balance text-center text-2xl font-bold">
             {existingSession.templates?.name ?? dict.join.usabilityTest}
           </h1>
-          <LangToggle className="absolute right-0 top-0" />
         </div>
         <ParticipantLiveView sessionId={existingSession.id} />
       </div>
@@ -194,12 +196,16 @@ function JoinPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 pt-12">
-      <div className="relative text-center">
-        <h1 className="text-2xl font-bold">{dict.join.title}</h1>
-        <p className="mt-1 text-muted-foreground">
-          {dict.join.evaluator}: {invitation.evaluator_name}
-        </p>
-        <LangToggle className="absolute right-0 top-0" />
+      <div className="space-y-2">
+        <div className="flex justify-end">
+          <LangToggle />
+        </div>
+        <div className="text-center">
+          <h1 className="text-balance text-2xl font-bold">{dict.join.title}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {dict.join.evaluator}: {invitation.evaluator_name}
+          </p>
+        </div>
       </div>
 
       <Card className="bg-transparent backdrop-blur-md">
