@@ -72,6 +72,7 @@ const en = {
       "The evaluator hasn't started the session yet. This page will update automatically when they begin.",
     tasksScheduled: "{n} task(s) scheduled",
     thankYou: "Thank You!",
+    answersFailed: "Could not save your answers. Please try again.",
     allDoneHint:
       "You have completed all tasks and the questionnaires. You can close this page.",
     taskOf: "Task {i} of {n}",
@@ -196,6 +197,7 @@ const pt: Dict = {
   },
   live: {
     loadingSession: "A carregar a sessão...",
+    answersFailed: "Não foi possível guardar as respostas. Tente novamente.",
     sessionComplete: "Sessão concluída",
     thankYouClose: "Obrigado pela sua participação! Pode fechar esta página.",
     waitingEvaluator: "À espera do avaliador",

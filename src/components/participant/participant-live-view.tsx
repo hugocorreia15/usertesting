@@ -27,6 +27,7 @@ import {
 } from "@/hooks/use-participant-sessions";
 import type { TaskQuestion } from "@/types";
 import { useLang, format, type Dict } from "@/lib/i18n";
+import { toast } from "sonner";
 import { LangToggle } from "@/components/participant/lang-toggle";
 
 interface ParticipantLiveViewProps {
@@ -148,11 +149,17 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       }
     >,
   ) => {
-    await submitAnswers.mutateAsync({
-      task_result_id: taskResult.id,
-      answers: Object.values(answers),
-    });
-    setAnsweredTaskIds((prev) => new Set(prev).add(taskResult.id));
+    try {
+      await submitAnswers.mutateAsync({
+        task_result_id: taskResult.id,
+        answers: Object.values(answers),
+      });
+      setAnsweredTaskIds((prev) => new Set(prev).add(taskResult.id));
+    } catch (e) {
+      // Without this the rejection was unhandled: nothing was shown and the
+      // form stayed put, so the only feedback was the button doing nothing.
+      toast.error(e instanceof Error ? e.message : dict.live.answersFailed);
+    }
   };
 
   // Only show interview/SUS after observer has marked the session as completed

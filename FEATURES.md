@@ -370,6 +370,33 @@ default carries an opt-in "Apply to the N existing projects" checkbox, and
 apply_org_defaults() returns how many it touched. Both functions set the 050
 transaction-local flag, since review_mode is otherwise unwritable.
 
+### P3.16 Participant answer submission: silent failures and N round trips — SHIPPED
+Reported symptom: submitting a task's answers sometimes did nothing, the form
+stayed put, and the participant had to press the button repeatedly before the
+session advanced. Three compounding causes, all in the same path:
+
+1. **The rejection was unhandled.** `handleSubmit` awaited `mutateAsync` with
+   no try/catch, and the caller did not await the returned promise. Any failed
+   write produced an unhandled rejection: no toast, no advance, a button that
+   appeared dead. This is the reported bug.
+2. **One round trip per question.** `useSubmitParticipantAnswers` looped over
+   the answers upserting each in turn, so a five-question task was five
+   sequential requests on the participant's phone, and each write also woke
+   the realtime subscription and refetched the whole session. Now a single
+   upsert of the array.
+3. **Mutations do not retry by default.** One dropped request on mobile data
+   was a hard failure. `retry: 1`.
+
+Also fixed while in there: when `mergeParticipantSession` returned null (a
+task result with no static definition, e.g. the evaluator changed tasks
+mid-session) the hook returned undefined, which unmounted the participant's
+whole view and discarded answers already typed into the open form. The hook
+now holds the last cleanly merged session and keeps showing it while the
+static half refetches.
+
+Four tests in `src/hooks/__tests__/` cover the batching, the column mapping,
+the rejection reaching the caller, and the retry.
+
 ## Backlog (candidate features, ranked 2026-07-15)
 
 1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a

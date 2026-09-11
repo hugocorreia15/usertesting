@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { TestSessionWithRelations } from "@/types";
@@ -6,6 +6,7 @@ import {
   mergeParticipantSession,
   type ParticipantStaticData,
   type ParticipantLiveData,
+  type ParticipantLiveSession,
 } from "@/lib/participant-live";
 
 export function useParticipantSessions() {
@@ -199,8 +200,16 @@ export function useParticipantLiveSession(sessionId: string | null) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [merged]);
 
+  // Keep the last session that merged cleanly. Returning undefined while the
+  // static half is refetched unmounted the participant's whole view, which
+  // discarded any answers they had already typed into the open task form.
+  const lastGood = useRef<ParticipantLiveSession | undefined>(undefined);
+  useEffect(() => {
+    if (merged) lastGood.current = merged;
+  }, [merged]);
+
   return {
-    data: merged ?? undefined,
+    data: merged ?? lastGood.current,
     isLoading: staticQuery.isLoading || liveQuery.isLoading,
   };
 }
@@ -220,23 +229,26 @@ export function useSubmitParticipantAnswers() {
         }[];
       },
     ) => {
-      for (const answer of input.answers) {
-        const { error } = await supabase
-          .from("task_question_answers")
-          .upsert(
-            {
-              task_result_id: input.task_result_id,
-              question_id: answer.question_id,
-              answer_text: answer.answer_text ?? null,
-              selected_options: answer.selected_options ?? null,
-              rating_value: answer.rating_value ?? null,
-              media_url: answer.media_url ?? null,
-            },
-            { onConflict: "task_result_id,question_id" },
-          );
-        if (error) throw error;
-      }
+      // One statement for the whole task. Upserting per question meant a
+      // round trip each on the participant's phone, and each write also woke the
+      // realtime subscription, so a five-question task refetched the session
+      // five times while the participant was still waiting on it.
+      const { error } = await supabase.from("task_question_answers").upsert(
+        input.answers.map((answer) => ({
+          task_result_id: input.task_result_id,
+          question_id: answer.question_id,
+          answer_text: answer.answer_text ?? null,
+          selected_options: answer.selected_options ?? null,
+          rating_value: answer.rating_value ?? null,
+          media_url: answer.media_url ?? null,
+        })),
+        { onConflict: "task_result_id,question_id" },
+      );
+      if (error) throw error;
     },
+    // Mutations do not retry by default; a single dropped request on mobile
+    // data otherwise looked to the participant like the button did nothing.
+    retry: 1,
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ["participant-live"] }),
   });
