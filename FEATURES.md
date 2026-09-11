@@ -251,6 +251,37 @@ Section state lives above the panels, so switching never loses edits, and
 saving with an empty name jumps back to Basics where the field is. Applies to
 both the Edit tab and /templates/new, which share the component.
 
+### P3.12 Pedagogical positioning against the field — PAPER ONLY
+Three papers and a teaching resource from the advisor (kept locally in
+docs/papers/, gitignored) reframed the pedagogy section. Lima and
+Benitti's mapping of HCI teaching (HCII 2019) found only two tools built
+for HCI teaching and almost no rigorous evaluation of any, which is now the
+opening of the section and the justification for the classroom study.
+Schwind et al.'s HCI User Studies Toolkit (CHI EA 2023) supports study
+*planning* (method choice, power, Latin squares, consent generation) and
+stops where Avalux starts, at the session; their caveat that planning
+tools can be satisfied mechanically now appears in Discussion as a
+limitation of the protocol review. Aziz et al. (EduCHI 2026) found students
+value GenAI as a procedural scaffold but distrust it when it pre-empts
+their own judgment and dislike its sycophancy; the review is cited as a
+deterministic scaffold that appears only after a design is saved. Rose's
+EngageCSEdu usability-testing plan template gives the field's own module
+structure (plan, materials, recruit, run, analyse) and makes an
+*instructor gate*, feedback before any session may run, the centre of
+assessment. The table is now a constructive-alignment table (Biggs 1996):
+objective, what Avalux offers, evidence of outcome, with an ethics row
+that honestly says consent is recorded outside the platform.
+**Gaps the papers exposed, as candidate features:**
+1. **Instructor gate** on a template: a review-requested / approved state
+   set by an org owner, with session creation blocked (or warned) until
+   approval and the protocol review findings visible to the instructor at
+   that moment. Rose makes this the assessment mechanism; it is the
+   "structured instructor review" the paper lists as missing.
+2. **Consent capture** in the join flow: a per-template consent text
+   shown before the form, with acceptance timestamped on the session.
+   Schwind's consent generator is the reference; today consent lives
+   outside the platform and the paper's ethics row says so.
+
 ## Backlog (candidate features, ranked 2026-07-15)
 
 1. **Inter-rater reliability mode — SHIPPED** — a co-rater scores a

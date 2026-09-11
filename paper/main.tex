@@ -10,6 +10,7 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.17}
 \usepackage{balance}
+\usepackage{xurl}
 \usepackage[hidelinks]{hyperref}
 
 \begin{document}
@@ -97,7 +98,11 @@ the moderated-testing pipeline end to end. Its contributions are:
   showing that it carries realistic studies end to end, including a
   physical device beyond browser instrumentation, and that its task-level
   instruments localize the problems behind widely differing outcomes
-  (mean SUS 28.1 vs.\ 80).
+  (mean SUS 28.1 vs.\ 80);
+  \item a \textbf{pedagogical design} for classroom use: features
+  mapped onto learning objectives, student teams running independent
+  studies under an instructor account, and a protocol review that
+  flags common novice mistakes before a study runs.
 \end{itemize}
 
 Avalux is deployed at \url{https://avalux.pt}; its schema, protocol
@@ -256,7 +261,14 @@ them produces unbounded efficiency values), and the SUS score with its
 adjective band~\cite{brooke1996sus,bangor2009determining}. Cross-session
 SUS summaries are accompanied by two-sided 95\% confidence intervals
 computed with the $t$-distribution, following the small-sample
-recommendation of Sauro and Lewis~\cite{sauro2016quantifying}. When a
+recommendation of Sauro and Lewis~\cite{sauro2016quantifying}. A
+second rater can score a completed session's tasks independently; the
+platform then reports Cohen's $\kappa$~\cite{cohen1960kappa} on
+completion status, read against the Landis and Koch
+bands~\cite{landis1977measurement}, and exact-match rate, mean absolute
+difference, and Pearson correlation on action, error, hesitation, and
+SEQ counts, making the reliability of evaluator-logged measures
+measurable per session rather than assumed. When a
 template administers them, raw NASA-TLX is scored as the unweighted mean
 of its six subscales~\cite{hart2006nasatlx} and UEQ-S as pragmatic,
 hedonic, and overall means on the $-3$ to $+3$
@@ -290,6 +302,7 @@ and hesitation logging.}
 \end{figure}
 
 \subsection{Security Model}
+\label{sec:security}
 The platform's least conventional engineering choice is placing the whole
 authorization model inside the database. Evaluator tables carry policies
 of the form \texttt{user\_id = auth.uid()}; participant access is granted
@@ -385,6 +398,74 @@ error, hesitation, and SEQ columns; charts below compare performance
 against the template's optimal baselines.}
 \label{fig:dash}
 \end{figure}
+
+\subsection{Pedagogical Design}
+Avalux is also deployed in an undergraduate HCI course, where student
+teams each run a moderated study of a system they are
+designing~\cite{churchill2013teaching}. A systematic mapping of HCI
+teaching found active, project-based approaches dominant, only two
+tools built for HCI teaching, and few empirical evaluations of
+either~\cite{lima2019tools}. A tool that makes an expert faster does
+not thereby make a novice better; the education literature separates
+\emph{productivity tools} from \emph{mindtools}, which engage the
+learner in thinking about the domain~\cite{jonassen2000mindtools}. Our claim is of the second kind
+and rests on the cognitive-apprenticeship
+observation~\cite{collins1989cognitive} that expert practice is
+invisible to novices until made visible, scaffolded, and reflected
+on. With a stopwatch and a spreadsheet an instructor sees a
+final report and cannot tell whether moderation was biased, whether two
+observers would have logged the same errors, or whether the sample
+supports the conclusion. Avalux makes that methodological quality
+observable, to student and instructor alike. Table~\ref{tab:pedagogy}
+states the constructive alignment~\cite{biggs1996alignment} between
+each learning objective, what the platform offers toward it, and the
+evidence that would show it met; that third column is also the rubric
+of the classroom study in Section~\ref{sec:future}. Co-rating with Cohen's $\kappa$ turns ``what counts as an
+error'' from a textbook warning into a number two students computed
+about their own disagreement, and SUS confidence intervals refuse a
+score without its uncertainty at the moment $n=5$ would be over-read.
+
+These features observe; the protocol review is the first that gives
+feedback, checking a template without blocking against common novice
+mistakes (tasks that name interface labels and so lead the participant,
+tasks without a success criterion or optimal path, no practice task,
+no error taxonomy, no post-session instrument), each with a rationale
+linked to the tutorial. Existing support for student studies addresses
+planning: a toolkit for method selection, power, and
+counterbalancing~\cite{schwind2023toolkit}, and a widely used plan
+template whose assessment turns on an instructor gate before any
+session may run~\cite{rose2016plan}. Avalux begins where they stop, at
+the session itself. Its review appears only once a design is saved,
+not while it is typed: students value procedural scaffolding but
+distrust it when it pre-empts their own judgment~\cite{aziz2026genai},
+and a deterministic check carries none of the sycophancy they report
+in generative facilitators. Feedback is what separates a pedagogical
+tool from a well-instrumented one; what remains missing, and the
+classroom evaluation this framing requires, are taken up in
+Section~\ref{sec:future}.
+
+\begin{table}[t]
+\caption{Constructive alignment: each learning objective, what the
+platform offers toward it, and the evidence that it was met.}
+\label{tab:pedagogy}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.30\columnwidth}p{0.30\columnwidth}p{0.31\columnwidth}@{}}
+\toprule
+Learning objective & What Avalux offers & Evidence of outcome \\
+\midrule
+Write tasks as goals, not procedures & Protocol review, leading-task check & Warnings resolved before the first session \\
+Fix criteria and baselines before running & Success criterion and optimal path per task & Both present on every measured task \\
+Control order effects & Order strategy per session, with explainer & Strategy chosen and justified in the report \\
+Treat ``error'' as a judgement & Co-rating, Cohen's $\kappa$ & $\kappa$ reported; disagreements reconciled \\
+Report uncertainty with small $n$ & SUS with 95\% CI & An interval beside every score \\
+Moderate without leading & Observation view, timestamped notes & Peer notes on hints and interventions \\
+Analyse qualitatively as a procedure & Code book, frequency matrix & Codes defined before tagging; matrix reported \\
+Handle participant data ethically & Retroactive anonymization, private media; consent is recorded outside the platform & Anonymized export; consent on file for every participant \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Case Studies}
 Two studies were run end to end on the platform. Both used in-person,
@@ -511,7 +592,7 @@ attributes) cost setup effort once rather than per session, and both
 study reports, including all charts and per-task appendices, were
 generated without manual assembly. Running real studies also stress-tested
 the platform itself: study operation exposed a row-level-security gap in
-the anonymous invitation-counter update (Section~III-D) and showed that
+the anonymous invitation-counter update (Section~\ref{sec:security}) and showed that
 evaluators under load can leave action counters untracked, both of which
 fed fixes and roadmap items back into the platform.
 
@@ -554,11 +635,17 @@ Action and error counts are logged by the evaluator rather than
 instrumented automatically; this keeps the platform applicable to physical
 devices (study~1 evaluated hardware no browser can instrument) at the cost
 of observer load and potential undercounting during fast interaction
-bursts, and single-observer categorization of errors has unmeasured
-inter-rater reliability. SEQ and SUS are self-report instruments with
+bursts, and error categorization is single-observer unless a session
+is co-rated; the co-rating instrument measures agreement per session,
+but a study-level reliability figure for live logging has not yet been
+established. SEQ and SUS are self-report instruments with
 known ceiling effects. The optimal-path baselines that anchor the
 efficiency measures are themselves author-defined and inherit the
-protocol designer's assumptions.
+protocol designer's assumptions. The protocol review can be satisfied
+without being understood: a student may clear its warnings
+mechanically, the hazard Schwind et al.\ note for planning
+toolkits~\cite{schwind2023toolkit}, which is why the classroom study
+scores understanding and not only artifacts.
 
 \subsection*{Internal validity}
 Both studies were run by a single evaluator who is also the platform's
@@ -577,36 +664,38 @@ participants in particular make its aggregate figures illustrative
 only), and both cohorts were young adults in their early twenties. More importantly for a tool paper, we have not yet
 run a controlled comparison of evaluator effort and data quality against
 an ad-hoc toolchain or a commercial moderated platform; the case studies
-demonstrate feasibility and output quality, not superiority. That
-comparison, in which several evaluators log the same scripted session with
-Avalux and with a stopwatch-and-spreadsheet baseline, measured for setup
-time, logging completeness, report latency, and workload, is the
-designed next study, together with an inter-rater reliability measurement
-of the live-logging instrument.
+demonstrate feasibility and output quality, not superiority; that
+comparison is the designed next study (Section~\ref{sec:future}).
 
 \subsection*{Security surface}
-The anonymous-participant model trades open link joins for RLS policies
-keyed on unguessable codes; a formal audit of that policy surface (one
-gap in invitation-counter updates was found and fixed during study
-operation) is ongoing work.
+The anonymous-participant model trades open link joins for RLS
+policies that must admit exactly the rows a code-holder is entitled
+to. An audit after the case studies found that the original
+participant-flow policies tested whether a row was the \emph{kind} a
+participant may see, not whether the caller held its code, which for
+the anonymous role is equivalent to no policy: participant records,
+answers, and live invitation codes were readable without
+authenticating. The policies were rewritten to compare each row against
+the code carried in the request, verified by an automated probe,
+shipped with the repository, that reads every participant-facing table
+as an anonymous client and fails on any row returned. The gap survived
+two studies and a fix to a neighbouring policy; a policy set is now
+treated as a tested artifact, not configuration.
 
-A further practical consideration is where a hybrid design like this sits
-between the lab and the fully remote setting. Because the participant
-client is an ordinary web page, the same protocol runs in a lab (evaluator
-and participant co-located, as in both case studies), over a video call
-with the join link shared in chat, or asynchronously through shared links
-when moderation is not required, although the platform's distinctive
-instruments (evaluator-logged actions, errors, and hesitations) only apply
-in the moderated modes. Prior comparisons suggest synchronous remote
-moderation approaches lab quality~\cite{andreasen2007remote,
-brush2004comparison}; verifying that Avalux's gating protocol preserves
-that equivalence when the moderator is not physically present is a natural
-next experiment. Finally, the participant-own-device model inherits the
-device diversity of field settings~\cite{kaikkonen2005usability}: the
-mobile-first participant client was a direct consequence of pilot
-participants joining on their phones.
+Because the participant client is an ordinary web page, the same
+protocol runs in a lab (as in both case studies), over a video call
+with the join link shared in chat, or asynchronously through shared
+links, though the evaluator-logged instruments apply only in the
+moderated modes. Synchronous remote moderation approaches lab
+quality in prior comparisons~\cite{andreasen2007remote,
+brush2004comparison}; verifying that the gating protocol preserves that
+equivalence with a remote moderator is a natural next experiment. The
+participant-own-device model also inherits the device diversity of
+field settings~\cite{kaikkonen2005usability}: the mobile-first client
+followed directly from pilot participants joining on their phones.
 
 \section{Conclusion and Future Work}
+\label{sec:future}
 Avalux integrates protocol definition, live moderated logging,
 participant-side questioning on the participant's own device, standardized
 instruments, analytics, and reporting into one open platform, and carried
@@ -620,22 +709,30 @@ report latency, SUS and workload on the toolchain), an inter-rater
 reliability study of the live-logging instrument, and a
 manual-versus-automatic action-count comparison using the
 instrumentation events of Section~III to bound manual logging error.
-The \emph{platform} track continues with a more flexible task model.
-The event timelines, raw data export, order counterbalancing,
-additional questionnaires, retroactive anonymization,
-auto-instrumentation, qualitative coding, Portuguese participant
-client, organizations, and live session observation described in
-Section~III were themselves motivated by the two studies and shipped
-since they concluded.
+The pedagogical framing of Section~III adds a classroom study: two
+cohorts of one HCI course, using Avalux and the
+stopwatch-and-spreadsheet toolchain respectively, compared on
+protocol quality scored against the evidence column of
+Table~\ref{tab:pedagogy}, inter-rater agreement between team
+members on a shared recorded session, the proportion of reports
+stating uncertainty with their estimates, and a pre/post test of
+methodological understanding, the protocol review's findings showing
+which mistakes recur; it is the kind of rigorous evaluation the mapping
+of HCI teaching found largely absent~\cite{lima2019tools}. The rest of the feedback loop is still missing: a reflection prompt after each
+session, structured instructor review visible to the team, and
+comparison of one protocol across teams or design iterations.
+The \emph{platform} track continues with a more flexible task model;
+the additions described in Section~III beyond the two studies' original
+scope were themselves motivated by those studies and shipped since
+they concluded.
 
 \section*{Availability}
-The platform is deployed at \url{https://avalux.pt}. Its source, comprising the
-application, the database schema (45 SQL migrations), the seeded protocol
-of study~2, the in-application tutorial, and the report generator, is
-available under the MIT license at
-\url{https://github.com/hugocorreia15/usertesting}. Anonymized session
-data from the case studies is available on request within the limits of
-the participants' consent.
+The platform is deployed at \url{https://avalux.pt}. Its source (the
+application, 49 SQL migrations, the seeded protocol of study~2, the
+tutorial, and the report generator) is available under the MIT license
+at \url{https://github.com/hugocorreia15/usertesting}. Anonymized
+session data from the case studies is available on request within the
+limits of the participants' consent.
 
 \balance
 \bibliographystyle{IEEEtran}
