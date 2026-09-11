@@ -201,7 +201,7 @@ dropdown (set_member_role RPC, last-owner guard). New group detail page
 remove members, session counts, repo links. Students see only their
 own groups.
 
-### P3.8 Security: anon access made possession-based — SHIPPED (needs migration applied)
+### P3.8 Security: anon access made possession-based — SHIPPED
 Audit found the entire participant dataset readable by any anonymous client
 holding the public anon key: participant names/e-mails/notes, free-text and
 instrument answers, session results, private study designs, and live join
@@ -219,10 +219,14 @@ client-side so the join no longer needs an anon SELECT on participants.
 `scripts/verify/anon-rls.mjs` proves the holes are closed; it reported 14
 failures before the fix. Rollout order and rollback in
 `docs/security/048-rollout.md`.
-**Apply order:** deploy the app first, then run migration 048, then re-run the
-verifier and smoke-test a real join.
+**Verified in production:** migration 048 applied and `scripts/verify/anon-rls.mjs`
+reports all 16 checks passing, including that the private templates which
+triggered the audit are no longer readable. A live probe also confirmed the
+possession mechanism end to end: the invitation lookup returns nothing with no
+header and nothing with a wrong code, and returns a private template plus its
+tasks with the right one.
 
-### P3.9 Optional SUS + richer participant fields — SHIPPED (needs migration applied)
+### P3.9 Optional SUS + richer participant fields — SHIPPED
 SUS was hard-wired on (034: "implicit and always on"); it is now an entry in
 `templates.instruments` like NASA-TLX and UEQ-S, with migration 049
 backfilling `sus` into every existing template so no running study changes
@@ -235,6 +239,8 @@ the database, so no live row was rewritten. Multi-select answers encode as a
 JSON array via `src/lib/participant-fields.ts`, which tolerates legacy plain
 strings. One shared `ParticipantFieldInput` renders the join form and the
 participant record so the two cannot drift.
+**Verified in production:** migration 049 applied; rating bounds are live on
+template_participant_fields.
 **Deferred:** Audio/Video/Photo participant fields — capture happens on the
 join form before a session row exists, so the storage path and its RLS need
 their own design.
@@ -304,7 +310,7 @@ that honestly says consent is recorded outside the platform.
    Schwind's consent generator is the reference; today consent lives
    outside the platform and the paper's ethics row says so.
 
-### P3.13 Instructor gate (opt-in per template) — SHIPPED (needs migration applied)
+### P3.13 Instructor gate (opt-in per template) — SHIPPED
 Closes the first gap the pedagogy literature exposed. An org owner sets a
 template's review mode: **off** (default, and what every existing template
 gets), **advisory** (workflow and status visible, nothing blocked), or
@@ -336,7 +342,7 @@ cannot be narrowed per column. Invitation INSERT is gated in RLS by
 bypassed; 035's single FOR ALL invitation policy is split per verb, because
 its WITH CHECK would otherwise also block deactivating a link.
 
-### P3.14 Consent capture — SHIPPED (needs migration applied)
+### P3.14 Consent capture — SHIPPED
 The second gap. A template may carry `consent_text`; when set, the join form
 shows it before any field and requires a checkbox, and acceptance is
 timestamped on the session (`consent_accepted_at`, `consent_method =
@@ -348,7 +354,7 @@ export with the sessions table. Consent text is EN/PT-agnostic: it is the
 author's own text, shown verbatim, with only the surrounding labels
 localized.
 
-### P3.15 Organization settings dialog — SHIPPED (needs migration applied)
+### P3.15 Organization settings dialog — SHIPPED
 The organization had no settings at all: no rename (despite orgs_update
 allowing it since 041), and delete lived only on the list page. Owner-only
 dialog on the org detail header now holds rename, delete (moved from the
@@ -369,6 +375,26 @@ a running study would be worse than the setting appearing not to apply. Each
 default carries an opt-in "Apply to the N existing projects" checkbox, and
 apply_org_defaults() returns how many it touched. Both functions set the 050
 transaction-local flag, since review_mode is otherwise unwritable.
+
+### P3.17 Migrations 050 and 051 verified against production — VERIFIED
+`scripts/verify/gate-and-consent.sql` run in the SQL editor: 14 of 14 checks
+PASS. The one that mattered is the first, since students hold UPDATE on org
+templates and the whole design rests on it:
+
+> guard refuses direct review_status write — PASS
+> "review columns change only through the review functions"
+
+A student cannot approve their own protocol, and the trigger holds even
+against the SQL editor's superuser, which is the strictest case available.
+Also proven rather than argued: the three-step workflow, approval returning
+to draft on a protocol edit, pilot marking that catches a non-owner's session
+but not an owner's, organization defaults inheriting on share without
+clobbering a team's own consent text or instruments, the retrofit reporting
+its count, and a non-owner being refused both approval and retrofit.
+
+Writing the script caught a bug that would have aborted the run:
+test_sessions.user_id has a foreign key to auth.users, so the non-owner
+evaluator had to be a second real account rather than an invented uuid.
 
 ### P3.16 Participant answer submission: silent failures and N round trips — SHIPPED
 Reported symptom: submitting a task's answers sometimes did nothing, the form

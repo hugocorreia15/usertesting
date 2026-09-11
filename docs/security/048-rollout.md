@@ -74,6 +74,19 @@ which restores the exposure, so treat it as a last resort.
 
 ---
 
+## Status
+
+All of 048, 049, 050 and 051 are applied to production and verified.
+
+| Migration | Verified by | Result |
+|---|---|---|
+| 048 | `scripts/verify/anon-rls.mjs` | 16/16 pass; a live probe also confirmed the header mechanism grants a private template only with the right code |
+| 049 | column probe | rating bounds live on `template_participant_fields` |
+| 050, 051 | `scripts/verify/gate-and-consent.sql` | 14/14 pass, including the guard refusing a direct `review_status` write |
+
+Re-run both scripts after any change to policies, triggers, or the
+participant flow.
+
 ## Migration 050: instructor gate and consent
 
 Applied the same way, and independent of 048. It adds columns with defaults,
