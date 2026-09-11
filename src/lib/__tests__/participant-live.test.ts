@@ -1,10 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import {
-  mergeParticipantSession,
-  type ParticipantStaticData,
-  type ParticipantLiveData,
-} from "../participant-live";
+import { mergeParticipantSession, type ParticipantStaticData, type ParticipantLiveData, participantStep } from "../participant-live";
 
 const def = (id: string, name: string) => ({
   id: `task-${id}`,
@@ -90,5 +86,100 @@ describe("mergeParticipantSession", () => {
     l.task_results = [];
     const merged = mergeParticipantSession(s, l)!;
     expect(merged.task_results).toEqual([]);
+  });
+});
+
+describe("participantStep", () => {
+  const base = {
+    hasPendingTask: false,
+    sessionCompleted: false,
+    hasInterviewQuestions: false,
+    interviewAnswered: false,
+    susEnabled: true,
+    susAnswered: false,
+    hasNextInstrument: false,
+  };
+
+  it("answers a pending task before anything else", () => {
+    expect(participantStep({ ...base, hasPendingTask: true })).toBe("answer-task");
+    expect(
+      participantStep({ ...base, hasPendingTask: true, sessionCompleted: true }),
+    ).toBe("answer-task");
+  });
+
+  it("stays in session between tasks when SUS is not administered", () => {
+    // The reported bug: with SUS off, "satisfied" was true from the start, so
+    // a participant waiting for the evaluator to open the next task was shown
+    // the thank-you screen.
+    expect(
+      participantStep({ ...base, susEnabled: false, sessionCompleted: false }),
+    ).toBe("in-session");
+  });
+
+  it("stays in session between tasks with no SUS and no instruments", () => {
+    expect(
+      participantStep({
+        ...base,
+        susEnabled: false,
+        hasNextInstrument: false,
+        sessionCompleted: false,
+      }),
+    ).toBe("in-session");
+  });
+
+  it("never ends the session before the evaluator does", () => {
+    for (const susEnabled of [true, false]) {
+      for (const hasNextInstrument of [true, false]) {
+        for (const hasInterviewQuestions of [true, false]) {
+          expect(
+            participantStep({
+              ...base,
+              sessionCompleted: false,
+              susEnabled,
+              hasNextInstrument,
+              hasInterviewQuestions,
+            }),
+          ).toBe("in-session");
+        }
+      }
+    }
+  });
+
+  it("runs the closing steps in order: interview, SUS, instruments, thanks", () => {
+    const done = { ...base, sessionCompleted: true };
+    expect(
+      participantStep({ ...done, hasInterviewQuestions: true, hasNextInstrument: true }),
+    ).toBe("interview");
+    expect(
+      participantStep({
+        ...done,
+        hasInterviewQuestions: true,
+        interviewAnswered: true,
+        hasNextInstrument: true,
+      }),
+    ).toBe("sus");
+    expect(
+      participantStep({ ...done, susAnswered: true, hasNextInstrument: true }),
+    ).toBe("instrument");
+    expect(participantStep({ ...done, susAnswered: true })).toBe("thank-you");
+  });
+
+  it("does not skip the interview on a template without SUS", () => {
+    // The same regression also let the thank-you screen pre-empt the
+    // interview, because it was tested first.
+    expect(
+      participantStep({
+        ...base,
+        sessionCompleted: true,
+        susEnabled: false,
+        hasInterviewQuestions: true,
+      }),
+    ).toBe("interview");
+  });
+
+  it("skips SUS when the template does not administer it", () => {
+    expect(
+      participantStep({ ...base, sessionCompleted: true, susEnabled: false }),
+    ).toBe("thank-you");
   });
 });

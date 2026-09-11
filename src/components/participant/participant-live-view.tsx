@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MediaCapture } from "@/components/live/media-capture";
 import { SusQuestionnaire } from "@/components/live/sus-questionnaire";
 import { InstrumentForm } from "@/components/live/instrument-form";
+import { participantStep } from "@/lib/participant-live";
 import {
   INSTRUMENTS,
   administersSus,
@@ -164,13 +165,11 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
 
   // Only show interview/SUS after observer has marked the session as completed
   const sessionCompleted = session.status === "completed";
-  const allTaskQuestionsAnswered = !pendingTask && sessionCompleted;
   const hasSusAnswers = (session.sus_answers?.length ?? 0) > 0 || susSubmitted;
   // SUS is opt-in per template since migration 049. A template that does not
   // administer it skips straight from the interview to the remaining
   // instruments, so "satisfied" is what the flow below branches on.
   const susEnabled = administersSus(session.templates?.instruments);
-  const susSatisfied = !susEnabled || hasSusAnswers;
 
   // Interview questions
   const interviewQuestions = [...(session.templates?.template_questions ?? [])].sort(
@@ -209,23 +208,41 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
   );
 
   if (!pendingTask) {
-    // Every questionnaire completed — thank you screen
-    if (susSatisfied && !nextInstrument) {
+    // participantStep owns the ordering: nothing that closes a session may be
+    // shown while it is still running, and the closing steps run interview,
+    // then SUS, then the remaining instruments, then thanks.
+    const step = participantStep({
+      hasPendingTask: false,
+      sessionCompleted,
+      hasInterviewQuestions,
+      interviewAnswered: allInterviewAnswered,
+      susEnabled,
+      susAnswered: hasSusAnswers,
+      hasNextInstrument: !!nextInstrument,
+    });
+
+    if (step === "interview") {
       return (
-        <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
-          <CardContent className="flex flex-col items-center gap-4 pt-6">
-            <CheckCircle2 className="h-12 w-12 text-green-500" />
-            <p className="text-lg font-medium">{dict.live.thankYou}</p>
-            <p className="text-center text-sm text-muted-foreground">
-              {dict.live.allDoneHint}
-            </p>
-          </CardContent>
-        </Card>
+        <InterviewQuestionsForm
+          sessionId={sessionId}
+          questions={interviewQuestions}
+          existingAnswers={interviewAnswers}
+          onSubmit={() => setInterviewDone(true)}
+          updateAnswer={updateInterviewAnswer}
+        />
       );
     }
 
-    // SUS done → remaining instruments, one at a time
-    if (susSatisfied && nextInstrument) {
+    if (step === "sus") {
+      return (
+        <SusQuestionnaire
+          onSubmit={handleSusSubmit}
+          submitting={createSusAnswers.isPending}
+        />
+      );
+    }
+
+    if (step === "instrument" && nextInstrument) {
       return (
         <InstrumentForm
           key={nextInstrument}
@@ -243,31 +260,17 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
       );
     }
 
-    // All task questions done → show interview questions (if any and not yet answered)
-    if (allTaskQuestionsAnswered && hasInterviewQuestions && !allInterviewAnswered) {
+    if (step === "thank-you") {
       return (
-        <InterviewQuestionsForm
-          sessionId={sessionId}
-          questions={interviewQuestions}
-          existingAnswers={interviewAnswers}
-          onSubmit={() => setInterviewDone(true)}
-          updateAnswer={updateInterviewAnswer}
-        />
-      );
-    }
-
-    // Interview done (or no interview questions) → show SUS
-    if (
-      allTaskQuestionsAnswered &&
-      (allInterviewAnswered || !hasInterviewQuestions) &&
-      susEnabled &&
-      !hasSusAnswers
-    ) {
-      return (
-        <SusQuestionnaire
-          onSubmit={handleSusSubmit}
-          submitting={createSusAnswers.isPending}
-        />
+        <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
+          <CardContent className="flex flex-col items-center gap-4 pt-6">
+            <CheckCircle2 className="h-12 w-12 text-green-500" />
+            <p className="text-lg font-medium">{dict.live.thankYou}</p>
+            <p className="text-center text-sm text-muted-foreground">
+              {dict.live.allDoneHint}
+            </p>
+          </CardContent>
+        </Card>
       );
     }
 

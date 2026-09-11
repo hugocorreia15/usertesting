@@ -396,6 +396,26 @@ Writing the script caught a bug that would have aborted the run:
 test_sessions.user_id has a foreign key to auth.users, so the non-owner
 evaluator had to be a second real account rather than an invented uuid.
 
+### P3.18 Regression: "Session Complete" shown between tasks — FIXED
+Reported from a live session. Introduced by P3.9: when SUS became opt-in,
+the live view gained `susSatisfied = !susEnabled || hasSusAnswers`, which is
+true from the first render on a template that does not administer SUS. The
+thank-you branch was tested before the in-progress branch, so the moment
+there was no pending task, which is the normal state between tasks while the
+evaluator closes the next one, the participant was told the session was over.
+
+The same line had a second effect nobody had hit yet: with SUS off and no
+instruments, the thank-you branch also pre-empted the interview, so the
+closing interview was skipped outright.
+
+The branch order is now a pure function, `participantStep` in
+lib/participant-live.ts, so the rule is stated once and tested: nothing that
+closes a session may be shown while it is still running, and the closing
+steps run interview, then SUS, then remaining instruments, then thanks. Seven
+tests, including an exhaustive sweep asserting that no combination of
+instruments, interview and SUS settings can end a session the evaluator has
+not ended.
+
 ### P3.16 Participant answer submission: silent failures and N round trips — SHIPPED
 Reported symptom: submitting a task's answers sometimes did nothing, the form
 stayed put, and the participant had to press the button repeatedly before the
