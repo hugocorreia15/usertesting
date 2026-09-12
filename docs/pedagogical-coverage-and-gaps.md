@@ -71,6 +71,33 @@ advisor, will press on anyway.**
 
 Ranked by how much each strengthens the professor's weekly case, against effort.
 
+### H. No inspection method at all — *the largest gap; found after this file was first written*
+**Gap.** Every feature in Avalux assumes participants exist and a protocol is
+already written. There is no heuristic evaluation, no inspection walkthrough,
+no severity-ranked problem list. The schema has no "usability problem" object
+anywhere: sessions produce observer notes and codes, never a merged finding
+with a severity.
+**Why.** An HCI methods course teaches inspection *before* empirical testing,
+because it is cheap, needs no participants and no ethics approval, and it
+produces the problem list the usability test is then designed to confirm. The
+platform starts at stage two of the pipeline.
+**Why it is the strongest answer to the advisor.** Heuristic evaluation is
+where the evaluator effect (L3) was first and most sharply documented. Four
+students inspecting the same interface independently produce substantially
+different lists, and the platform can plot cumulative unique problems against
+the number of evaluators. Students then derive the three-to-five evaluator
+guidance from their own data rather than from a lecture slide. That is
+teaching a methodology, not streamlining a task.
+**Already in place.** `nielsen1993mathematical` is cited twice in the paper
+for small participant samples; it is the same model applied to evaluators.
+`cohensKappa` and `numericAgreement` in `src/lib/agreement.ts` cover the
+agreement statistics. Private media via signed URLs covers evidence
+screenshots.
+**Shape.** Heuristic sets (Nielsen's ten seeded, org-definable), independent
+passes isolated from each other by row-level security until submitted, a
+consolidation step, agreement metrics and the aggregation curve, a link from
+finding to test task, and an optional gate precondition.
+
 ### A. Cross-team comparison for the instructor — *highest value*
 **Gap.** The org page lists projects with session counts. There is no way to
 see the class: which teams have run sessions, which protocols still carry
@@ -167,6 +194,17 @@ four education sources. Either add a short paragraph there or accept that the
 positioning lives only in III-I. A reviewer looking for the education baseline
 will look in Related Work first.
 
+### P7. Table I teaches execution, never method choice
+All eight rows of the constructive alignment table teach how to run an
+empirical test well: write tasks as goals, fix criteria, control order, report
+uncertainty. Not one row teaches how to *choose* or *justify* a method, or
+covers inspection at all. That is close to the advisor's objection in its own
+words. Gap H supplies the missing rows, and its evidence column is reported by
+the platform rather than asserted.
+
+Row 8 is also stale: it says consent is recorded outside the platform, which
+stopped being true when consent capture shipped in migration 050.
+
 ---
 
 ## 5. The argument for daily use
@@ -190,7 +228,18 @@ build one thing, build the class view.
 
 ---
 
-## 6. Priority
+## 6. Priority (superseded)
+
+**The ordering below predates gap H and is kept only as a record.** The
+current plan is [roadmap.md](roadmap.md), which sequences paper and code
+against a semester rather than against value-for-effort.
+
+Two things changed it. Gap H lands in a cohort's first weeks, so it outranks
+everything here on timing alone. And several of the paper items turned out to
+be decisions that constrain the schema, not prose, so they moved ahead of all
+app work rather than behind it.
+
+### The original ordering
 
 **If the classroom study runs this semester**, the ordering is forced, because
 some of these produce the study's data:
