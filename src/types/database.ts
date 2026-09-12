@@ -18,8 +18,82 @@ export interface Template {
   reviewed_by: string | null;
   approval_invalidated_at: string | null;
   consent_text: string | null;
+  require_inspection: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// ── Heuristic inspection (migration 052) ────────────────────
+
+export type InspectionStatus = "collecting" | "consolidating" | "closed";
+export type InspectionSubjectKind = "own" | "comparator";
+
+export interface HeuristicSet {
+  id: string;
+  name: string;
+  description: string | null;
+  org_id: string | null;
+  user_id: string | null;
+  is_builtin: boolean;
+  created_at: string;
+}
+
+export interface Heuristic {
+  id: string;
+  set_id: string;
+  sort_order: number;
+  code: string | null;
+  name: string;
+  description: string | null;
+}
+
+export interface Inspection {
+  id: string;
+  template_id: string;
+  heuristic_set_id: string | null;
+  subject_kind: InspectionSubjectKind;
+  subject_name: string;
+  subject_url: string | null;
+  status: InspectionStatus;
+  created_by: string | null;
+  created_at: string;
+  collection_closed_at: string | null;
+  closed_at: string | null;
+}
+
+export interface InspectionEvaluator {
+  id: string;
+  inspection_id: string;
+  user_id: string;
+  /** Null while the pass is open. Set once, by submit_inspection_pass(). */
+  submitted_at: string | null;
+  created_at: string;
+}
+
+export interface InspectionFinding {
+  id: string;
+  inspection_id: string;
+  evaluator_id: string;
+  heuristic_id: string | null;
+  location: string | null;
+  description: string;
+  /** Nielsen's 0..4 scale. */
+  severity: number | null;
+  evidence_path: string | null;
+  /** Set during consolidation; the only field that may change once frozen. */
+  problem_id: string | null;
+  created_at: string;
+}
+
+export interface InspectionProblem {
+  id: string;
+  inspection_id: string;
+  title: string;
+  notes: string | null;
+  heuristic_id: string | null;
+  agreed_severity: number | null;
+  sort_order: number;
+  created_at: string;
 }
 
 export interface TaskGroup {
@@ -41,6 +115,8 @@ export interface TemplateTask {
   optimal_actions: number | null;
   is_practice: boolean;
   created_at: string;
+  /** The inspection problem this task was written to confirm. */
+  from_problem_id: string | null;
 }
 
 export interface TemplateErrorType {

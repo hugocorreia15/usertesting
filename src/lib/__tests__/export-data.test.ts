@@ -42,6 +42,7 @@ function fakeTemplate(): TemplateWithRelations {
   return {
     id: "t1",
     name: "Demo Template",
+    require_inspection: false,
     description: null,
     user_id: "u1",
     org_id: null,
@@ -155,6 +156,7 @@ function fakeSession(): TestSessionWithRelations {
         template_tasks: {
           id: "task1",
           template_id: "t1",
+          from_problem_id: null,
           group_id: null,
           sort_order: 0,
           name: "Find the thing",

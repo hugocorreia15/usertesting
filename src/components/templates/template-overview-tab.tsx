@@ -12,6 +12,7 @@ import {
 import { ExportableChart } from "@/components/charts/exportable-chart";
 import { ProtocolReviewCard } from "@/components/templates/protocol-review-card";
 import { ReviewGateCard } from "@/components/templates/review-gate-card";
+import { InspectionListCard } from "@/components/inspection/inspection-list-card";
 import type { OrgRole } from "@/lib/review-gate";
 import type { TemplateWithRelations } from "@/types";
 import {
@@ -54,6 +55,7 @@ export function TemplateOverviewTab({
   // ahead of the analytics rather than inside their empty state.
   const review = template ? (
     <>
+      <InspectionListCard template={template} role={orgRole} canEdit={canEdit} />
       <ReviewGateCard template={template} role={orgRole} canEdit={canEdit} />
       <ProtocolReviewCard template={template} />
     </>

@@ -19,6 +19,7 @@ const task = (over: Partial<TemplateTask> = {}): TemplateTask => ({
   optimal_actions: 3,
   is_practice: false,
   created_at: "",
+  from_problem_id: null,
   ...over,
 });
 

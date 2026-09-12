@@ -27,6 +27,7 @@ import { Route as SessionsNewRouteImport } from './routes/sessions/new'
 import { Route as ParticipantsNewRouteImport } from './routes/participants/new'
 import { Route as ParticipantsParticipantIdRouteImport } from './routes/participants/$participantId'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
+import { Route as InspectionsInspectionIdRouteImport } from './routes/inspections/$inspectionId'
 import { Route as TemplatesTemplateIdIndexRouteImport } from './routes/templates/$templateId/index'
 import { Route as SessionsSessionIdIndexRouteImport } from './routes/sessions/$sessionId/index'
 import { Route as OrganizationsOrgIdIndexRouteImport } from './routes/organizations/$orgId/index'
@@ -128,6 +129,11 @@ const JoinCodeRoute = JoinCodeRouteImport.update({
   path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InspectionsInspectionIdRoute = InspectionsInspectionIdRouteImport.update({
+  id: '/inspections/$inspectionId',
+  path: '/inspections/$inspectionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesTemplateIdIndexRoute =
   TemplatesTemplateIdIndexRouteImport.update({
     id: '/templates/$templateId/',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
@@ -213,6 +220,7 @@ export interface FileRoutesByTo {
   '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/complete-profile': typeof CompleteProfileRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/inspections/$inspectionId'
     | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/inspections/$inspectionId'
     | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/complete-profile'
     | '/login'
     | '/profile'
+    | '/inspections/$inspectionId'
     | '/join/$code'
     | '/participants/$participantId'
     | '/participants/new'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   CompleteProfileRoute: typeof CompleteProfileRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  InspectionsInspectionIdRoute: typeof InspectionsInspectionIdRoute
   JoinCodeRoute: typeof JoinCodeRoute
   ParticipantsParticipantIdRoute: typeof ParticipantsParticipantIdRoute
   ParticipantsNewRoute: typeof ParticipantsNewRoute
@@ -514,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inspections/$inspectionId': {
+      id: '/inspections/$inspectionId'
+      path: '/inspections/$inspectionId'
+      fullPath: '/inspections/$inspectionId'
+      preLoaderRoute: typeof InspectionsInspectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/$templateId/': {
       id: '/templates/$templateId/'
       path: '/templates/$templateId'
@@ -586,6 +606,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompleteProfileRoute: CompleteProfileRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  InspectionsInspectionIdRoute: InspectionsInspectionIdRoute,
   JoinCodeRoute: JoinCodeRoute,
   ParticipantsParticipantIdRoute: ParticipantsParticipantIdRoute,
   ParticipantsNewRoute: ParticipantsNewRoute,

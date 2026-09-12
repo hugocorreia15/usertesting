@@ -136,6 +136,39 @@ Two modes, both real course assignments:
 | H6 | Traceability: turn a finding into a test task, and show the link in both directions | Closes the pipeline. A reader of the report can see why each task exists | S |
 | H7 | Gate integration: optionally require a consolidated inspection before a protocol may be submitted for review | Opt-in per organization, matching the existing review mode | S |
 
+### Phase 1 status
+
+Built on 2026-09-12. H1 through H7 are in, with one exclusion.
+
+| # | State |
+|---|---|
+| H1 schema | done, migration 052, six tables |
+| H2 isolation in row-level security | done, verified by `scripts/verify/inspection-isolation.sql` |
+| H3 independent pass interface | done, minus evidence images |
+| H4 consolidation | done |
+| H5 metrics | done, `src/lib/inspection.ts`, 26 tests |
+| H6 finding to task | done, `template_tasks.from_problem_id` |
+| H7 gate integration | done, opt-in `templates.require_inspection` |
+
+**Evidence image uploads are deliberately excluded.** The storage bucket keys
+access on a user-id path prefix, so a policy for inspection evidence would
+have to re-implement the peer-isolation predicate over `storage.objects`.
+Getting that wrong leaks evidence images past the isolation boundary, which is
+the one thing this module exists to prevent. The column is in the schema and
+the work is scoped as its own task with its own verification.
+
+**Two design bugs were found and fixed during the build.** Guarding deletes
+with triggers made an inspection undeletable, because `ON DELETE CASCADE`
+fires those triggers; deletion moved into row-level security, which cascades
+correctly bypass. And an evaluator joining after collection closed would have
+held an unfrozen pass beside frozen ones, so joining is now refused once
+collection is over.
+
+**Still to verify against the live database.** The migration has not been
+applied. Run `scripts/verify/inspection-isolation.sql` in the SQL editor after
+applying it; every row should read PASS, or SKIP where the project lacks a
+third account.
+
 ### What it unlocks
 
 - A second site for the evaluator effect, needing no participants at all.
