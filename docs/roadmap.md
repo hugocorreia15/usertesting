@@ -58,6 +58,57 @@ none of it implementation.
 | D4 | Decide the independence line: what an instructor may see before consolidation | A database constraint on the module below, not a preference. Schwind et al. warn that supervision can destroy the independence of student work | S |
 | D5 | Fix Table I row 8, which still says consent is recorded outside the platform | Stale since consent capture shipped in migration 050 | XS |
 
+### Phase 0 outcome
+
+All five done on 2026-09-12, in commit noted below. Two things did not go as
+written.
+
+**D1 was narrowed.** The roadmap said to add Table I rows for method choice
+and inspection. Table I is a claim about what the platform offers, and the
+inspection module does not exist, so writing those rows would have made the
+paper false. What was done instead: the existing objectives are now tagged
+with the Oleson difficulty each addresses, two rows were added for features
+that *have* shipped (the protocol review's rationales, tagged `WHY`, and the
+instructor gate, tagged `STAGE` and `RUSH`), and the absence of any inspection
+method is stated plainly in the prose and in Future Work. The inspection rows
+get added in Phase 4, when there is something to describe.
+
+**D3 changed one fact in the analysis.** The figures are confirmed from the
+source, not a summary: average agreement between any two evaluators ranges
+from 5% to 65% across eleven studies, holding for novices and experts alike
+and for severity ratings as well as problem detection. Two details matter for
+Phase 1. Any-two agreement is defined as the problems two evaluators share
+divided by the problems they collectively detect, averaged over all pairs,
+which is the Jaccard index and is what H5 should compute. And the paper
+attributes the effect to vague goal analyses, vague procedures, and vague
+problem criteria, which is a sharper argument for the platform than the
+agreement number itself: those are the three things a protocol template is
+forced to make explicit.
+
+### D4, decided: the independence rule for Phase 1
+
+The evaluator effect only exists if the passes are genuinely independent, and
+Hertzum and Jacobsen name anchoring as one of its three causes. So isolation
+is a correctness requirement for the metric, not a classroom courtesy.
+
+1. **Peer isolation.** An evaluator cannot read another evaluator's findings
+   for the same evaluation until they have submitted their own pass. Enforced
+   in row-level security, for the same reason the review guard is: the
+   interface is not where a grade-bearing rule belongs.
+2. **Unlock is per evaluator.** Once you submit, you may read anyone else who
+   has also submitted. Nobody waits for the slowest teammate.
+3. **Submission freezes your pass.** Otherwise the rule is trivially defeated:
+   submit an empty pass, read everyone else's, then fill yours in. Frozen sets
+   are also what makes the agreement statistic mean anything, since it is
+   computed over what each evaluator found *alone*. Later insights belong in
+   consolidation, which is collaborative by design.
+4. **The instructor sees status, not content, until consolidation.** Progress
+   and submission times feed the class view; findings stay closed. Schwind et
+   al.'s warning applies to the instructor as much as to a teammate: an
+   instructor who reads one pass early can steer the rest. The exception is
+   when every evaluator has submitted, after which anchoring is impossible and
+   the instructor sees everything.
+
 ---
 
 ## Phase 1: the inspection module

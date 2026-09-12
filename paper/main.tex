@@ -405,7 +405,17 @@ teams each run a moderated study of a system they are
 designing~\cite{churchill2013teaching}. A systematic mapping of HCI
 teaching found active, project-based approaches dominant, only two
 tools built for HCI teaching, and few empirical evaluations of
-either~\cite{lima2019tools}. A tool that makes an expert faster does
+either~\cite{lima2019tools}. What novices actually find hard has been
+characterized empirically rather than assumed: Oleson et al.\ identify
+eighteen types of learning difficulty in HCI design education, among them
+why an activity is done this way (\textsc{why}), how to perform a method
+(\textsc{how}), how to interpret feedback (\textsc{synth}), how to avoid
+biasing one's own design (\textsc{bias}), when to move to the next stage
+(\textsc{stage}), and a tendency to rush to implementation and discount
+design work (\textsc{rush})~\cite{oleson2020difficulties}.
+Table~\ref{tab:pedagogy} names, for each objective, the difficulty it
+addresses, so the alignment rests on reported difficulty rather than on our
+own assumption about what is hard. A tool that makes an expert faster does
 not thereby make a novice better; the education literature separates
 \emph{productivity tools} from \emph{mindtools}, which engage the
 learner in thinking about the domain~\cite{jonassen2000mindtools}. Our claim is of the second kind
@@ -424,6 +434,16 @@ of the classroom study in Section~\ref{sec:future}. Co-rating with Cohen's $\kap
 error'' from a textbook warning into a number two students computed
 about their own disagreement, and SUS confidence intervals refuse a
 score without its uncertainty at the moment $n=5$ would be over-read.
+That disagreement is not a student failing. Reviewing eleven studies of
+cognitive walkthrough, heuristic evaluation, and thinking-aloud, Hertzum
+and Jacobsen report that average agreement between any two evaluators of
+the same system ranges from 5\% to 65\%, and that the effect holds for
+experienced and novice evaluators alike and for severity ratings as well as
+problem detection~\cite{hertzum2003evaluator}. They attribute it to vague
+goal analyses, vague evaluation procedures, and vague problem criteria:
+precisely the three things a protocol template is forced to make explicit
+before a session runs. Measuring $\kappa$ therefore does more than grade a
+pair of students; it exposes a property of the method itself.
 
 These features observe; the protocol review is the first that gives
 feedback, checking a template without blocking against common novice
@@ -435,18 +455,37 @@ planning: a toolkit for method selection, power, and
 counterbalancing~\cite{schwind2023toolkit}, and a widely used plan
 template whose assessment turns on an instructor gate before any
 session may run~\cite{rose2016plan}. Avalux begins where they stop, at
-the session itself. Its review appears only once a design is saved,
+the session itself. Its own gate, enabled per template at an
+organization's discretion, is deliberately narrower than that template's.
+Schwind et al.\ warn that close supervision calls into question the
+independence of a student's research work~\cite{schwind2023toolkit}, so
+approval gates \emph{recruiting} and not \emph{rehearsal}: a team may run
+its protocol before approval, and those sessions are recorded as pilots and
+excluded from the template's aggregates. The instructor thus reviews with
+the protocol review's findings and the team's own pilot data in hand,
+without having authored the protocol. Its review appears only once a design is saved,
 not while it is typed: students value procedural scaffolding but
 distrust it when it pre-empts their own judgment~\cite{aziz2026genai},
 and a deterministic check carries none of the sycophancy they report
 in generative facilitators. Feedback is what separates a pedagogical
-tool from a well-instrumented one; what remains missing, and the
-classroom evaluation this framing requires, are taken up in
-Section~\ref{sec:future}.
+tool from a well-instrumented one.
+
+Two limits of this coverage should be stated plainly. The platform acts on
+difficulties of method execution and interpretation, not on difficulties of
+design itself (\textsc{what}, \textsc{adapt}, \textsc{divrs}) or of
+teamwork, scope, and stakeholders. More consequentially, it offers no
+inspection method. Heuristic evaluation and walkthroughs ordinarily precede
+empirical testing in a course sequence, need neither participants nor
+ethical approval, and produce the ranked problem list that a usability test
+is then designed to confirm; Avalux presently begins at the second stage of
+that pipeline. What remains missing, and the classroom evaluation this
+framing requires, are taken up in Section~\ref{sec:future}.
 
 \begin{table}[t]
 \caption{Constructive alignment: each learning objective, what the
-platform offers toward it, and the evidence that it was met.}
+platform offers toward it, and the evidence that it was met. Small capitals
+name the learning difficulty of Oleson et al.~\cite{oleson2020difficulties}
+that the objective addresses.}
 \label{tab:pedagogy}
 \centering
 \footnotesize
@@ -455,14 +494,16 @@ platform offers toward it, and the evidence that it was met.}
 \toprule
 Learning objective & What Avalux offers & Evidence of outcome \\
 \midrule
-Write tasks as goals, not procedures & Protocol review, leading-task check & Warnings resolved before the first session \\
-Fix criteria and baselines before running & Success criterion and optimal path per task & Both present on every measured task \\
-Control order effects & Order strategy per session, with explainer & Strategy chosen and justified in the report \\
-Treat ``error'' as a judgement & Co-rating, Cohen's $\kappa$ & $\kappa$ reported; disagreements reconciled \\
-Report uncertainty with small $n$ & SUS with 95\% CI & An interval beside every score \\
-Moderate without leading & Observation view, timestamped notes & Peer notes on hints and interventions \\
-Analyse qualitatively as a procedure & Code book, frequency matrix & Codes defined before tagging; matrix reported \\
-Handle participant data ethically & Retroactive anonymization, private media; consent is recorded outside the platform & Anonymized export; consent on file for every participant \\
+Say why a method step matters (\textsc{why}) & Protocol review: every check carries a rationale linked to the tutorial & Warnings resolved with a written justification \\
+Write tasks as goals, not procedures (\textsc{bias}) & Protocol review, leading-task check & Warnings resolved before the first session \\
+Fix criteria and baselines before running (\textsc{how}) & Success criterion and optimal path per task & Both present on every measured task \\
+Control order effects (\textsc{how}) & Order strategy per session, with explainer & Strategy chosen and justified in the report \\
+Treat ``error'' as a judgement (\textsc{synth}) & Co-rating, Cohen's $\kappa$ & $\kappa$ reported; disagreements reconciled \\
+Report uncertainty with small $n$ (\textsc{synth}) & SUS with 95\% CI & An interval beside every score \\
+Moderate without leading (\textsc{bias}) & Observation view, timestamped notes & Peer notes on hints and interventions \\
+Analyse qualitatively as a procedure (\textsc{how}) & Code book, frequency matrix & Codes defined before tagging; matrix reported \\
+Know when a protocol is ready to run (\textsc{stage}, \textsc{rush}) & Optional instructor gate; unapproved runs recorded as pilots & Approval recorded before the first recruited participant \\
+Handle participant data ethically & Retroactive anonymization, private media, per-template consent recorded at join & Anonymized export; a consent record for every participant \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -665,7 +706,15 @@ only), and both cohorts were young adults in their early twenties. More importan
 run a controlled comparison of evaluator effort and data quality against
 an ad-hoc toolchain or a commercial moderated platform; the case studies
 demonstrate feasibility and output quality, not superiority; that
-comparison is the designed next study (Section~\ref{sec:future}).
+comparison is the designed next study (Section~\ref{sec:future}). Named in
+the vocabulary of toolkit research, the two case studies are a
+\emph{demonstration}: the most common evaluation strategy in toolkit papers
+and the weakest on its own, since it establishes that something can be
+built rather than that it is worth building~\cite{ledo2018evaluation}. The
+evaluator and classroom studies of Section~\ref{sec:future} are
+\emph{usage} studies. The two remaining strategies of that taxonomy,
+technical performance and a heuristic analysis of the toolkit's own design,
+are not yet attempted.
 
 \subsection*{Security surface}
 The anonymous-participant model trades open link joins for RLS
@@ -718,9 +767,14 @@ members on a shared recorded session, the proportion of reports
 stating uncertainty with their estimates, and a pre/post test of
 methodological understanding, the protocol review's findings showing
 which mistakes recur; it is the kind of rigorous evaluation the mapping
-of HCI teaching found largely absent~\cite{lima2019tools}. The rest of the feedback loop is still missing: a reflection prompt after each
-session, structured instructor review visible to the team, and
-comparison of one protocol across teams or design iterations.
+of HCI teaching found largely absent~\cite{lima2019tools}. The rest of the loop is still missing, at both ends. Before a test is
+designed, the platform offers no inspection method: independent heuristic
+evaluation of a team's own prototype or of comparable products, merged into
+a ranked problem list from which test tasks are derived, would both supply
+that missing first stage and let a cohort observe the evaluator effect
+directly, with no participants required. After a session, a reflection
+prompt, structured instructor review visible to the team, and comparison of
+one protocol across teams or design iterations remain to be built.
 The \emph{platform} track continues with a more flexible task model;
 the additions described in Section~III beyond the two studies' original
 scope were themselves motivated by those studies and shipped since
