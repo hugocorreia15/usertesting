@@ -164,10 +164,26 @@ correctly bypass. And an evaluator joining after collection closed would have
 held an unfrozen pass beside frozen ones, so joining is now refused once
 collection is over.
 
-**Still to verify against the live database.** The migration has not been
-applied. Run `scripts/verify/inspection-isolation.sql` in the SQL editor after
-applying it; every row should read PASS, or SKIP where the project lacks a
-third account.
+**Verified against the live database on 2026-09-14.** Migration applied and
+`scripts/verify/inspection-isolation.sql` run in the SQL editor: 18 of 18 PASS,
+with no SKIP, so the non-evaluator instructor case was exercised for real. The
+checks that matter most:
+
+| Behaviour | Result |
+|---|---|
+| An unsubmitted evaluator sees 2 of 4 findings, not 4 | PASS |
+| Submitting alone does not unlock an unsubmitted peer | PASS |
+| A submitted pass refuses edits, new findings, and deletion | PASS |
+| `submitted_at` refuses a direct write | PASS |
+| An org owner who is not an evaluator sees 0 findings, 2 evaluators | PASS |
+| The last submission ends collection; all 4 then visible | PASS |
+| Consolidation may merge frozen findings but not rewrite them | PASS |
+| Nobody may join, and nothing may reopen, once collection closes | PASS |
+
+**Not yet exercised in a browser.** The migration is live, but the interface
+has never run against it. A smoke test needs a signed-in session, so it is
+yours to do: start an inspection, add findings as two accounts, submit both,
+merge, and check the statistics appear.
 
 ### What it unlocks
 
