@@ -18,3 +18,14 @@ state and an organization's defaults. Use a template you can experiment
 with, and run the last block to put things back. Triggers fire for a
 superuser in the SQL editor, which is why the guard checks work there even
 though RLS does not apply.
+
+## sql-lint.mjs
+
+```
+node scripts/verify/sql-lint.mjs
+```
+
+Catches a bare apostrophe inside a single-quoted SQL literal, which is the one
+mistake in these files that no local check used to find. Postgres reports it as
+a syntax error far from the real line, so it costs a round trip to the SQL
+editor every time. Run it before pasting any migration or verification script.

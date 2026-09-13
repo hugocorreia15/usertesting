@@ -590,7 +590,7 @@ INSERT INTO heuristics (set_id, sort_order, code, name, description) VALUES
  ('11111111-1111-1111-1111-111111111111'::uuid, 1, 'H1', 'Visibility of system status',
   'The design should always keep users informed about what is going on, through appropriate feedback within a reasonable amount of time.'),
  ('11111111-1111-1111-1111-111111111111'::uuid, 2, 'H2', 'Match between the system and the real world',
-  'The design should speak the users' language, with words, phrases and concepts familiar to them, rather than internal jargon.'),
+  'The design should speak the users'' language, with words, phrases and concepts familiar to them, rather than internal jargon.'),
  ('11111111-1111-1111-1111-111111111111'::uuid, 3, 'H3', 'User control and freedom',
   'Users often perform actions by mistake. They need a clearly marked emergency exit to leave the unwanted action.'),
  ('11111111-1111-1111-1111-111111111111'::uuid, 4, 'H4', 'Consistency and standards',
