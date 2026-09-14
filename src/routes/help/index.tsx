@@ -589,6 +589,20 @@ function HelpPage() {
               task rated easy that went badly, and notes teammates took while
               observing. Answer from that, not from memory.
             </p>
+            <p>
+              Below it, <strong>How the session was run</strong> lists the
+              corrections made while logging: entries undone, tasks reset or
+              revisited, the timer reset, and tasks marked successful with
+              nothing counted. A reset task was attempted twice, so its recorded
+              time and errors describe only the second attempt. Corrections are
+              recorded from the live cockpit; a session run before that shows
+              as not recorded, rather than as clean.
+            </p>
+            <HelpScreenshot
+              src="/help/24-session-run.png"
+              alt="The How the session was run card, listing an undone error and a task that was reset"
+              caption="A reset task was attempted twice; the card says so, because the results table cannot."
+            />
             <HelpScreenshot
               src="/help/21-reflection.png"
               alt="A reflection draft on a completed session, beside what the session recorded and notes from an observer"

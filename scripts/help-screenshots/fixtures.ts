@@ -584,6 +584,11 @@ export const DB: Record<string, unknown[]> = {
   inspection_evaluators: [...evaluators, ...bikeEvaluators],
   inspection_findings: findings,
   inspection_problems: problems,
+  moderation_events: [
+    { seq: 1, session_id: "s1", task_id: null, task_index: null, kind: "logging_started", timer_seconds: null, occurred_at: at(41) },
+    { seq: 2, session_id: "s1", task_id: "k2", task_index: 1, kind: "undo_error", timer_seconds: 64.2, occurred_at: at(41.3) },
+    { seq: 3, session_id: "s1", task_id: "k3", task_index: 2, kind: "task_reset", timer_seconds: 18.4, occurred_at: at(41.5) },
+  ],
   template_codes: [],
   answer_codes: [],
   auto_events: [],

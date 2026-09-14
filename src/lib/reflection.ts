@@ -23,6 +23,7 @@
  */
 
 import type { ObserverNote, TaskResult } from "@/types";
+import { moderationMomentsByTask, type ModerationEvent } from "@/lib/moderation";
 
 export interface ReflectionPrompt {
   key: "surprised" | "protocol_change" | "may_have_led";
@@ -95,9 +96,12 @@ export function reflectionEvidence(input: {
   tasks: readonly { id: string; name: string; optimal_time_seconds: number | null; is_practice?: boolean }[];
   notes: readonly ObserverNote[];
   viewerId: string | undefined;
+  /** Corrections made while logging (migration 055). Absent for older sessions. */
+  events?: readonly ModerationEvent[];
 }): ReflectionEvidence {
   const taskById = new Map(input.tasks.map((t) => [t.id, t]));
   const scored: (TaskMoment & { weight: number })[] = [];
+  const corrections = moderationMomentsByTask(input.events ?? []);
 
   for (const r of input.results) {
     const task = taskById.get(r.task_id);
@@ -147,6 +151,14 @@ export function reflectionEvidence(input: {
     ) {
       reasons.push(`rated easy (${r.seq_rating} of 7) despite the outcome`);
       weight += 2;
+    }
+
+    // A reset task was attempted twice, and its numbers describe only the
+    // second attempt; an undone error is a judgement the moderator revised.
+    const corrected = corrections.get(r.task_id);
+    if (corrected) {
+      reasons.push(...corrected.reasons);
+      weight += corrected.weight;
     }
 
     if (reasons.length > 0) {

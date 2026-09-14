@@ -312,6 +312,26 @@ once. Events now carry a strictly increasing sequence.
 The history shows on the review card and joins the data export, along with the
 inspection tables, which were not exported at all.
 
+**D, how the session was run, built on 2026-09-14, not yet applied.** Its
+first half is unrecoverable like G: undo deletes the row it undoes and every
+other correction was client state, so a session with three undone errors and a
+restarted task looked identical afterwards to a clean one. Migration 055 adds an
+append-only log the live cockpit writes at the moment of each undo, step back,
+task reset and timer reset.
+
+A session with no corrections and a session nobody was recording both have no
+events, and the first version told them apart with a hardcoded date. That would
+have marked every session run between that date and the day the migration was
+actually applied as recorded and clean. The cockpit now writes a
+logging_started marker when it opens, and only a session with that marker
+counts as recorded.
+
+The session page gains a card listing the corrections, naming any reset task
+(the participant attempted it twice, so its numbers describe only the second
+attempt) and any task marked successful with nothing counted. The same
+corrections now feed the reflection prompt's evidence, where a reset task was
+previously invisible because its final numbers looked fine.
+
 ---
 
 ## Phase 4: paper writing

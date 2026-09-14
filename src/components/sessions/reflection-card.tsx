@@ -21,6 +21,7 @@ import {
   reflectionEvidence,
   type ReflectionAnswers,
 } from "@/lib/reflection";
+import type { ModerationEvent } from "@/lib/moderation";
 import type {
   ObserverNote,
   RaterScore,
@@ -41,12 +42,14 @@ export function ReflectionCard({
   taskResults,
   observerNotes,
   raterScores,
+  moderationEvents = [],
 }: {
   sessionId: string;
   sessionOwnerId: string | null;
   taskResults: TaskResultWithRelations[];
   observerNotes: ObserverNote[];
   raterScores: RaterScore[];
+  moderationEvents?: ModerationEvent[];
 }) {
   const { user } = useAuth();
   const { data: reflections } = useSessionReflections(sessionId);
@@ -84,6 +87,7 @@ export function ReflectionCard({
             existing={mine}
             taskResults={taskResults}
             observerNotes={observerNotes}
+            moderationEvents={moderationEvents}
           />
         )}
 
@@ -140,12 +144,14 @@ function ReflectionForm({
   existing,
   taskResults,
   observerNotes,
+  moderationEvents,
 }: {
   sessionId: string;
   userId: string;
   existing: SessionReflection | null;
   taskResults: TaskResultWithRelations[];
   observerNotes: ObserverNote[];
+  moderationEvents: ModerationEvent[];
 }) {
   const save = useSaveReflection();
   const submit = useSubmitReflection();
@@ -179,8 +185,9 @@ function ReflectionForm({
         })),
         notes: observerNotes,
         viewerId: userId,
+        events: moderationEvents,
       }),
-    [taskResults, observerNotes, userId],
+    [taskResults, observerNotes, userId, moderationEvents],
   );
 
   const complete = reflectionComplete(answers);

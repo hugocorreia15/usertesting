@@ -167,4 +167,20 @@ describe("reflectionEvidence", () => {
     });
     expect(e.moments).toEqual([]);
   });
+
+  it("points at a reset task even when its final numbers look fine", () => {
+    const e = reflectionEvidence({
+      results: [result({ task_id: "t1" })],
+      tasks,
+      notes: [],
+      viewerId: "me",
+      events: [
+        { seq: 1, session_id: "s1", task_id: "t1", task_index: 0, kind: "task_reset", timer_seconds: 30, occurred_at: "" },
+      ],
+    });
+    // Success, no errors, no hesitations: without the event this task is invisible.
+    expect(e.moments).toHaveLength(1);
+    expect(e.moments[0].reason).toBe("reset and attempted again");
+  });
 });
+

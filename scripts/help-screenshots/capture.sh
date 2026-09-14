@@ -119,3 +119,9 @@ if want 23; then
   scroll_to_text "Class overview" 16
   shoot 23-class-overview.png
 fi
+
+if want 24; then
+  visit "/sessions/s1?as=bruno" "How the session was run"
+  scroll_to_text "How the session was run" 16
+  shoot 24-session-run.png
+fi

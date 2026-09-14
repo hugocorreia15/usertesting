@@ -65,6 +65,8 @@ import { sessionAgreement } from "@/lib/agreement";
 import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
 import { ReflectionCard } from "@/components/sessions/reflection-card";
+import { ModerationCard } from "@/components/sessions/moderation-card";
+import { useSessionModerationEvents } from "@/hooks/use-moderation-events";
 import {
   Tooltip as HoverTip,
   TooltipContent as HoverTipContent,
@@ -137,6 +139,7 @@ function SessionDetailPage() {
   );
   const { data: observerNotes } = useObserverNotes(session?.id);
   const { data: raterScores } = useRaterScores(session?.id);
+  const { data: moderationEvents } = useSessionModerationEvents(session?.id);
 
   if (isLoading) return <p className="p-6 text-muted-foreground">Loading...</p>;
   if (!session) return <p className="p-6 text-muted-foreground">Session not found.</p>;
@@ -268,7 +271,11 @@ function SessionDetailPage() {
             taskResults={taskResults}
             observerNotes={observerNotes ?? []}
             raterScores={raterScores ?? []}
+            moderationEvents={moderationEvents ?? []}
           />
+          <div className="mt-6">
+            <ModerationCard events={moderationEvents ?? []} taskResults={taskResults} />
+          </div>
         </div>
       )}
 

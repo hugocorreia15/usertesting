@@ -19,6 +19,7 @@ import { AutoEventsPanel } from "@/components/live/auto-events-panel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ClipboardCheck, CheckCircle2, Undo2 } from "lucide-react";
+import { useModerationLog, useModerationLoggingStarted } from "@/hooks/use-moderation-events";
 import { toast } from "sonner";
 import type { CompletionStatus } from "@/lib/constants";
 
@@ -58,6 +59,10 @@ function LiveSessionPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const upsertTaskQuestionAnswer = useUpsertTaskQuestionAnswer();
   const resetTaskResult = useResetTaskResult();
+  // Corrections leave no trace in the results, so they are recorded as they
+  // happen (migration 055). The marker says this visit was being recorded.
+  const logModeration = useModerationLog(sessionId);
+  useModerationLoggingStarted(sessionId, !!session && session.status !== "completed");
 
   // Keyboard shortcuts dispatch through a ref so the listener is bound
   // once; the handler body is reassigned each render below (after the
@@ -298,6 +303,11 @@ function LiveSessionPage() {
   const handlePrevious = () => {
     const prevIndex = Math.max(0, currentTaskIndex - 1);
     if (prevIndex === currentTaskIndex) return;
+    logModeration("step_back", {
+      taskId: currentTaskResult?.task_id ?? null,
+      taskIndex: currentTaskIndex,
+      timerSeconds: timer.seconds,
+    });
     setCurrentTaskIndex(prevIndex);
     updateSession.mutate({ id: sessionId, current_task_index: prevIndex });
     resetLiveCounters();
@@ -305,6 +315,12 @@ function LiveSessionPage() {
 
   // Wipe the current task back to unattempted (metrics, answers, logs).
   const handleReset = async () => {
+    // Recorded before the reset, while the timer still shows how far in it was.
+    logModeration("task_reset", {
+      taskId: currentTaskResult?.task_id ?? null,
+      taskIndex: currentTaskIndex,
+      timerSeconds: timer.seconds,
+    });
     if (currentTaskResult) {
       await resetTaskResult.mutateAsync(currentTaskResult.id);
     }
@@ -357,6 +373,10 @@ function LiveSessionPage() {
     const entry = undoStack[undoStack.length - 1];
     if (!entry) return;
     setUndoStack((s) => s.slice(0, -1));
+    logModeration(
+      entry.kind === "action" ? "undo_action" : entry.kind === "error" ? "undo_error" : "undo_hesitation",
+      { taskId: currentTaskResult?.task_id ?? null, taskIndex: currentTaskIndex, timerSeconds: timer.seconds },
+    );
     if (entry.kind === "action") {
       setActionCount((c) => Math.max(0, c - 1));
       toast.info("Action undone");
@@ -426,7 +446,14 @@ function LiveSessionPage() {
             isRunning={timer.isRunning}
             onStart={timer.start}
             onPause={timer.pause}
-            onReset={timer.reset}
+            onReset={() => {
+              logModeration("timer_reset", {
+                taskId: currentTaskResult?.task_id ?? null,
+                taskIndex: currentTaskIndex,
+                timerSeconds: timer.seconds,
+              });
+              timer.reset();
+            }}
           />
         </div>
 
