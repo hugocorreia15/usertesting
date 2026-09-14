@@ -521,6 +521,13 @@ function HelpPage() {
               back to draft, so what was approved is what runs. A reviewer who
               asks for changes must say what to change.
             </p>
+            <p>
+              Every step is kept under <em>History</em> on the review card:
+              each submission, each decision with its note, and each return to
+              draft. A submission also records the protocol exactly as it was
+              sent, so two submissions show what a team changed in between. The
+              data export includes all of it.
+            </p>
             <HelpScreenshot
               src="/help/19-instructor-review.png"
               alt="A template awaiting instructor review, with Approve and Request changes, below its heuristic inspections"

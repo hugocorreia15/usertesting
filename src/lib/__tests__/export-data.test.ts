@@ -309,11 +309,11 @@ describe("buildExportTables", () => {
       detail: null,
       created_at: "",
     });
-    const withEvents = buildExportTables(fakeTemplate(), [fakeSession()], [
+    const withEvents = buildExportTables(fakeTemplate(), [fakeSession()], { autoEvents: [
       autoEvent("ae1", "s1", "click", "2026-07-14T10:00:05Z"),
       autoEvent("ae2", "s1", "navigation", "2026-07-14T10:01:00Z"),
       autoEvent("ae3", "s-other", "keydown", "2026-07-14T10:02:00Z"),
-    ]);
+    ] });
     const t = withEvents.auto_events;
     expect(t.headers).toEqual([
       "session_id",
@@ -350,11 +350,11 @@ describe("buildExportTables", () => {
       created_at: "",
       updated_at: "",
     });
-    const t = buildExportTables(fakeTemplate(), [fakeSession()], [], [], [], [
+    const t = buildExportTables(fakeTemplate(), [fakeSession()], { reflections: [
       reflection("r1", "s1", "2026-09-14T10:00:00Z"),
       reflection("r2", "s1", null),
       reflection("r3", "s-other", "2026-09-14T11:00:00Z"),
-    ]).reflections;
+    ] }).reflections;
 
     expect(t.headers).toEqual([
       "session_id",
@@ -367,5 +367,63 @@ describe("buildExportTables", () => {
     // r2 is a draft; r3 belongs to a session outside this export.
     expect(t.rows).toHaveLength(1);
     expect(t.rows[0][t.headers.indexOf("may_have_led")]).toBe("led r1");
+  });
+
+  it("exports review history in order, snapshots as JSON, other templates left out", () => {
+    const event = (seq: number, event: string, over: Record<string, unknown> = {}) => ({
+      id: `ev${seq}`,
+      seq,
+      template_id: "t1",
+      event,
+      review_mode: "required",
+      actor_id: "u1",
+      note: null,
+      protocol_snapshot: null,
+      backfilled: false,
+      created_at: `2026-09-14T10:0${seq}:00Z`,
+      ...over,
+    });
+    const t = buildExportTables(fakeTemplate(), [fakeSession()], {
+      reviewEvents: [
+        event(3, "approved", { note: "Good to recruit" }),
+        event(1, "submitted", { protocol_snapshot: { tasks: [{ name: "Original" }] } }),
+        event(2, "changes_requested", { note: "Rewrite task 1" }),
+        event(9, "approved", { template_id: "other" }),
+      ] as never,
+    }).review_events;
+
+    expect(t.rows.map((r) => r[t.headers.indexOf("event")])).toEqual([
+      "submitted",
+      "changes_requested",
+      "approved",
+    ]);
+    expect(t.rows[1][t.headers.indexOf("note")]).toBe("Rewrite task 1");
+    expect(JSON.parse(t.rows[0][t.headers.indexOf("protocol_snapshot")] as string)).toEqual({
+      tasks: [{ name: "Original" }],
+    });
+    expect(t.rows[2][t.headers.indexOf("protocol_snapshot")]).toBeNull();
+  });
+
+  it("exports inspections with their evaluators, findings and problems", () => {
+    const tables = buildExportTables(fakeTemplate(), [fakeSession()], {
+      inspections: [
+        { id: "i1", template_id: "t1", heuristic_set_id: null, subject_kind: "own", subject_name: "Prototype", subject_url: null, status: "closed", created_by: null, created_at: "c", collection_closed_at: "x", closed_at: "y" },
+        { id: "i9", template_id: "other", heuristic_set_id: null, subject_kind: "own", subject_name: "Elsewhere", subject_url: null, status: "closed", created_by: null, created_at: "c", collection_closed_at: null, closed_at: null },
+      ],
+      inspectionEvaluators: [
+        { id: "e1", inspection_id: "i1", user_id: "u1", submitted_at: "s", created_at: "c" },
+        { id: "e9", inspection_id: "i9", user_id: "u9", submitted_at: "s", created_at: "c" },
+      ],
+      inspectionFindings: [
+        { id: "f1", inspection_id: "i1", evaluator_id: "e1", heuristic_id: "h1", location: "Home", description: "No feedback", severity: 3, evidence_path: null, problem_id: "p1", created_at: "c" },
+      ],
+      inspectionProblems: [
+        { id: "p1", inspection_id: "i1", title: "No feedback on save", notes: null, heuristic_id: "h1", agreed_severity: 3, sort_order: 0, created_at: "c" },
+      ],
+    });
+    expect(tables.inspections.rows).toHaveLength(1);
+    expect(tables.inspection_evaluators.rows).toHaveLength(1);
+    expect(tables.inspection_findings.rows[0]).toContain("No feedback");
+    expect(tables.inspection_problems.rows[0]).toContain("No feedback on save");
   });
 });

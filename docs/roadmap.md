@@ -260,8 +260,8 @@ and note that the protocol review flags a template with no instrument at all.
 |---|---|---|---|
 | A | Cross-team class view, now covering inspection status as well as sessions | The professor's weekly loop. Must exist *during* the cohort for the intervention to be real, though its analysis could be recovered later | L |
 | F+ | Extend findings to post-session synthesis, reusing the Phase 1 tables | The schema has no problem object at all today. One model serves inspection and session synthesis | M |
-| G | Export review and inspection history | Recoverable by querying the database, so it sits below the items above | S |
-| D | Moderation metrics shown back to the student | Skips and timings are stored. Undo and reset leave no trace today, so they must be logged first; see the correction in the analysis | M |
+| G | Record, then export, review and inspection history | **Not recoverable, contrary to the first estimate**: each review decision overwrote the last. Built as migration 054 | M |
+| D | Moderation metrics shown back to the student | Skips and timings are stored. Undo and reset leave no trace, so **logging them is unrecoverable** and must start before a cohort does; the metrics can follow | M |
 
 ### Phase 3 status
 
@@ -288,6 +288,29 @@ view can only show what the owner may already see. No migration was needed.
 last, and at 1440 pixels it had scrolled out of view, so the one column saying
 what to do was the one an instructor could not see. It now sits beside the
 project name.
+
+**G, review history, built on 2026-09-14, not yet applied.** The roadmap ranked
+this last because review decisions were "already stored" and so could be
+exported at any time. Checking the review functions showed that was wrong.
+Each decision overwrites the previous one in place: a new note replaces the old
+note, a new date the old date, and nothing records the protocol as submitted.
+A "changes requested, fixed, approved" cycle leaves only "approved". The history
+was being lost, not deferred.
+
+Migration 054 adds an append-only table written by one trigger on templates,
+rather than by editing the verified review functions. That leaves 050 and 052
+untouched and catches every path that changes review state, including the
+automatic return to draft on edit. Submission events store the protocol as
+submitted, so consecutive submissions are the before and after of a revision,
+which is what the classroom study needs to see which mistakes persist.
+
+Writing its verification script exposed an ordering bug before the migration
+reached the database: events in one transaction shared a timestamp, because
+`now()` is fixed per transaction, and turning review off writes two events at
+once. Events now carry a strictly increasing sequence.
+
+The history shows on the review card and joins the data export, along with the
+inspection tables, which were not exported at all.
 
 ---
 

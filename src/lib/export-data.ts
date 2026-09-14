@@ -6,7 +6,12 @@
 import { zipSync, strToU8 } from "fflate";
 import { calculateSusScore } from "@/lib/sus";
 import type {
+  Inspection,
+  InspectionEvaluator,
+  InspectionFinding,
+  InspectionProblem,
   SessionReflection,
+  TemplateReviewEvent,
   AutoEvent,
   ObserverNote,
   RaterScore,
@@ -33,13 +38,37 @@ export function toCsv(table: ExportTable): string {
   return lines.join("\n") + "\n";
 }
 
+/**
+ * Everything beyond the template and its sessions is optional, and passed as
+ * one object: the list grew past the point where positional arguments could be
+ * read at a call site.
+ */
+export interface ExportExtras {
+  autoEvents?: AutoEvent[];
+  observerNotes?: ObserverNote[];
+  raterScores?: RaterScore[];
+  reflections?: SessionReflection[];
+  reviewEvents?: TemplateReviewEvent[];
+  inspections?: Inspection[];
+  inspectionEvaluators?: InspectionEvaluator[];
+  inspectionFindings?: InspectionFinding[];
+  inspectionProblems?: InspectionProblem[];
+}
+
 export function buildExportTables(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
-  autoEvents: AutoEvent[] = [],
-  observerNotes: ObserverNote[] = [],
-  raterScores: RaterScore[] = [],
-  reflections: SessionReflection[] = [],
+  {
+    autoEvents = [],
+    observerNotes = [],
+    raterScores = [],
+    reflections = [],
+    reviewEvents = [],
+    inspections = [],
+    inspectionEvaluators = [],
+    inspectionFindings = [],
+    inspectionProblems = [],
+  }: ExportExtras = {},
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
     template.template_questions.map((q) => [q.id, q.question_text]),
@@ -352,6 +381,56 @@ export function buildExportTables(
       ]),
   };
 
+  // Review history, oldest first. A submission's snapshot is the protocol as
+  // it was submitted, so consecutive submissions are the before and after of
+  // one revision.
+  const reviewEventsT: ExportTable = {
+    headers: ["seq", "event", "created_at", "actor_id", "review_mode", "note", "backfilled", "protocol_snapshot"],
+    rows: [...reviewEvents]
+      .filter((e) => e.template_id === template.id)
+      .sort((a, b) => a.seq - b.seq)
+      .map((e) => [
+        e.seq,
+        e.event,
+        e.created_at,
+        e.actor_id,
+        e.review_mode,
+        e.note,
+        e.backfilled ? 1 : 0,
+        e.protocol_snapshot ? JSON.stringify(e.protocol_snapshot) : null,
+      ]),
+  };
+
+  const inspectionIds = new Set(
+    inspections.filter((i) => i.template_id === template.id).map((i) => i.id),
+  );
+  const inspectionsT: ExportTable = {
+    headers: ["inspection_id", "subject_name", "subject_kind", "status", "created_at", "collection_closed_at"],
+    rows: inspections
+      .filter((i) => inspectionIds.has(i.id))
+      .map((i) => [i.id, i.subject_name, i.subject_kind, i.status, i.created_at, i.collection_closed_at]),
+  };
+  const inspectionEvaluatorsT: ExportTable = {
+    headers: ["inspection_id", "evaluator_id", "user_id", "submitted_at"],
+    rows: inspectionEvaluators
+      .filter((e) => inspectionIds.has(e.inspection_id))
+      .map((e) => [e.inspection_id, e.id, e.user_id, e.submitted_at]),
+  };
+  // Only findings the exporting user may read are present: an inspection still
+  // collecting passes contributes only the exporter's own.
+  const inspectionFindingsT: ExportTable = {
+    headers: ["inspection_id", "evaluator_id", "heuristic_id", "location", "description", "severity", "problem_id", "created_at"],
+    rows: inspectionFindings
+      .filter((f) => inspectionIds.has(f.inspection_id))
+      .map((f) => [f.inspection_id, f.evaluator_id, f.heuristic_id, f.location, f.description, f.severity, f.problem_id, f.created_at]),
+  };
+  const inspectionProblemsT: ExportTable = {
+    headers: ["inspection_id", "problem_id", "title", "heuristic_id", "agreed_severity"],
+    rows: inspectionProblems
+      .filter((p) => inspectionIds.has(p.inspection_id))
+      .map((p) => [p.inspection_id, p.id, p.title, p.heuristic_id, p.agreed_severity]),
+  };
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -366,6 +445,11 @@ export function buildExportTables(
     observer_notes: observerNotesT,
     rater_scores: raterScoresT,
     reflections: reflectionsT,
+    review_events: reviewEventsT,
+    inspections: inspectionsT,
+    inspection_evaluators: inspectionEvaluatorsT,
+    inspection_findings: inspectionFindingsT,
+    inspection_problems: inspectionProblemsT,
   };
 }
 
@@ -389,12 +473,9 @@ function slug(name: string): string {
 export function exportDataZip(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
-  autoEvents: AutoEvent[] = [],
-  observerNotes: ObserverNote[] = [],
-  raterScores: RaterScore[] = [],
-  reflections: SessionReflection[] = [],
+  extras: ExportExtras = {},
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores, reflections);
+  const tables = buildExportTables(template, sessions, extras);
   const files: Record<string, Uint8Array> = {};
   for (const [name, table] of Object.entries(tables)) {
     files[`${name}.csv`] = strToU8(toCsv(table));
@@ -409,12 +490,9 @@ export function exportDataZip(
 export function exportDataJson(
   template: TemplateWithRelations,
   sessions: TestSessionWithRelations[],
-  autoEvents: AutoEvent[] = [],
-  observerNotes: ObserverNote[] = [],
-  raterScores: RaterScore[] = [],
-  reflections: SessionReflection[] = [],
+  extras: ExportExtras = {},
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores, reflections);
+  const tables = buildExportTables(template, sessions, extras);
   const payload = {
     template: { id: template.id, name: template.name },
     exported_at: new Date().toISOString(),

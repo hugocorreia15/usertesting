@@ -11,6 +11,8 @@ import type { ReviewMode } from "@/lib/review-gate";
 const invalidate = (qc: ReturnType<typeof useQueryClient>, id: string) => {
   qc.invalidateQueries({ queryKey: ["templates", id] });
   qc.invalidateQueries({ queryKey: ["templates"] });
+  // Each decision appends to the review history (migration 054).
+  qc.invalidateQueries({ queryKey: ["review-events", id] });
 };
 
 export function useSetReviewMode() {

@@ -303,6 +303,30 @@ export interface RaterScore {
 }
 
 // Spectator observation notes (migration 045)
+export type ReviewEventKind =
+  | "mode_changed"
+  | "submitted"
+  | "approved"
+  | "changes_requested"
+  | "invalidated"
+  | "returned_to_draft";
+
+/** Append-only review history (migration 054). Written only by trigger. */
+export interface TemplateReviewEvent {
+  id: string;
+  seq: number;
+  template_id: string;
+  event: ReviewEventKind;
+  review_mode: string;
+  actor_id: string | null;
+  note: string | null;
+  /** The protocol as submitted, on submission events only. */
+  protocol_snapshot: Record<string, unknown> | null;
+  /** The one event migration 054 created to describe a template's state then. */
+  backfilled: boolean;
+  created_at: string;
+}
+
 export interface SessionReflection {
   id: string;
   session_id: string;

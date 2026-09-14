@@ -358,3 +358,32 @@ export function useSetRequireInspection() {
     },
   });
 }
+
+/**
+ * Every inspection row for one template that the exporting user may read. For
+ * an inspection still collecting passes, row-level security returns only the
+ * exporter's own findings, so the export never leaks what the page would hide.
+ */
+export async function fetchInspectionsForExport(templateId: string) {
+  const { data: inspections, error } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("template_id", templateId);
+  if (error) throw error;
+  const ids = (inspections ?? []).map((i) => i.id);
+  if (ids.length === 0) {
+    return { inspections: [], inspectionEvaluators: [], inspectionFindings: [], inspectionProblems: [] };
+  }
+  const [evaluators, findings, problems] = await Promise.all([
+    supabase.from("inspection_evaluators").select("*").in("inspection_id", ids),
+    supabase.from("inspection_findings").select("*").in("inspection_id", ids),
+    supabase.from("inspection_problems").select("*").in("inspection_id", ids),
+  ]);
+  for (const r of [evaluators, findings, problems]) if (r.error) throw r.error;
+  return {
+    inspections: (inspections ?? []) as Inspection[],
+    inspectionEvaluators: (evaluators.data ?? []) as InspectionEvaluator[],
+    inspectionFindings: (findings.data ?? []) as InspectionFinding[],
+    inspectionProblems: (problems.data ?? []) as InspectionProblem[],
+  };
+}

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import {
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Clock,
   RotateCcw,
@@ -20,6 +21,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { useReviewEvents } from "@/hooks/use-review-events";
+import type { TemplateReviewEvent } from "@/types";
 import {
   REVIEW_MODES,
   REVIEW_STATUS_LABEL,
@@ -248,7 +256,58 @@ export function ReviewGateCard({
             </div>
           </div>
         )}
+
+        {actions.active && <ReviewHistory templateId={template.id} />}
       </CardContent>
     </Card>
+  );
+}
+
+const EVENT_LABEL: Record<TemplateReviewEvent["event"], string> = {
+  mode_changed: "Review mode changed",
+  submitted: "Sent for review",
+  approved: "Approved",
+  changes_requested: "Changes requested",
+  invalidated: "Protocol edited, so it returned to draft",
+  returned_to_draft: "Returned to draft",
+};
+
+/**
+ * Every decision on this protocol, oldest first. The card above shows only the
+ * current state; this is what was said before, which the current note would
+ * otherwise have replaced.
+ */
+function ReviewHistory({ templateId }: { templateId: string }) {
+  const { data: events } = useReviewEvents(templateId);
+  if (!events || events.length === 0) return null;
+
+  return (
+    <Collapsible className="border-t pt-3">
+      <CollapsibleTrigger className="group flex w-full cursor-pointer items-center justify-between text-xs font-medium text-muted-foreground hover:text-foreground">
+        History ({events.length})
+        <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <ol className="mt-3 space-y-2 border-l pl-4">
+          {events.map((e) => (
+            <li key={e.id} className="relative text-xs">
+              <span className="absolute -left-[1.3rem] top-1 h-2 w-2 rounded-full bg-muted-foreground/40" />
+              <span className="font-medium">
+                {e.event === "mode_changed"
+                  ? `Review set to ${e.review_mode}`
+                  : EVENT_LABEL[e.event]}
+              </span>{" "}
+              <span className="text-muted-foreground">
+                {new Date(e.created_at).toLocaleString()}
+                {e.backfilled ? ", recorded when history began" : ""}
+              </span>
+              {e.note && (
+                <p className="mt-0.5 whitespace-pre-wrap text-muted-foreground">{e.note}</p>
+              )}
+            </li>
+          ))}
+        </ol>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

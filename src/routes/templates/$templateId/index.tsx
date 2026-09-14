@@ -12,6 +12,8 @@ import { exportDataZip, exportDataJson } from "@/lib/export-data";
 import { fetchAutoEventsForSessions } from "@/hooks/use-auto-events";
 import { fetchObserverNotesForSessions } from "@/hooks/use-observer-notes";
 import { fetchReflectionsForSessions } from "@/hooks/use-reflections";
+import { fetchReviewEvents } from "@/hooks/use-review-events";
+import { fetchInspectionsForExport } from "@/hooks/use-inspections";
 import { fetchRaterScoresForSessions } from "@/hooks/use-rater-scores";
 import {
   DropdownMenu,
@@ -111,10 +113,11 @@ function TemplateDetailPage() {
         () => [],
       );
       const reflections = await fetchReflectionsForSessions(ids).catch(() => []);
-      if (format === "csv")
-        exportDataZip(template, sessions, autoEvents, observerNotes, raterScores, reflections);
-      else
-        exportDataJson(template, sessions, autoEvents, observerNotes, raterScores, reflections);
+      const reviewEvents = await fetchReviewEvents(template.id).catch(() => []);
+      const inspection = await fetchInspectionsForExport(template.id).catch(() => ({}));
+      const extras = { autoEvents, observerNotes, raterScores, reflections, reviewEvents, ...inspection };
+      if (format === "csv") exportDataZip(template, sessions, extras);
+      else exportDataJson(template, sessions, extras);
     } catch {
       toast.error("Failed to export data");
     }
