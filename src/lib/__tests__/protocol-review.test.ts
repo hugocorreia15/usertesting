@@ -56,6 +56,31 @@ describe("leadingTerms", () => {
   it("flags quoted labels", () => {
     expect(leadingTerms({ name: "Open the 'Cloud Studies' page", description: null }))
       .toContain('"Cloud Studies"');
+    expect(leadingTerms({ name: "Press \u201cExport\u201d", description: null }))
+      .toContain('"Export"');
+    expect(leadingTerms({ name: "Choose \u2018Save as\u2019", description: null }))
+      .toContain('"Save as"');
+  });
+
+  it("does not read apostrophes inside words as quotes", () => {
+    // Two possessives, one in the name and one in the description, used to
+    // bracket the text between them and flag it as a quoted label.
+    expect(
+      leadingSignals({
+        name: "Find last week's energy use",
+        description: "Done when last week's total is on screen.",
+      }).strong,
+    ).toEqual([]);
+    expect(
+      leadingSignals({ name: "Check the user's profile", description: "Done when it's open." })
+        .strong,
+    ).toEqual([]);
+  });
+
+  it("still finds a quoted label next to a contraction", () => {
+    expect(
+      leadingSignals({ name: "Don't worry, just find 'Away mode'", description: null }).strong,
+    ).toEqual(['"Away mode"']);
   });
 
   it("leaves goal-oriented wording alone", () => {

@@ -65,8 +65,15 @@ const termRe = (terms: string[]) =>
 const NOUN_RE = termRe(UI_NOUNS);
 const VERB_RE = termRe(UI_VERBS);
 
-/** "Settings", 'Cloud Studies', “Export”: a quoted string is usually a label. */
-const QUOTED_RE = /["“”']([^"“”']{2,40})["“”']/g;
+/**
+ * "Settings", 'Cloud Studies', “Export”, ‘Save’: a quoted string is usually a
+ * label. A quotation mark only counts at a word boundary. An apostrophe inside a
+ * word is not a quote: without that rule, "last week's energy use. Done when last
+ * week's total shows" read as the label "s energy use. Done when last week" and
+ * any task written with two possessives was flagged as leading.
+ */
+const QUOTED_RE =
+  /(?<![\p{L}\p{N}])["“'‘]([^"“”'‘’]{2,40})["”'’](?![\p{L}\p{N}])/gu;
 
 export interface LeadingSignal {
   /** Procedural verbs and quoted labels: the task walks the participant through the UI. */

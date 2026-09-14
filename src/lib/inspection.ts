@@ -51,7 +51,7 @@ export interface AnyTwoAgreement {
   /** Mean over pairs, 0..1. Null when fewer than two evaluators have findings. */
   value: number | null;
   pairs: PairAgreement[];
-  /** How the value sits against the 5% to 65% range reported across eleven studies. */
+  /** Where the value sits against the published 5% to 65% range. */
   label: string;
 }
 
@@ -148,9 +148,9 @@ export function anyTwoAgreement(
  */
 function agreementLabel(value: number): string {
   const pct = value * 100;
-  if (pct < 5) return "below the range reported across eleven studies (5% to 65%)";
-  if (pct <= 65) return "within the range reported across eleven studies (5% to 65%)";
-  return "above the range reported across eleven studies (5% to 65%)";
+  if (pct < 5) return "below the published range";
+  if (pct <= 65) return "within the published range";
+  return "above the published range";
 }
 
 /** How many evaluators found each problem, most-agreed first. */

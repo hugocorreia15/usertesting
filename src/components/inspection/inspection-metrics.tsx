@@ -61,7 +61,7 @@ export function InspectionMetrics({
               <strong>{pct(s.anyTwo.value)}</strong>, {s.anyTwo.label}. Hertzum
               and Jacobsen reviewed eleven studies of cognitive walkthrough,
               heuristic evaluation and thinking-aloud and found this figure
-              ranges from 5% to 65%, for experienced evaluators as much as for
+              between 5% and 65%, for experienced evaluators as much as for
               novices. Low overlap is the normal result, not a sign that
               somebody did the exercise badly.
             </p>

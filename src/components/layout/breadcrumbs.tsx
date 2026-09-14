@@ -2,6 +2,7 @@ import { Link, useLocation, useParams } from "@tanstack/react-router";
 import { useSession } from "@/hooks/use-sessions";
 import { useTemplate } from "@/hooks/use-templates";
 import { useParticipant } from "@/hooks/use-participants";
+import { useInspection } from "@/hooks/use-inspections";
 import { ChevronRight, Home } from "lucide-react";
 import { Fragment } from "react";
 
@@ -16,7 +17,10 @@ function useBreadcrumbs(): Crumb[] {
   const pathname = location.pathname;
 
   const { data: session } = useSession(params.sessionId);
-  const { data: template } = useTemplate(params.templateId);
+  const { data: inspectionDetail } = useInspection(params.inspectionId);
+  const inspection = inspectionDetail?.inspection;
+  // An inspection page has no templateId in its URL; its study comes from the row.
+  const { data: template } = useTemplate(params.templateId ?? inspection?.template_id);
   const { data: participant } = useParticipant(params.participantId);
 
   const crumbs: Crumb[] = [];
@@ -38,16 +42,19 @@ function useBreadcrumbs(): Crumb[] {
         ? `${session.participants?.name ?? "Session"}`
         : "...";
 
-      if (pathname.endsWith("/live") || pathname.endsWith("/edit")) {
+      const subPage = {
+        "/live": "Live Mode",
+        "/edit": "Edit",
+        "/corate": "Co-rate",
+        "/observe": "Observe",
+      }[pathname.slice(pathname.lastIndexOf("/"))];
+
+      if (subPage) {
         crumbs.push({
           label: sessionLabel,
           href: `/sessions/${params.sessionId}`,
         });
-        if (pathname.endsWith("/live")) {
-          crumbs.push({ label: "Live Mode" });
-        } else {
-          crumbs.push({ label: "Edit" });
-        }
+        crumbs.push({ label: subPage });
       } else {
         crumbs.push({ label: sessionLabel });
       }
@@ -65,6 +72,18 @@ function useBreadcrumbs(): Crumb[] {
     } else if (pathname.endsWith("/new")) {
       crumbs.push({ label: "New Template" });
     }
+  }
+
+  // Inspections belong to a study, so they sit under Templates.
+  else if (pathname.startsWith("/inspections")) {
+    crumbs.push({ label: "Templates", href: "/templates" });
+    if (inspection) {
+      crumbs.push({
+        label: template?.name ?? "...",
+        href: `/templates/${inspection.template_id}`,
+      });
+    }
+    crumbs.push({ label: inspection?.subject_name ?? "..." });
   }
 
   // Participants
