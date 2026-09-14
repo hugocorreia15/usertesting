@@ -202,12 +202,25 @@ merge, and check the statistics appear.
 
 ### Phase 2 status
 
-Built on 2026-09-14 and not yet applied to the live database.
+Built on 2026-09-14. **Verified against the live database the same day**:
+migration 053 applied and `scripts/verify/reflection-visibility.sql` run, 14 of 14
+PASS, with three accounts playing moderator, teammate and instructor. The checks
+that carry the design:
+
+| Behaviour | Result |
+|---|---|
+| No reflection before the session is completed | PASS |
+| Nobody can write as someone else, or insert one already submitted | PASS |
+| A placeholder answer under twenty characters cannot be submitted | PASS |
+| Instructor and teammate both see 0 while it is a draft | PASS |
+| A submitted reflection refuses edits and deletion | PASS |
+| Instructor sees it once submitted; a teammate who has not reflected still sees 0 | PASS |
+| Your own draft unlocks nothing; submitting yours unlocks a teammate's | PASS |
 
 | Part | State |
 |---|---|
-| Migration 053, one table and a submit function | written, linted |
-| Visibility rule in row-level security | written; verify with `scripts/verify/reflection-visibility.sql` |
+| Migration 053, one table and a submit function | applied |
+| Visibility rule in row-level security | verified, 14 of 14 |
 | Evidence summary beside the questions | done, `src/lib/reflection.ts`, 11 tests |
 | Reflection card on completed sessions | done |
 | Submitted reflections in the CSV and JSON export | done, drafts excluded, tested |
