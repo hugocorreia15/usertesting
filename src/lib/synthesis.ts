@@ -13,14 +13,24 @@
  *     Of the problems testing showed, predicted or not, the share the
  *     inspection had predicted.
  *
- * The literature on comparing evaluation methods calls these validity and
- * thoroughness (Hartson, Andre and Williges, IJHCI). That attribution comes from
- * search summaries and must be checked against the paper before it is cited.
+ * These are the validity and thoroughness of an evaluation method, as defined by
+ * Sears (IJHCI 9(3), 1997) and systematized by Hartson, Andre and Williges
+ * (IJHCI 13(4), 2001, republished 15(1), 2003), checked against the published
+ * text: thoroughness = real problems found / real problems that exist (their
+ * eq. 2), validity = real problems found / issues identified as problems
+ * (eq. 10). "Real" is decided by an actual criterion, here the team's testing.
+ *
+ * One deliberate departure: their validity counts every reported problem in the
+ * denominator. Untested predictions are left out here, because no task exposed
+ * them to the criterion. And the reference set is what testing showed, never
+ * the union of inspection and testing, which Hartson et al. show makes validity
+ * equal to one by construction (eqs. 14 and 15).
  *
  * The interface never says "false alarm". A predicted problem nobody hit in a
- * handful of sessions may still be real; user testing is not ground truth, a
- * point made directly in the critique of these measures, and a team that treats
- * it as such learns to distrust inspection for the wrong reason.
+ * handful of sessions may still be real. Hartson et al. call laboratory testing
+ * the de facto standard but not an ultimate criterion: "the typical usability
+ * laboratory test will miss some usability problems", and its tasks are chosen
+ * by the people who designed it.
  */
 
 export type TestOutcome = "untested" | "confirmed" | "not_observed";

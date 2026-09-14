@@ -344,17 +344,32 @@ appear to have confirmed nothing.
 The outcome is never "false alarm". A problem no participant hit in a handful of
 sessions may still be real, and a critique of these measures makes exactly that
 point: user testing is not ground truth. The literature names the two ratios
-validity and thoroughness (Hartson, Andre and Williges); that attribution is
-from search summaries and must be checked before the paper cites it.
+validity and thoroughness. Checked against the published text on 2026-09-14:
+the definitions are Sears's (1997), systematized by Hartson, Andre and Williges
+(2001, republished 2003), and both match the two ratios. Leaving untested
+predictions out of the validity denominator is a stated departure from their
+definition.
 
 Evidence is checked in row-level security: the session and the problem must
 belong to the same study, and relabelling the study in the request does not get
 round it. Pilots are excluded as evidence, since they rehearse the protocol.
 
-**Phase 3 is complete apart from applying migrations 054, 055 and 056.** Each
-has a verification script; see `scripts/verify/README.md`. The pushed app should
-wait for them, since the review history, correction log and synthesis read
-tables that do not exist until then.
+**Phase 3 is complete and verified against the live database on 2026-09-14.**
+Migrations 054, 055 and 056 applied; their scripts all pass.
+
+| Script | Result |
+|---|---|
+| `review-history.sql` | 10 of 10 PASS |
+| `moderation-events.sql` | 8 of 8 PASS |
+| `test-synthesis.sql` | 10 of 10 PASS |
+
+**Paper brought up to date the same day.** It described Avalux as offering no
+inspection method and listed reflection, instructor review history and
+cross-team comparison as unbuilt. It now has a subsection on inspection and
+synthesis, three new alignment rows, a rewritten pedagogical design organised
+around what the features make visible, scaffold and ask students to reflect on,
+and an inspection thread in Related Work. Hertzum and Jacobsen are cited to the
+2001 original; the 2003 appearance is a republication.
 
 ---
 

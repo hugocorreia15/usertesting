@@ -5,6 +5,7 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit,calc}
 \usepackage{pgfplots}
@@ -45,6 +46,12 @@ session from advancing while the participant is still answering. Sessions
 can conclude with a semi-structured interview and with whichever
 automatically scored questionnaires a study selects, among them the System
 Usability Scale, and export to a self-contained PDF report.
+For teaching, a further layer turns properties of the methods into figures
+students compute on their own work: independent heuristic inspection that
+reports how far evaluators agreed, a comparison of inspection predictions
+with what participants actually encountered, reflection after each session
+drawn from what the session recorded, a kept record of every protocol
+revision, and a class-wide view for the instructor.
 We describe the architecture, a React single-page application over a
 Postgres backend with row-level security, and report two case studies:
 a four-participant evaluation of a household touch-panel controller
@@ -57,8 +64,8 @@ metrics.
 \end{abstract}
 
 \begin{IEEEkeywords}
-usability testing, moderated evaluation, SUS, SEQ, research tools,
-human--computer interaction
+usability testing, moderated evaluation, heuristic evaluation, SUS, SEQ,
+HCI education, research tools, human--computer interaction
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -100,10 +107,14 @@ the moderated-testing pipeline end to end. Its contributions are:
   physical device beyond browser instrumentation, and that its task-level
   instruments localize the problems behind widely differing outcomes
   (mean SUS 28.1 vs.\ 80);
-  \item a \textbf{pedagogical design} for classroom use: features
-  mapped onto learning objectives, student teams running independent
-  studies under an instructor account, and a protocol review that
-  flags common novice mistakes before a study runs.
+  \item a \textbf{pedagogical design} for classroom use, mapped onto
+  empirically reported learning difficulties, in which features are chosen
+  for the evidence they produce about the method rather than for the effort
+  they save: independent heuristic inspection with an agreement statistic,
+  a comparison of inspection predictions against observed problems,
+  co-rating, evidence-grounded reflection, a protocol review and an optional
+  instructor gate with a kept revision history, and a class view for the
+  instructor.
 \end{itemize}
 
 Avalux is deployed at \url{https://avalux.pt}; its schema, protocol
@@ -176,7 +187,7 @@ pressure may need workload and not perceived usability; a comparison of
 two designs' experiential appeal may need UEQ-S alone; a formative study
 run mid-iteration may need no questionnaire, its evidence being the
 problems observed. Opting out remains a visible decision rather than an
-oversight: the protocol review of Section~III-I notes a template that
+oversight: the protocol review of Section~\ref{sec:pedagogy} notes a template that
 administers no instrument at all, with the reason a standardized scale
 matters. A \emph{session} instantiates a
 template for one participant and accumulates per-task results (status,
@@ -279,7 +290,15 @@ completion status, read against the Landis and Koch
 bands~\cite{landis1977measurement}, and exact-match rate, mean absolute
 difference, and Pearson correlation on action, error, hesitation, and
 SEQ counts, making the reliability of evaluator-logged measures
-measurable per session rather than assumed. When a
+measurable per session rather than assumed. The cockpit also records the
+corrections made while logging (an undone action, error, or hesitation, a
+return to the previous task, a task reset, a timer reset), which would
+otherwise leave no trace, since an undo deletes what it undoes. A reset in
+particular changes how a result must be read: the participant attempted the
+task twice, and its recorded measures describe only the second attempt, so
+the session view names it. The cockpit writes a marker when it opens, which
+lets a session logged without corrections be told apart from one that was
+not recorded at all. When a
 template administers them, raw NASA-TLX is scored as the unweighted mean
 of its six subscales~\cite{hart2006nasatlx} and UEQ-S as pragmatic,
 hedonic, and overall means on the $-3$ to $+3$
@@ -386,6 +405,62 @@ unmoderated products; coupling a template-scoped code book to the
 structured answers of moderated sessions keeps the coding unit aligned
 with the protocol itself.
 
+\subsection{Heuristic Inspection and Synthesis}
+\label{sec:inspection}
+Usability testing is ordinarily preceded by inspection, in which evaluators
+judge an interface against a short set of principles without
+participants~\cite{nielsen1990heuristic}. Avalux supports it as the stage
+before a protocol is written. A team inspects its own prototype or, before
+one exists, a comparable product, against a heuristic set; Nielsen's ten
+heuristics~\cite{nielsen1994enhancing} are built in, and the schema admits
+sets defined by an organization. Each finding records a description and
+optionally a heuristic, a location, and a severity from 0 (not a problem)
+to 4 (catastrophe).
+
+Evaluators work alone. Row-level security refuses to return another
+evaluator's findings until both have submitted, and submission freezes a
+pass so that it cannot be revised after reading the others; an organization
+owner who is not an evaluator sees who has submitted, but no findings,
+until every pass is in. The statistic that follows depends on this rule.
+Hertzum and Jacobsen attribute part of the evaluator effect to vague
+evaluation procedures leading to anchoring~\cite{hertzum2001evaluator}, and
+an evaluator who reads a teammate's list first inflates exactly the
+agreement being measured. The passes are then merged into one problem list,
+and three figures describe the merge: any-two agreement, the mean over all
+pairs of evaluators of the problems they share divided by the problems they
+found between them, as Hertzum and Jacobsen define it; the share of
+problems that only one evaluator found; and the expected number of problems
+found by every possible group of $k$ evaluators, computed exactly over
+subsets, with the number of evaluators the discovery model of Nielsen and
+Landauer~\cite{nielsen1993mathematical} predicts for three quarters and nine
+tenths of the known problems. A cohort thus derives the familiar
+advice on how many evaluators to use from its own passes, rather than
+receiving it.
+
+After testing, the same list is set against what participants did. Each
+predicted problem is marked as encountered, not observed, or not yet
+tested, and linked to the sessions that show it; problems testing revealed
+but inspection did not predict are recorded alongside. A session may serve
+as evidence only for a problem of its own study, a rule enforced in the
+database, and the interface does not offer pilot sessions as evidence. Two ratios
+follow. Of the tested predictions, the share participants encountered is
+the \emph{validity} of the inspection, and of the problems testing showed,
+the share the inspection predicted is its \emph{thoroughness}, measures
+defined by Sears~\cite{sears1997heuristic} and systematized by Hartson et
+al., who make both relative to an \emph{actual criterion} that decides
+which problems are real~\cite{hartson2001criteria}. Here that criterion is
+the team's own testing, and three consequences are built in. First, no
+prediction is ever recorded as a false alarm, because laboratory testing is
+not an ultimate criterion: a typical test will miss some usability
+problems, and its tasks are chosen by the people who designed
+it~\cite{hartson2001criteria}. Second, predictions that no task exercised
+are left out of both ratios rather than counted against the inspection, a
+deliberate departure from the definition of validity, whose denominator is
+every problem reported. Third, the reference set is what testing showed and
+never the union of inspection and testing results, since a union would make
+the validity of every contributing method equal to one by
+construction~\cite{hartson2001criteria}.
+
 \subsection{Design Notes}
 Two design decisions proved more consequential than expected. First,
 \emph{logging must not compete with observation}: every evaluator action
@@ -411,6 +486,7 @@ against the template's optimal baselines.}
 \end{figure}
 
 \subsection{Pedagogical Design}
+\label{sec:pedagogy}
 Avalux is also deployed in an undergraduate HCI course, where student
 teams each run a moderated study of a system they are
 designing~\cite{churchill2013teaching}. A systematic mapping of HCI
@@ -426,71 +502,106 @@ biasing one's own design (\textsc{bias}), when to move to the next stage
 design work (\textsc{rush})~\cite{oleson2020difficulties}.
 Table~\ref{tab:pedagogy} names, for each objective, the difficulty it
 addresses, so the alignment rests on reported difficulty rather than on our
-own assumption about what is hard. A tool that makes an expert faster does
-not thereby make a novice better; the education literature separates
-\emph{productivity tools} from \emph{mindtools}, which engage the
-learner in thinking about the domain~\cite{jonassen2000mindtools}. Our claim is of the second kind
-and rests on the cognitive-apprenticeship
-observation~\cite{collins1989cognitive} that expert practice is
-invisible to novices until made visible, scaffolded, and reflected
-on. With a stopwatch and a spreadsheet an instructor sees a
-final report and cannot tell whether moderation was biased, whether two
-observers would have logged the same errors, or whether the sample
-supports the conclusion. Avalux makes that methodological quality
-observable, to student and instructor alike. Table~\ref{tab:pedagogy}
-states the constructive alignment~\cite{biggs1996alignment} between
-each learning objective, what the platform offers toward it, and the
-evidence that would show it met; that third column is also the rubric
-of the classroom study in Section~\ref{sec:future}. Co-rating with Cohen's $\kappa$ turns ``what counts as an
-error'' from a textbook warning into a number two students computed
-about their own disagreement, and SUS confidence intervals refuse a
-score without its uncertainty at the moment $n=5$ would be over-read.
-That disagreement is not a student failing. Reviewing eleven studies of
-cognitive walkthrough, heuristic evaluation, and thinking-aloud, Hertzum
-and Jacobsen report that average agreement between any two evaluators of
-the same system ranges from 5\% to 65\%, and that the effect holds for
-experienced and novice evaluators alike and for severity ratings as well as
-problem detection~\cite{hertzum2003evaluator}. They attribute it to vague
-goal analyses, vague evaluation procedures, and vague problem criteria:
+own assumption about what is hard, and states the constructive
+alignment~\cite{biggs1996alignment} between each objective, what the
+platform offers toward it, and the evidence that would show it met; that
+third column is also the rubric of the classroom study in
+Section~\ref{sec:future}.
+
+A tool that makes an expert faster does not thereby make a novice better;
+the education literature separates \emph{productivity tools} from
+\emph{mindtools}, which engage the learner in thinking about the
+domain~\cite{jonassen2000mindtools}. Our claim is of the second kind, and
+the clearest way to see the difference from the traditional stopwatch and
+spreadsheet is in what the features cost. A productivity tool removes
+steps. Several of Avalux's add them: a second rater scores a session that
+is already scored, evaluators inspect alone before merging, each prediction
+is checked against the sessions, and whoever took part in a session is
+asked to reflect on it. Every added step produces evidence about the method
+rather than about the design under test, and each turns a property that a
+course would ordinarily assert in a lecture into a figure computed from the
+team's own work: that careful evaluators disagree (Cohen's $\kappa$ on
+completion, any-two agreement across inspection passes), that one
+evaluator is not enough (the discovery curve of the team's own passes),
+that inspection and testing find different problems (the two ratios of
+Section~\ref{sec:inspection}), and that five participants license only a
+wide interval (confidence intervals beside SUS). The traditional approach
+can state each of these, but it cannot hand a team the figure for its own
+study without an analysis nobody performs by hand, and an instructor who
+receives only a final report cannot tell whether moderation was biased,
+whether two observers would have logged the same errors, or whether the
+sample supports the conclusion. That rests on the cognitive-apprenticeship
+observation~\cite{collins1989cognitive} that expert practice is invisible
+to novices until made visible, scaffolded, and reflected on, and the
+features below are grouped accordingly.
+
+\emph{Made visible.} The disagreement co-rating reveals is not a student
+failing. Reviewing eleven studies of cognitive walkthrough, heuristic
+evaluation, and thinking-aloud, Hertzum and Jacobsen report that average
+agreement between any two evaluators of the same system ranges from 5\% to
+65\%, and that the effect holds for experienced and novice evaluators alike
+and for severity ratings as well as problem
+detection~\cite{hertzum2001evaluator}. They attribute it to vague goal
+analyses, vague evaluation procedures, and vague problem criteria:
 precisely the three things a protocol template is forced to make explicit
-before a session runs. Measuring $\kappa$ therefore does more than grade a
-pair of students; it exposes a property of the method itself.
+before a session runs. Measuring $\kappa$, or the agreement of inspection
+passes, therefore does more than grade a pair of students; it exposes a
+property of the method itself.
 
-These features observe; the protocol review is the first that gives
-feedback, checking a template without blocking against common novice
-mistakes (tasks that name interface labels and so lead the participant,
-tasks without a success criterion or optimal path, no practice task,
-no error taxonomy, no post-session instrument), each with a rationale
-linked to the tutorial. Existing support for student studies addresses
-planning: a toolkit for method selection, power, and
-counterbalancing~\cite{schwind2023toolkit}, and a widely used plan
-template whose assessment turns on an instructor gate before any
-session may run~\cite{rose2016plan}. Avalux begins where they stop, at
-the session itself. Its own gate, enabled per template at an
-organization's discretion, is deliberately narrower than that template's.
-Schwind et al.\ warn that close supervision calls into question the
-independence of a student's research work~\cite{schwind2023toolkit}, so
-approval gates \emph{recruiting} and not \emph{rehearsal}: a team may run
-its protocol before approval, and those sessions are recorded as pilots and
-excluded from the template's aggregates. The instructor thus reviews with
-the protocol review's findings and the team's own pilot data in hand,
-without having authored the protocol. Its review appears only once a design is saved,
-not while it is typed: students value procedural scaffolding but
-distrust it when it pre-empts their own judgment~\cite{aziz2026genai},
-and a deterministic check carries none of the sycophancy they report
-in generative facilitators. Feedback is what separates a pedagogical
-tool from a well-instrumented one.
+\emph{Scaffolded.} The protocol review gives feedback, checking a template
+without blocking against common novice mistakes (tasks that name interface
+labels and so lead the participant, tasks without a success criterion or
+optimal path, no practice task, no error taxonomy, no post-session
+instrument), each with a rationale linked to the tutorial. Its review
+appears only once a design is saved, not while it is typed: students value
+procedural scaffolding but distrust it when it pre-empts their own
+judgment~\cite{aziz2026genai}, and a deterministic check carries none of
+the sycophancy they report in generative facilitators. Existing support for
+student studies addresses planning: a toolkit for method selection, power,
+and counterbalancing~\cite{schwind2023toolkit}, and a widely used plan
+template whose assessment turns on an instructor gate before any session
+may run~\cite{rose2016plan}. Avalux begins where they stop, at the session
+itself. Its own gate, enabled per template at an organization's discretion,
+is deliberately narrower than that template's. Schwind et al.\ warn that
+close supervision calls into question the independence of a student's
+research work~\cite{schwind2023toolkit}, so approval gates
+\emph{recruiting} and not \emph{rehearsal}: a team may run its protocol
+before approval, and those sessions are recorded as pilots and excluded
+from the template's aggregates. The instructor thus reviews with the
+protocol review's findings and the team's own pilot data in hand, without
+having authored the protocol. Every decision is kept, together with the
+protocol exactly as it was submitted, so two consecutive submissions are
+the before and after of one revision and the mistakes that survive a
+review can be counted rather than recalled.
 
-Two limits of this coverage should be stated plainly. The platform acts on
-difficulties of method execution and interpretation, not on difficulties of
-design itself (\textsc{what}, \textsc{adapt}, \textsc{divrs}) or of
-teamwork, scope, and stakeholders. More consequentially, it offers no
-inspection method. Heuristic evaluation and walkthroughs ordinarily precede
-empirical testing in a course sequence, need neither participants nor
-ethical approval, and produce the ranked problem list that a usability test
-is then designed to confirm; Avalux presently begins at the second stage of
-that pipeline. What remains missing, and the classroom evaluation this
-framing requires, are taken up in Section~\ref{sec:future}.
+\emph{Reflected on.} After every completed session, each person who took
+part answers three fixed questions: what they did not expect, what they
+would change in the protocol, and what they did that may have led the
+participant. The questions sit beside what the session recorded (tasks
+failed, reset, or taking twice the expected time, hesitations, a high ease
+rating on a task that went badly, and notes from anyone observing), so the
+answer is drawn from evidence rather than from memory. A reflection stays
+private until submitted and cannot be revised afterwards, and a teammate's
+becomes readable only once one's own is submitted: the same rule as for
+inspection passes, since an account written after reading another's is
+anchored to it.
+
+For the instructor, a class view gives one row per project, with what
+needs attention first and, as columns, the evidence of
+Table~\ref{tab:pedagogy} wherever the platform records it. It reads
+through the same row-level security as every other view, so an inspection
+still collecting passes contributes its progress and none of its findings.
+It deliberately omits the two outcomes the platform cannot observe, whether
+a report states its uncertainty and whether a warning was resolved with a
+written justification, rather than display a figure for them.
+
+These are design arguments, not yet results. The platform acts on
+difficulties of method execution and interpretation, not on difficulties
+of design itself (\textsc{what}, \textsc{adapt}, \textsc{divrs}) or of
+teamwork, scope, and stakeholders, and an added step does not guarantee
+that it is taken seriously. Whether the evidence these features produce
+changes what students understand is the question of the classroom study in
+Section~\ref{sec:future}.
 
 \begin{table}[t]
 \caption{Constructive alignment: each learning objective, what the
@@ -501,10 +612,11 @@ that the objective addresses.}
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}p{0.30\columnwidth}p{0.30\columnwidth}p{0.31\columnwidth}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.30\columnwidth}>{\raggedright\arraybackslash}p{0.30\columnwidth}>{\raggedright\arraybackslash}p{0.31\columnwidth}@{}}
 \toprule
 Learning objective & What Avalux offers & Evidence of outcome \\
 \midrule
+Inspect before testing, with several evaluators (\textsc{how}) & Independent heuristic passes, hidden from one another until submitted & Passes submitted independently; any-two agreement reported \\
 Say why a method step matters (\textsc{why}) & Protocol review: every check carries a rationale linked to the tutorial & Warnings resolved with a written justification \\
 Write tasks as goals, not procedures (\textsc{bias}) & Protocol review, leading-task check & Warnings resolved before the first session \\
 Fix criteria and baselines before running (\textsc{how}) & Success criterion and optimal path per task & Both present on every measured task \\
@@ -513,7 +625,9 @@ Treat ``error'' as a judgement (\textsc{synth}) & Co-rating, Cohen's $\kappa$ & 
 Report uncertainty with small $n$ (\textsc{synth}) & SUS with 95\% CI & An interval beside every score \\
 Moderate without leading (\textsc{bias}) & Observation view, timestamped notes & Peer notes on hints and interventions \\
 Analyse qualitatively as a procedure (\textsc{how}) & Code book, frequency matrix & Codes defined before tagging; matrix reported \\
-Know when a protocol is ready to run (\textsc{stage}, \textsc{rush}) & Optional instructor gate; unapproved runs recorded as pilots & Approval recorded before the first recruited participant \\
+Know when a protocol is ready to run (\textsc{stage}, \textsc{rush}) & Optional instructor gate; unapproved runs recorded as pilots; every decision kept & Approval before the first recruited participant; revisions address the review \\
+Test predictions against observation (\textsc{synth}) & Predicted problems marked encountered or not observed, linked to sessions & Validity and thoroughness reported, untested predictions stated \\
+Reflect on a session from its evidence (\textsc{synth}, \textsc{bias}) & Reflection prompt beside recorded failures, resets, and observer notes & A submitted reflection for every session \\
 Handle participant data ethically & Retroactive anonymization, private media, per-template consent recorded at join & Anonymized export; a consent record for every participant \\
 \bottomrule
 \end{tabular}
@@ -690,7 +804,12 @@ of observer load and potential undercounting during fast interaction
 bursts, and error categorization is single-observer unless a session
 is co-rated; the co-rating instrument measures agreement per session,
 but a study-level reliability figure for live logging has not yet been
-established. SEQ and SUS are self-report instruments with
+established. The corrections the cockpit now records give each session a
+direct indicator of that load, although the case-study sessions predate
+the feature and so have none. The synthesis ratios inherit the
+limits of their actual criterion: a handful of sessions, on tasks the team
+chose, is evidence of which predictions were encountered, not proof of
+which were wrong. SEQ and SUS are self-report instruments with
 known ceiling effects. The optimal-path baselines that anchor the
 efficiency measures are themselves author-defined and inherit the
 protocol designer's assumptions. The protocol review can be satisfied
@@ -760,7 +879,11 @@ Avalux integrates protocol definition, live moderated logging,
 participant-side questioning on the participant's own device, standardized
 instruments, analytics, and reporting into one open platform, and carried
 two complete usability studies whose results discriminated sharply between
-a poorly and a well-received design.
+a poorly and a well-received design. For teaching it adds a stage before
+testing and a closing one after it, independent inspection and its
+comparison with what participants encountered, and between them features
+chosen for the evidence they produce about the method rather than the
+effort they save.
 
 Future work proceeds on two tracks. The \emph{evaluation} track validates
 the tool itself: a counterbalanced evaluator study against a
@@ -769,7 +892,7 @@ report latency, SUS and workload on the toolchain), an inter-rater
 reliability study of the live-logging instrument, and a
 manual-versus-automatic action-count comparison using the
 instrumentation events of Section~III to bound manual logging error.
-The pedagogical framing of Section~III adds a classroom study: two
+The pedagogical framing of Section~\ref{sec:pedagogy} adds a classroom study: two
 cohorts of one HCI course, using Avalux and the
 stopwatch-and-spreadsheet toolchain respectively, compared on
 protocol quality scored against the evidence column of
@@ -778,14 +901,19 @@ members on a shared recorded session, the proportion of reports
 stating uncertainty with their estimates, and a pre/post test of
 methodological understanding, the protocol review's findings showing
 which mistakes recur; it is the kind of rigorous evaluation the mapping
-of HCI teaching found largely absent~\cite{lima2019tools}. The rest of the loop is still missing, at both ends. Before a test is
-designed, the platform offers no inspection method: independent heuristic
-evaluation of a team's own prototype or of comparable products, merged into
-a ranked problem list from which test tasks are derived, would both supply
-that missing first stage and let a cohort observe the evaluator effect
-directly, with no participants required. After a session, a reflection
-prompt, structured instructor review visible to the team, and comparison of
-one protocol across teams or design iterations remain to be built.
+of HCI teaching found largely absent~\cite{lima2019tools}. The platform
+now records much of what that study needs rather than leaving it to be
+reconstructed: the agreement of each team's inspection passes, the ratios
+of predicted to encountered problems, every protocol submission with the
+reviewer's decision, from which the mistakes that persist across revisions
+can be counted, a reflection for each session, and the corrections made
+while logging each one, which the reliability study can set against
+co-rater disagreement. The remaining gaps are narrower: instructor feedback
+on an individual session rather than on a protocol, comparison of one
+protocol across design iterations, a record of the consent text each
+participant agreed to rather than only the moment of agreement, and
+evidence images on inspection findings, withheld until they can be stored
+under the same isolation rule as the findings themselves.
 The \emph{platform} track continues with a more flexible task model;
 the additions described in Section~III beyond the two studies' original
 scope were themselves motivated by those studies and shipped since
@@ -793,7 +921,7 @@ they concluded.
 
 \section*{Availability}
 The platform is deployed at \url{https://avalux.pt}. Its source (the
-application, 49 SQL migrations, the seeded protocol of study~2, the
+application, 56 SQL migrations, the seeded protocol of study~2, the
 tutorial, and the report generator) is available under the MIT license
 at \url{https://github.com/hugocorreia15/usertesting}. Anonymized
 session data from the case studies is available on request within the
