@@ -200,6 +200,41 @@ merge, and check the statistics appear.
 |---|---|---|---|
 | B | Reflection prompt after each session: what surprised you, what would you change, what may have led the participant | The only strictly unrecoverable item. No prompt during the semester means no reflections, ever | S |
 
+### Phase 2 status
+
+Built on 2026-09-14 and not yet applied to the live database.
+
+| Part | State |
+|---|---|
+| Migration 053, one table and a submit function | written, linted |
+| Visibility rule in row-level security | written; verify with `scripts/verify/reflection-visibility.sql` |
+| Evidence summary beside the questions | done, `src/lib/reflection.ts`, 11 tests |
+| Reflection card on completed sessions | done |
+| Submitted reflections in the CSV and JSON export | done, drafts excluded, tested |
+
+**Design, and where it follows the inspection module.** Three fixed questions,
+not configurable, so cohorts can be compared. A reflection is a private draft
+until submitted, and submitting freezes it. A teammate's reflection on the same
+session becomes readable once you have submitted your own; the instructor reads
+submitted reflections but never drafts. Students learn one rule for inspection
+and reflection.
+
+**The questions are grounded in evidence, not memory.** Beside them the card
+lists the tasks worth looking back at (failed, hesitations, errors, twice the
+expected time, an easy rating on a task that went badly) and what teammates
+noted while watching. A quiet session is described as such, with the warning
+that it is also what a session looks like when the moderator quietly helped.
+
+**Two mistakes caught before they reached the database.** The column for the
+third question was first named `leading`, a reserved word in Postgres; it is
+now `may_have_led`, and `scripts/verify/sql-lint.mjs` now rejects reserved
+column names. And the form first reloaded the stored draft on every refetch,
+which would have erased unsaved typing whenever the window regained focus.
+
+**Recorded for Phase 4, not fixed here.** The paper still says the participant
+completes the SUS questionnaire after the last task. SUS has been optional since
+migration 049.
+
 ---
 
 ## Phase 3: during and after sessions
@@ -209,7 +244,7 @@ merge, and check the statistics appear.
 | A | Cross-team class view, now covering inspection status as well as sessions | The professor's weekly loop. Must exist *during* the cohort for the intervention to be real, though its analysis could be recovered later | L |
 | F+ | Extend findings to post-session synthesis, reusing the Phase 1 tables | The schema has no problem object at all today. One model serves inspection and session synthesis | M |
 | G | Export review and inspection history | Recoverable by querying the database, so it sits below the items above | S |
-| D | Moderation metrics shown back to the student | Cheap, and the undo, reset and idle data is already logged | S |
+| D | Moderation metrics shown back to the student | Skips and timings are stored. Undo and reset leave no trace today, so they must be logged first; see the correction in the analysis | M |
 
 ---
 

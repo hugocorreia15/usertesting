@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 /**
- * Catches the class of SQL error that only shows up when you paste a file into
- * the SQL editor: a bare apostrophe inside a single-quoted literal.
+ * Catches two classes of SQL error that only show up when you paste a file
+ * into the SQL editor. The first is a bare apostrophe inside a single-quoted
+ * literal. The second is a column named with a reserved word, such as
+ * "leading" or "user", which fails unless quoted.
  *
  *   'The design should speak the users' language, ...'
  *                                    ^ ends the string here
@@ -110,6 +112,44 @@ function scan(source) {
   return issues;
 }
 
+// PostgreSQL's fully reserved key words: these cannot name a column unquoted.
+// https://www.postgresql.org/docs/current/sql-keywords-appendix.html
+const RESERVED = new Set(`all analyse analyze and any array as asc asymmetric
+both case cast check collate column constraint create current_catalog
+current_date current_role current_time current_timestamp current_user default
+deferrable desc distinct do else end except false fetch for foreign from grant
+group having in initially intersect into lateral leading limit localtime
+localtimestamp not null offset on only or order placing primary references
+returning select session_user some symmetric system_user table then to
+trailing true union unique user using variadic when where window with`
+  .split(/\s+/).filter(Boolean));
+
+/**
+ * Column names declared in CREATE TABLE bodies and ADD COLUMN clauses that are
+ * reserved. Comments are stripped first so prose cannot trigger it.
+ */
+function reservedColumns(source) {
+  const issues = [];
+  const lines = source.split("\n");
+  let inTable = false;
+  lines.forEach((raw, idx) => {
+    const line = raw.replace(/--.*$/, "");
+    if (/CREATE TABLE/i.test(line)) inTable = true;
+    const add = line.match(/ADD COLUMN\s+(?:IF NOT EXISTS\s+)?([a-z_]+)/i);
+    if (add && RESERVED.has(add[1].toLowerCase())) {
+      issues.push({ line: idx + 1, message: `column "${add[1]}" is a reserved word; rename or quote it` });
+    }
+    if (inTable) {
+      const col = line.match(/^\s+([a-z_]+)\s+(uuid|text|int|integer|smallint|bigint|boolean|bool|numeric|real|jsonb?|timestamptz|timestamp|date|serial)\b/i);
+      if (col && RESERVED.has(col[1].toLowerCase())) {
+        issues.push({ line: idx + 1, message: `column "${col[1]}" is a reserved word; rename or quote it` });
+      }
+      if (/^\s*\);/.test(line)) inTable = false;
+    }
+  });
+  return issues;
+}
+
 function matchDollarTag(s, i) {
   if (s[i] !== "$") return null;
   let j = i + 1;
@@ -133,7 +173,8 @@ const files =
 
 let failed = 0;
 for (const file of files) {
-  const issues = scan(readFileSync(file, "utf8"));
+  const text = readFileSync(file, "utf8");
+  const issues = [...scan(text), ...reservedColumns(text)];
   if (issues.length === 0) {
     console.log(`  ok    ${file}`);
   } else {
@@ -146,7 +187,7 @@ for (const file of files) {
 
 console.log(
   failed === 0
-    ? `\n${files.length} files, no quoting problems.`
+    ? `\n${files.length} files, no quoting or reserved-word problems.`
     : `\n${failed} of ${files.length} files have problems.`,
 );
 process.exit(failed === 0 ? 0 : 1);

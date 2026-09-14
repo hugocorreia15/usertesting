@@ -6,6 +6,7 @@
 import { zipSync, strToU8 } from "fflate";
 import { calculateSusScore } from "@/lib/sus";
 import type {
+  SessionReflection,
   AutoEvent,
   ObserverNote,
   RaterScore,
@@ -38,6 +39,7 @@ export function buildExportTables(
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
   raterScores: RaterScore[] = [],
+  reflections: SessionReflection[] = [],
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
     template.template_questions.map((q) => [q.id, q.question_text]),
@@ -327,6 +329,29 @@ export function buildExportTables(
       ]),
   };
 
+  // Only submitted reflections are exported. A draft has not been written for
+  // anyone yet, and the database would not return a teammate's draft anyway.
+  const reflectionsT: ExportTable = {
+    headers: [
+      "session_id",
+      "user_id",
+      "surprised",
+      "protocol_change",
+      "may_have_led",
+      "submitted_at",
+    ],
+    rows: reflections
+      .filter((r) => sessionIds.has(r.session_id) && r.submitted_at)
+      .map((r) => [
+        r.session_id,
+        r.user_id,
+        r.surprised,
+        r.protocol_change,
+        r.may_have_led,
+        r.submitted_at,
+      ]),
+  };
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -340,6 +365,7 @@ export function buildExportTables(
     auto_events: autoEventsT,
     observer_notes: observerNotesT,
     rater_scores: raterScoresT,
+    reflections: reflectionsT,
   };
 }
 
@@ -366,8 +392,9 @@ export function exportDataZip(
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
   raterScores: RaterScore[] = [],
+  reflections: SessionReflection[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores, reflections);
   const files: Record<string, Uint8Array> = {};
   for (const [name, table] of Object.entries(tables)) {
     files[`${name}.csv`] = strToU8(toCsv(table));
@@ -385,8 +412,9 @@ export function exportDataJson(
   autoEvents: AutoEvent[] = [],
   observerNotes: ObserverNote[] = [],
   raterScores: RaterScore[] = [],
+  reflections: SessionReflection[] = [],
 ) {
-  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores);
+  const tables = buildExportTables(template, sessions, autoEvents, observerNotes, raterScores, reflections);
   const payload = {
     template: { id: template.id, name: template.name },
     exported_at: new Date().toISOString(),

@@ -303,6 +303,19 @@ export interface RaterScore {
 }
 
 // Spectator observation notes (migration 045)
+export interface SessionReflection {
+  id: string;
+  session_id: string;
+  user_id: string;
+  surprised: string;
+  protocol_change: string;
+  may_have_led: string;
+  /** Null while a private draft. Set once, by submit_session_reflection(). */
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ObserverNote {
   id: string;
   session_id: string;

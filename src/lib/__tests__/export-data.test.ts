@@ -333,4 +333,39 @@ describe("buildExportTables", () => {
     expect(tables.auto_events).toBeDefined();
     expect(tables.auto_events.rows).toHaveLength(0);
   });
+
+  it("exports submitted reflections only, never a draft", () => {
+    const reflection = (
+      id: string,
+      sessionId: string,
+      submittedAt: string | null,
+    ) => ({
+      id,
+      session_id: sessionId,
+      user_id: `u-${id}`,
+      surprised: `surprised ${id}`,
+      protocol_change: `change ${id}`,
+      may_have_led: `led ${id}`,
+      submitted_at: submittedAt,
+      created_at: "",
+      updated_at: "",
+    });
+    const t = buildExportTables(fakeTemplate(), [fakeSession()], [], [], [], [
+      reflection("r1", "s1", "2026-09-14T10:00:00Z"),
+      reflection("r2", "s1", null),
+      reflection("r3", "s-other", "2026-09-14T11:00:00Z"),
+    ]).reflections;
+
+    expect(t.headers).toEqual([
+      "session_id",
+      "user_id",
+      "surprised",
+      "protocol_change",
+      "may_have_led",
+      "submitted_at",
+    ]);
+    // r2 is a draft; r3 belongs to a session outside this export.
+    expect(t.rows).toHaveLength(1);
+    expect(t.rows[0][t.headers.indexOf("may_have_led")]).toBe("led r1");
+  });
 });

@@ -64,6 +64,7 @@ import { useRaterScores } from "@/hooks/use-rater-scores";
 import { sessionAgreement } from "@/lib/agreement";
 import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
+import { ReflectionCard } from "@/components/sessions/reflection-card";
 import {
   PenLine,
   Play,
@@ -233,6 +234,18 @@ function SessionDetailPage() {
           </Badge>
         )}
       </div>
+
+      {session.status === "completed" && (
+        <div className="mb-6">
+          <ReflectionCard
+            sessionId={session.id}
+            sessionOwnerId={session.user_id}
+            taskResults={taskResults}
+            observerNotes={observerNotes ?? []}
+            raterScores={raterScores ?? []}
+          />
+        </div>
+      )}
 
       <Tabs defaultValue="tasks">
         <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
