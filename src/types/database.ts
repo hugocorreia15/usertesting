@@ -93,6 +93,32 @@ export interface InspectionProblem {
   heuristic_id: string | null;
   agreed_severity: number | null;
   sort_order: number;
+  /** Whether usability testing showed this predicted problem (migration 056). */
+  test_outcome: "untested" | "confirmed" | "not_observed";
+  outcome_note: string | null;
+  created_at: string;
+}
+
+/** A problem testing showed that the inspection did not predict. */
+export interface TestProblem {
+  id: string;
+  template_id: string;
+  title: string;
+  severity: number | null;
+  heuristic_id: string | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** A session in which a predicted or test-only problem was seen. */
+export interface ProblemEvidence {
+  id: string;
+  template_id: string;
+  inspection_problem_id: string | null;
+  test_problem_id: string | null;
+  session_id: string;
+  created_by: string | null;
   created_at: string;
 }
 

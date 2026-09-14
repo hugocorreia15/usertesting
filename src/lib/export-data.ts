@@ -10,7 +10,9 @@ import type {
   InspectionEvaluator,
   InspectionFinding,
   InspectionProblem,
+  ProblemEvidence,
   SessionReflection,
+  TestProblem,
   TemplateReviewEvent,
   AutoEvent,
   ObserverNote,
@@ -53,6 +55,8 @@ export interface ExportExtras {
   inspectionEvaluators?: InspectionEvaluator[];
   inspectionFindings?: InspectionFinding[];
   inspectionProblems?: InspectionProblem[];
+  testProblems?: TestProblem[];
+  problemEvidence?: ProblemEvidence[];
 }
 
 export function buildExportTables(
@@ -68,6 +72,8 @@ export function buildExportTables(
     inspectionEvaluators = [],
     inspectionFindings = [],
     inspectionProblems = [],
+    testProblems = [],
+    problemEvidence = [],
   }: ExportExtras = {},
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
@@ -425,10 +431,29 @@ export function buildExportTables(
       .map((f) => [f.inspection_id, f.evaluator_id, f.heuristic_id, f.location, f.description, f.severity, f.problem_id, f.created_at]),
   };
   const inspectionProblemsT: ExportTable = {
-    headers: ["inspection_id", "problem_id", "title", "heuristic_id", "agreed_severity"],
+    headers: ["inspection_id", "problem_id", "title", "heuristic_id", "agreed_severity", "test_outcome"],
     rows: inspectionProblems
       .filter((p) => inspectionIds.has(p.inspection_id))
-      .map((p) => [p.inspection_id, p.id, p.title, p.heuristic_id, p.agreed_severity]),
+      .map((p) => [p.inspection_id, p.id, p.title, p.heuristic_id, p.agreed_severity, p.test_outcome]),
+  };
+
+  // After testing: problems only testing found, and every problem's evidence.
+  const testProblemsT: ExportTable = {
+    headers: ["test_problem_id", "title", "severity", "heuristic_id", "created_at"],
+    rows: testProblems
+      .filter((t) => t.template_id === template.id)
+      .map((t) => [t.id, t.title, t.severity, t.heuristic_id, t.created_at]),
+  };
+  const problemEvidenceT: ExportTable = {
+    headers: ["problem_kind", "problem_id", "session_id", "created_at"],
+    rows: problemEvidence
+      .filter((e) => e.template_id === template.id)
+      .map((e) => [
+        e.inspection_problem_id ? "predicted" : "test_only",
+        e.inspection_problem_id ?? e.test_problem_id,
+        e.session_id,
+        e.created_at,
+      ]),
   };
 
   return {
@@ -450,6 +475,8 @@ export function buildExportTables(
     inspection_evaluators: inspectionEvaluatorsT,
     inspection_findings: inspectionFindingsT,
     inspection_problems: inspectionProblemsT,
+    test_problems: testProblemsT,
+    problem_evidence: problemEvidenceT,
   };
 }
 

@@ -23,6 +23,7 @@ import type {
   InspectionProblem,
   ObserverNote,
   OrganizationWithRelations,
+  ProblemEvidence,
   Participant,
   RaterScore,
   SessionReflection,
@@ -373,6 +374,11 @@ const problems: InspectionProblem[] = [
   heuristic_id: h as string,
   agreed_severity: sev as number,
   sort_order: i,
+  // After testing: participants hit most of the severe predictions, not all.
+  // Four of five tested predictions were hit (80%), but testing also showed three
+  // problems nobody predicted, so predictions covered only four of seven (57%).
+  test_outcome: (["confirmed", "not_observed", "confirmed", "untested", "confirmed", "untested", "confirmed", "untested", "untested"] as const)[i],
+  outcome_note: null,
   created_at: at(27),
 }));
 
@@ -514,7 +520,9 @@ const light = (id: string, tpl: string, over: Partial<LightSession> = {}): Light
   consent_accepted_at: at(50), consent_method: "join_form", task_order_strategy: "fixed",
   completed_at: at(52), ...over,
 });
-const otherSessions: LightSession[] = [
+const otherSessions: (LightSession & { participants?: { name: string } })[] = [
+  { ...light("th2", "tpl-thermo", { task_order_strategy: "latin_square", completed_at: at(20) }), participants: { name: "Hugo Pires" } },
+  { ...light("th3", "tpl-thermo", { task_order_strategy: "latin_square", completed_at: at(22) }), participants: { name: "Inês Lobo" } },
   light("lib1", "tpl-library"),
   light("lib2", "tpl-library", { consent_accepted_at: null, consent_method: null }),
   light("lib3", "tpl-library", { completed_at: at(60) }),
@@ -584,6 +592,28 @@ export const DB: Record<string, unknown[]> = {
   inspection_evaluators: [...evaluators, ...bikeEvaluators],
   inspection_findings: findings,
   inspection_problems: problems,
+  // After testing: what only the sessions showed, and which sessions show what.
+  test_problems: [
+    { id: "tp1", template_id: "tpl-thermo", title: "Participants expected the schedule to repeat weekly without asking", severity: 3, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
+    { id: "tp2", template_id: "tpl-thermo", title: "The away temperature was mistaken for the current temperature", severity: 2, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
+    { id: "tp3", template_id: "tpl-thermo", title: "Nobody noticed the schedule could be copied to other days", severity: 1, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
+  ],
+  problem_evidence: (
+    [
+      ["predicted", "p1", "th2"], ["predicted", "p1", "th3"], ["predicted", "p3", "th2"],
+      ["predicted", "p5", "th3"], ["predicted", "p7", "th2"],
+      ["test_only", "tp1", "th2"], ["test_only", "tp1", "th3"], ["test_only", "tp2", "th3"],
+      ["test_only", "tp3", "th2"],
+    ] as const
+  ).map(([kind, problem, sessionId], i): ProblemEvidence => ({
+    id: `pe${i}`,
+    template_id: "tpl-thermo",
+    inspection_problem_id: kind === "predicted" ? problem : null,
+    test_problem_id: kind === "test_only" ? problem : null,
+    session_id: sessionId,
+    created_by: USERS.bruno.id,
+    created_at: at(46),
+  })),
   moderation_events: [
     { seq: 1, session_id: "s1", task_id: null, task_index: null, kind: "logging_started", timer_seconds: null, occurred_at: at(41) },
     { seq: 2, session_id: "s1", task_id: "k2", task_index: 1, kind: "undo_error", timer_seconds: 64.2, occurred_at: at(41.3) },

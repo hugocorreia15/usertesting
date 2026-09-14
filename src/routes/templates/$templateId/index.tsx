@@ -14,6 +14,7 @@ import { fetchObserverNotesForSessions } from "@/hooks/use-observer-notes";
 import { fetchReflectionsForSessions } from "@/hooks/use-reflections";
 import { fetchReviewEvents } from "@/hooks/use-review-events";
 import { fetchInspectionsForExport } from "@/hooks/use-inspections";
+import { fetchSynthesisForExport } from "@/hooks/use-synthesis";
 import { fetchRaterScoresForSessions } from "@/hooks/use-rater-scores";
 import {
   DropdownMenu,
@@ -115,7 +116,8 @@ function TemplateDetailPage() {
       const reflections = await fetchReflectionsForSessions(ids).catch(() => []);
       const reviewEvents = await fetchReviewEvents(template.id).catch(() => []);
       const inspection = await fetchInspectionsForExport(template.id).catch(() => ({}));
-      const extras = { autoEvents, observerNotes, raterScores, reflections, reviewEvents, ...inspection };
+      const synthesis = await fetchSynthesisForExport(template.id).catch(() => ({}));
+      const extras = { autoEvents, observerNotes, raterScores, reflections, reviewEvents, ...inspection, ...synthesis };
       if (format === "csv") exportDataZip(template, sessions, extras);
       else exportDataJson(template, sessions, extras);
     } catch {

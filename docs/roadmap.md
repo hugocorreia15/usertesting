@@ -332,6 +332,30 @@ attempt) and any task marked successful with nothing counted. The same
 corrections now feed the reflection prompt's evidence, where a reset task was
 previously invisible because its final numbers looked fine.
 
+**F+, synthesis after testing, built on 2026-09-14, not yet applied.** It closes
+the loop inspection opens. On a merged inspection, each predicted problem is
+marked as hit by participants, not observed, or not tested yet, with the
+sessions that show it; problems testing found that nobody predicted are added
+alongside. Two ratios come out: of the tested predictions, the share
+participants hit, and of the problems testing showed, the share predicted.
+Untested problems count in neither, so a team that has not tested does not
+appear to have confirmed nothing.
+
+The outcome is never "false alarm". A problem no participant hit in a handful of
+sessions may still be real, and a critique of these measures makes exactly that
+point: user testing is not ground truth. The literature names the two ratios
+validity and thoroughness (Hartson, Andre and Williges); that attribution is
+from search summaries and must be checked before the paper cites it.
+
+Evidence is checked in row-level security: the session and the problem must
+belong to the same study, and relabelling the study in the request does not get
+round it. Pilots are excluded as evidence, since they rehearse the protocol.
+
+**Phase 3 is complete apart from applying migrations 054, 055 and 056.** Each
+has a verification script; see `scripts/verify/README.md`. The pushed app should
+wait for them, since the review history, correction log and synthesis read
+tables that do not exist until then.
+
 ---
 
 ## Phase 4: paper writing

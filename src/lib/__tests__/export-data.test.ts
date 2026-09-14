@@ -418,7 +418,7 @@ describe("buildExportTables", () => {
         { id: "f1", inspection_id: "i1", evaluator_id: "e1", heuristic_id: "h1", location: "Home", description: "No feedback", severity: 3, evidence_path: null, problem_id: "p1", created_at: "c" },
       ],
       inspectionProblems: [
-        { id: "p1", inspection_id: "i1", title: "No feedback on save", notes: null, heuristic_id: "h1", agreed_severity: 3, sort_order: 0, created_at: "c" },
+        { id: "p1", inspection_id: "i1", title: "No feedback on save", notes: null, heuristic_id: "h1", agreed_severity: 3, sort_order: 0, test_outcome: "confirmed", outcome_note: null, created_at: "c" },
       ],
     });
     expect(tables.inspections.rows).toHaveLength(1);
@@ -426,4 +426,24 @@ describe("buildExportTables", () => {
     expect(tables.inspection_findings.rows[0]).toContain("No feedback");
     expect(tables.inspection_problems.rows[0]).toContain("No feedback on save");
   });
+
+  it("labels each piece of evidence with the kind of problem it supports", () => {
+    const t = buildExportTables(fakeTemplate(), [fakeSession()], {
+      testProblems: [
+        { id: "tp1", template_id: "t1", title: "Unpredicted", severity: 2, heuristic_id: null, note: null, created_by: null, created_at: "c" },
+        { id: "tp9", template_id: "other", title: "Elsewhere", severity: 1, heuristic_id: null, note: null, created_by: null, created_at: "c" },
+      ],
+      problemEvidence: [
+        { id: "ev1", template_id: "t1", inspection_problem_id: "p1", test_problem_id: null, session_id: "s1", created_by: null, created_at: "c" },
+        { id: "ev2", template_id: "t1", inspection_problem_id: null, test_problem_id: "tp1", session_id: "s1", created_by: null, created_at: "c" },
+      ],
+    });
+    expect(t.test_problems.rows).toHaveLength(1);
+    const e = t.problem_evidence;
+    expect(e.rows.map((r) => [r[e.headers.indexOf("problem_kind")], r[e.headers.indexOf("problem_id")]])).toEqual([
+      ["predicted", "p1"],
+      ["test_only", "tp1"],
+    ]);
+  });
 });
+

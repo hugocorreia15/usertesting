@@ -40,6 +40,7 @@ import {
   useSubmitPass,
 } from "@/hooks/use-inspections";
 import { InspectionMetrics } from "@/components/inspection/inspection-metrics";
+import { SynthesisCard } from "@/components/inspection/synthesis-card";
 import { SEVERITY, severityShort } from "@/components/inspection/severity";
 import type { InspectionPass } from "@/lib/inspection";
 import type { InspectionFinding } from "@/types";
@@ -227,6 +228,14 @@ function InspectionPage() {
         )}
 
         {!collecting && <InspectionMetrics passes={passes} evaluatorLabel={label} />}
+
+        {!collecting && problems.length > 0 && (
+          <SynthesisCard
+            inspectionId={inspectionId}
+            templateId={inspection.template_id}
+            problems={problems}
+          />
+        )}
 
         {collecting && othersFindings.length > 0 && (
           <Card className="bg-transparent backdrop-blur-md">

@@ -125,3 +125,9 @@ if want 24; then
   scroll_to_text "How the session was run" 16
   shoot 24-session-run.png
 fi
+
+if want 25; then
+  visit "/inspections/i1?as=bruno" "After testing"
+  scroll_to_text "After testing" 16
+  shoot 25-after-testing.png
+fi

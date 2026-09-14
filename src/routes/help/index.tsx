@@ -484,6 +484,21 @@ function HelpPage() {
               caption="After merging: how much the evaluators overlapped, and how many evaluators the study needed."
             />
             <p>
+              <strong>After testing</strong>, the same page compares the
+              inspection with what participants actually did. Mark each predicted
+              problem as hit or not observed, tick the sessions that show it, and
+              add problems testing found that nobody predicted. Two figures come
+              out: how many predicted problems participants hit, and how many of
+              the problems testing showed had been predicted. An inspection is
+              usually better at one than the other. <em>Not observed</em> never
+              means wrong: a few sessions can miss a real problem.
+            </p>
+            <HelpScreenshot
+              src="/help/25-after-testing.png"
+              alt="The After testing card, with predicted problems marked as hit or not observed and problems found only in testing"
+              caption="Closing the loop: which predictions participants hit, and what testing found that the inspection missed."
+            />
+            <p>
               An organization owner can tick{" "}
               <em>Require a merged inspection before review</em> on a template,
               so the protocol cannot be sent for review until one exists.
