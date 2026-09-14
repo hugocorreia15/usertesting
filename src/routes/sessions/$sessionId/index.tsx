@@ -66,6 +66,11 @@ import { AnswerCodeTags } from "@/components/coding/answer-code-tags";
 import { AutoEventsSummary } from "@/components/charts/auto-events-summary";
 import { ReflectionCard } from "@/components/sessions/reflection-card";
 import {
+  Tooltip as HoverTip,
+  TooltipContent as HoverTipContent,
+  TooltipTrigger as HoverTipTrigger,
+} from "@/components/ui/tooltip";
+import {
   PenLine,
   Play,
   Eye,
@@ -148,27 +153,38 @@ function SessionDetailPage() {
     (session.sus_answers?.length ?? 0) > 0;
 
   return (
-    <PageWrapper
+    <PageWrapper help="sessions"
       title={session.templates.name}
       description={`${session.participants.name} — ${session.evaluator_name}`}
       actions={
         <div className="flex gap-2">
           {session.status === "in_progress" && (
-            <Button variant="outline" asChild>
+            <Button
+              variant="outline"
+              asChild
+              tooltip="Watch this session live, read-only, and add timestamped notes"
+            >
               <Link to="/sessions/$sessionId/observe" params={{ sessionId }}>
                 <Eye className="mr-2 h-4 w-4" />
                 Observe
               </Link>
             </Button>
           )}
-          <Button variant="outline" asChild>
+          <Button
+            variant="outline"
+            asChild
+            tooltip="Score the tasks yourself, without changing the recorded data, to see how far two raters agree"
+          >
             <Link to="/sessions/$sessionId/corate" params={{ sessionId }}>
               <Scale className="mr-2 h-4 w-4" />
               Co-rate
             </Link>
           </Button>
           {session.status !== "completed" && (
-            <Button asChild>
+            <Button
+              asChild
+              tooltip="Run the session: time each task and log actions, errors and hesitations"
+            >
               <Link
                 to="/sessions/$sessionId/live"
                 params={{ sessionId }}
@@ -178,7 +194,11 @@ function SessionDetailPage() {
               </Link>
             </Button>
           )}
-          <Button asChild variant="outline">
+          <Button
+            asChild
+            variant="outline"
+            tooltip="Correct the recorded results by hand, for example a miscounted error"
+          >
             <Link
               to="/sessions/$sessionId/edit"
               params={{ sessionId }}
@@ -207,12 +227,17 @@ function SessionDetailPage() {
           {session.status.replace("_", " ")}
         </Badge>
         {session.is_pilot && (
-          <Badge
-            variant="outline"
-            title="Run before the protocol was approved; excluded from this template's analytics and report."
-          >
-            Pilot
-          </Badge>
+          <HoverTip>
+            <HoverTipTrigger asChild>
+              <Badge variant="outline" tabIndex={0} className="cursor-help">
+                Pilot
+              </Badge>
+            </HoverTipTrigger>
+            <HoverTipContent>
+              Run before the protocol was approved, so it is left out of this
+              template's analytics and report.
+            </HoverTipContent>
+          </HoverTip>
         )}
         <ConsentBadge session={session} />
         {session.started_at && (
@@ -789,7 +814,10 @@ function AnonymizeSessionDialog({ sessionId }: { sessionId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          tooltip="Remove this participant's name, email, notes and custom fields from all their sessions. Metrics are kept. Cannot be undone."
+        >
           <ShieldOff className="mr-2 h-4 w-4" />
           Anonymize
         </Button>
@@ -854,7 +882,7 @@ function DeleteSessionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="icon">
+        <Button tooltip="Delete this session and everything recorded in it" variant="destructive" size="icon">
           <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -1347,6 +1375,7 @@ function ConsentBadge({ session }: { session: TestSessionWithRelations }) {
       variant="outline"
       size="sm"
       className="h-6 gap-1 px-2 text-xs"
+      tooltip="For a session run in person: records now that the participant gave consent on paper or out loud"
       disabled={updateSession.isPending}
       onClick={() =>
         updateSession.mutate(

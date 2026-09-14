@@ -15,7 +15,8 @@ import type { TemplateWithRelations, TemplateTask } from "@/types";
 export type ReviewSeverity = "warn" | "info";
 
 /** Anchors on the in-app /help page a finding can point at. */
-export type HelpAnchor = "templates" | "sessions" | "live" | "analytics";
+import type { HelpAnchor } from "@/lib/help-anchors";
+export type { HelpAnchor };
 
 export interface ReviewFinding {
   id: string;

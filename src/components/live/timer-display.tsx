@@ -48,15 +48,15 @@ export function TimerDisplay({
       </span>
       <div className="flex gap-2">
         {isRunning ? (
-          <Button variant="outline" size="icon" onClick={onPause}>
+          <Button tooltip="Pause the timer" variant="outline" size="icon" onClick={onPause}>
             <Pause className="h-5 w-5" />
           </Button>
         ) : (
-          <Button size="icon" onClick={onStart}>
+          <Button tooltip="Start the timer" size="icon" onClick={onStart}>
             <Play className="h-5 w-5" />
           </Button>
         )}
-        <Button variant="ghost" size="icon" onClick={onReset}>
+        <Button tooltip="Reset the timer to zero" variant="ghost" size="icon" onClick={onReset}>
           <RotateCcw className="h-4 w-4" />
         </Button>
       </div>

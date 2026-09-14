@@ -135,7 +135,7 @@ function OrgDetailPage() {
   );
 
   return (
-    <PageWrapper
+    <PageWrapper help="organizations"
       title={org.name}
       description={`${memberCount} ${memberCount === 1 ? "member" : "members"} · ${projectCount} ${projectCount === 1 ? "project" : "projects"}`}
       actions={
@@ -239,7 +239,7 @@ function ProjectCard({
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           {project.repo_url && (
-            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+            <Button tooltip="Open the repository in a new tab" variant="ghost" size="icon" className="h-7 w-7" asChild>
               <a
                 href={project.repo_url}
                 target="_blank"
@@ -406,7 +406,7 @@ function GroupsSection({
                   </p>
                 </Link>
                 {isOwner && (
-                  <Button
+                  <Button tooltip="Delete this group"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
@@ -569,7 +569,7 @@ function MembersCard({
             Leave
           </Button>
         ) : isOwner ? (
-          <Button
+          <Button tooltip="Remove from the organization"
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -703,7 +703,7 @@ function InvitesCard({ org }: { org: OrganizationWithRelations }) {
             >
               {invite.role}
             </Badge>
-            <Button
+            <Button tooltip="Revoke this invite code"
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -783,7 +783,7 @@ function InviteCode({ code }: { code: string }) {
       <span className="truncate rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
         {code}
       </span>
-      <Button
+      <Button tooltip="Copy invite code"
         variant="ghost"
         size="icon"
         className="h-7 w-7 shrink-0"

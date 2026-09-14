@@ -60,7 +60,7 @@ function InspectionPage() {
 
   if (isLoading || !data) {
     return (
-      <PageWrapper title="Inspection">
+      <PageWrapper help="inspection" title="Inspection">
         <p className="text-sm text-muted-foreground">Loading inspection...</p>
       </PageWrapper>
     );
@@ -100,7 +100,7 @@ function InspectionPage() {
   });
 
   return (
-    <PageWrapper title={inspection.subject_name}>
+    <PageWrapper help="inspection" title={inspection.subject_name}>
       <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -264,7 +264,12 @@ function CloseCollectionButton({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button
+        variant="outline"
+        size="sm"
+        tooltip="For an evaluator who will not finish: freezes every unsubmitted pass as it stands"
+        onClick={() => setOpen(true)}
+      >
         End collection without waiting
       </Button>
       <ConfirmDialog
@@ -430,6 +435,11 @@ function PassEditor({
         <div className="flex flex-wrap items-center gap-3 border-t pt-3">
           <Button
             size="sm"
+            tooltip={
+              findings.length === 0
+                ? "Add at least one finding first"
+                : "Freeze your pass and unlock the passes of others who have submitted"
+            }
             disabled={submitting || findings.length === 0}
             onClick={() => setConfirmSubmit(true)}
           >
@@ -541,6 +551,13 @@ function Consolidation({
               </div>
               <Button
                 size="sm"
+                tooltip={
+                  selected.size === 0
+                    ? "Tick the findings that describe the same problem"
+                    : !title.trim()
+                      ? "Write one wording you all accept"
+                      : "Combine the ticked findings into one problem"
+                }
                 disabled={!title.trim() || selected.size === 0 || createProblem.isPending}
                 onClick={() =>
                   createProblem.mutate(
@@ -596,6 +613,7 @@ function Consolidation({
                           variant="outline"
                           size="sm"
                           className="cursor-pointer"
+                          tooltip="Add this problem as a task on the study, linked back to this inspection"
                           disabled={derive.isPending}
                           onClick={() =>
                             derive.mutate(

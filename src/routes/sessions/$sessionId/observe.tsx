@@ -111,7 +111,7 @@ function ObserveSessionPage() {
   const inProgress = session.status === "in_progress";
 
   return (
-    <PageWrapper
+    <PageWrapper help="co-rating"
       title={`Observing: ${session.templates.name}`}
       description={`${session.participants.name} — evaluator ${session.evaluator_name}`}
       actions={
@@ -375,7 +375,7 @@ function ObserverNotesSection({
                   <p className="mt-1 whitespace-pre-wrap text-sm">{n.note}</p>
                 </div>
                 {user?.id === n.author_id && (
-                  <Button
+                  <Button tooltip="Delete note"
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"

@@ -62,7 +62,7 @@ function AnalyticsPage() {
   const isLoading = templatesLoading || analyticsLoading;
 
   return (
-    <PageWrapper
+    <PageWrapper help="analytics"
       title="Analytics"
       description="Visualize usability test results across sessions"
     >

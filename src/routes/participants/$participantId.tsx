@@ -91,7 +91,7 @@ function ParticipantDetailPage() {
   const hasPortalAccess = !!participant.auth_user_id;
 
   return (
-    <PageWrapper
+    <PageWrapper help="participants-mgmt"
       title="Edit Participant"
       description={participant.name}
       actions={
@@ -169,7 +169,7 @@ function ParticipantDetailPage() {
                     <p className="text-xs text-muted-foreground">Email</p>
                     <p className="break-all font-mono text-sm">{credentials.email}</p>
                   </div>
-                  <Button
+                  <Button tooltip="Copy email"
                     variant="ghost"
                     size="icon"
                     onClick={() => {
@@ -185,7 +185,7 @@ function ParticipantDetailPage() {
                     <p className="text-xs text-muted-foreground">Password</p>
                     <p className="break-all font-mono text-sm">{credentials.password}</p>
                   </div>
-                  <Button
+                  <Button tooltip="Copy password"
                     variant="ghost"
                     size="icon"
                     onClick={() => {

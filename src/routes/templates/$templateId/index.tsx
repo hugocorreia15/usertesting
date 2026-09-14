@@ -131,7 +131,7 @@ function TemplateDetailPage() {
     : 0;
 
   return (
-    <PageWrapper
+    <PageWrapper help="templates"
       title={template.name}
       description={template.description || undefined}
       actions={
@@ -147,7 +147,10 @@ function TemplateDetailPage() {
           {amOrgOwner && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  tooltip="Choose which students work on this project"
+                >
                   <UserCheck className="mr-2 h-4 w-4" />
                   Project members ({projectMembers?.length ?? 0})
                 </Button>
@@ -199,7 +202,10 @@ function TemplateDetailPage() {
           {user?.id === template.user_id && (orgs?.length ?? 0) > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  tooltip="Share this template with an organization. Its sessions follow."
+                >
                   <Building2 className="mr-2 h-4 w-4" />
                   {orgs?.find((o) => o.id === template.org_id)?.name ??
                     "Not shared"}
@@ -245,6 +251,7 @@ function TemplateDetailPage() {
           )}
           <Button
             variant="outline"
+            tooltip="Copy this template's protocol into a new template. Sessions are not copied."
             disabled={duplicateTemplate.isPending}
             onClick={() =>
               duplicateTemplate.mutate(templateId, {
@@ -264,6 +271,7 @@ function TemplateDetailPage() {
           </Button>
           <Button
             variant="outline"
+            tooltip="A printable recording sheet of this protocol, for logging a session on paper"
             onClick={() => exportTemplatePdf(template)}
           >
             <Download className="mr-2 h-4 w-4" />
@@ -271,6 +279,7 @@ function TemplateDetailPage() {
           </Button>
           <Button
             variant="outline"
+            tooltip="A PDF report of the results across all sessions, leaving out pilot sessions"
             disabled={exportingReport}
             onClick={handleExportReport}
           >
@@ -279,7 +288,10 @@ function TemplateDetailPage() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button
+                variant="outline"
+                tooltip="Every recorded table as CSV or JSON, for your own analysis"
+              >
                 <Database className="mr-2 h-4 w-4" />
                 Export Data
               </Button>

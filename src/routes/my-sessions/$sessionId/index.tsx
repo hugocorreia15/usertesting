@@ -40,7 +40,7 @@ function ParticipantSessionDetail() {
   const templateName = session.templates?.name ?? "Session";
 
   return (
-    <PageWrapper title={templateName} description={`Status: ${session.status.replace("_", " ")}`}>
+    <PageWrapper help="participant" title={templateName} description={`Status: ${session.status.replace("_", " ")}`}>
       <Tabs defaultValue="tasks">
         <TabsList className="!h-auto w-full flex-wrap justify-start gap-1 p-1.5 sm:w-fit">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>

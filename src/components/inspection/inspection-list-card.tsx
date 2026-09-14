@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HelpButton } from "@/components/help/help-button";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,6 +68,7 @@ export function InspectionListCard({
         <CardTitle className="flex flex-wrap items-center gap-2 text-base">
           <ScanSearch className="h-4 w-4 text-primary" />
           Heuristic inspection
+          <HelpButton section="inspection" />
           {template.require_inspection && (
             <Badge variant="secondary">Required before review</Badge>
           )}

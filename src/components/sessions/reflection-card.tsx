@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { HelpButton } from "@/components/help/help-button";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,7 @@ export function ReflectionCard({
         <CardTitle className="flex flex-wrap items-center gap-2 text-base">
           <MessageSquareQuote className="h-4 w-4 text-primary" />
           Reflection
+          <HelpButton section="reflection" />
           {mine?.submitted_at && <Badge variant="secondary">Yours is in</Badge>}
           {mine && !mine.submitted_at && <Badge variant="outline">Draft</Badge>}
         </CardTitle>
@@ -250,6 +252,7 @@ function ReflectionForm({
             size="sm"
             variant="outline"
             className="cursor-pointer"
+            tooltip={dirty ? "Keep your answers as a private draft" : "Nothing has changed since you last saved"}
             disabled={!dirty || save.isPending}
             onClick={() => saveDraft()}
           >
@@ -257,6 +260,11 @@ function ReflectionForm({
           </Button>
           <Button
             size="sm"
+            tooltip={
+              complete
+                ? "Freeze your reflection and share it with your instructor"
+                : "Answer each question with at least a sentence first"
+            }
             disabled={!complete || save.isPending || submit.isPending}
             onClick={() => setConfirm(true)}
           >

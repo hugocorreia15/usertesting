@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HelpButton } from "@/components/help/help-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,6 +84,7 @@ export function ReviewGateCard({
         <CardTitle className="flex flex-wrap items-center gap-2 text-base">
           <ClipboardCheck className="h-4 w-4 text-primary" />
           Instructor review
+          <HelpButton section="review" />
           {actions.active && (
             <Badge variant={closed ? "secondary" : "outline"} className="gap-1">
               <Icon className={`h-3 w-3 ${STATUS_TONE[template.review_status]}`} />
@@ -164,6 +166,7 @@ export function ReviewGateCard({
         {actions.canRequest && (
           <Button
             size="sm"
+            tooltip="Send the protocol to an organization owner to approve or ask for changes"
             disabled={busy}
             onClick={() =>
               requestReview.mutate(template.id, {
@@ -189,6 +192,7 @@ export function ReviewGateCard({
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
+                tooltip="Approve the protocol. If review is required, this opens recruiting."
                 disabled={busy}
                 onClick={() =>
                   review.mutate(
@@ -212,6 +216,11 @@ export function ReviewGateCard({
               <Button
                 size="sm"
                 variant="outline"
+                tooltip={
+                  note.trim()
+                    ? "Send the protocol back with your feedback"
+                    : "Write what should change first"
+                }
                 disabled={busy || !note.trim()}
                 onClick={() =>
                   review.mutate(

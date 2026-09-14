@@ -63,7 +63,7 @@ function SessionsPage() {
   );
 
   return (
-    <PageWrapper
+    <PageWrapper help="sessions"
       title="Sessions"
       description="Manage usability test sessions"
       actions={
@@ -88,7 +88,7 @@ function SessionsPage() {
           </SelectContent>
         </Select>
         <div className="flex rounded-md border">
-          <Button
+          <Button tooltip="Table view"
             variant={viewMode === "table" ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8 rounded-r-none"
@@ -96,7 +96,7 @@ function SessionsPage() {
           >
             <List className="h-4 w-4" />
           </Button>
-          <Button
+          <Button tooltip="Card view"
             variant={viewMode === "card" ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8 rounded-l-none"
@@ -164,7 +164,7 @@ function SessionsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button
+                      <Button tooltip="Open session"
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
@@ -177,7 +177,7 @@ function SessionsPage() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
+                      <Button tooltip="Delete session"
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
@@ -229,7 +229,7 @@ function SessionsPage() {
                   </p>
                 </div>
                 <div className="flex gap-1 border-t pt-3">
-                  <Button
+                  <Button tooltip="Open session"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
@@ -243,7 +243,7 @@ function SessionsPage() {
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
+                  <Button tooltip="Delete session"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"

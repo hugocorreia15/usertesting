@@ -15,7 +15,7 @@ function ParticipantDashboard() {
   const { data: sessions, isLoading } = useParticipantSessions();
 
   return (
-    <PageWrapper title="My Sessions" description="View your assigned testing sessions">
+    <PageWrapper help="participant" title="My Sessions" description="View your assigned testing sessions">
       {isLoading && (
         <p className="text-muted-foreground">Loading sessions...</p>
       )}

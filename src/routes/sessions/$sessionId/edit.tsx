@@ -92,7 +92,7 @@ function SessionEditPage() {
   };
 
   return (
-    <PageWrapper
+    <PageWrapper help="sessions"
       title="Edit Session Data"
       description={`${session.templates.name} — ${session.participants.name}`}
       actions={

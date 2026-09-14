@@ -62,7 +62,7 @@ function CoRatePage() {
   }).length;
 
   return (
-    <PageWrapper
+    <PageWrapper help="co-rating"
       title={`Co-rate: ${session.templates.name}`}
       description={`${session.participants.name} — primary evaluator ${session.evaluator_name}`}
       actions={

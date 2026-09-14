@@ -275,7 +275,7 @@ function TaskRow({
             Practice task (warm-up: runs first, excluded from all metrics)
           </label>
         </div>
-        <Button
+        <Button tooltip="Remove this task"
           variant="ghost"
           size="icon"
           onClick={onRemove}

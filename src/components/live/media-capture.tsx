@@ -177,7 +177,7 @@ function AudioRecorder({
       {value ? (
         <div className="flex items-center gap-2">
           <SignedAudio value={value} className="flex-1 h-10" />
-          <Button variant="ghost" size="icon" onClick={remove}>
+          <Button tooltip="Remove this capture" variant="ghost" size="icon" onClick={remove}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

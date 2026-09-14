@@ -73,7 +73,7 @@ function OrganizationsPage() {
   };
 
   return (
-    <PageWrapper
+    <PageWrapper help="organizations"
       title="Organizations"
       description="Share templates, sessions and qualitative coding with your team"
       actions={
@@ -312,7 +312,7 @@ function OrgCard({
                       Leave
                     </Button>
                   ) : isOwner ? (
-                    <Button
+                    <Button tooltip="Remove from the organization"
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -348,7 +348,7 @@ function OrgCard({
                 <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                   {invite.label || ""}
                 </span>
-                <Button
+                <Button tooltip="Revoke this invite code"
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -486,7 +486,7 @@ function InviteCode({ code }: { code: string }) {
       <span className="truncate rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
         {code}
       </span>
-      <Button
+      <Button tooltip="Copy invite code"
         variant="ghost"
         size="icon"
         className="h-7 w-7 shrink-0"

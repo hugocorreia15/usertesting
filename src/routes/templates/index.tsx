@@ -52,7 +52,7 @@ function TemplatesPage() {
   const [exportingReport, setExportingReport] = useState(false);
 
   return (
-    <PageWrapper
+    <PageWrapper help="templates"
       title="Templates"
       description="Manage your usability test templates"
       actions={
@@ -104,8 +104,8 @@ function TemplatesPage() {
                 {t.org_id && <Badge variant="secondary">Shared</Badge>}
               </div>
             </CardContent>
-            <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100">
-              <Button
+            <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+              <Button tooltip="Open template"
                 variant="ghost"
                 size="icon"
                 onClick={(e) => {
@@ -118,7 +118,7 @@ function TemplatesPage() {
               >
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Button
+              <Button tooltip="Duplicate template"
                 variant="ghost"
                 size="icon"
                 disabled={duplicateTemplate.isPending}
@@ -129,7 +129,7 @@ function TemplatesPage() {
               >
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button
+              <Button tooltip="Delete template"
                 variant="ghost"
                 size="icon"
                 onClick={(e) => {

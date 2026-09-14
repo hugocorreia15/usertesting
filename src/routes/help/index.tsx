@@ -16,7 +16,13 @@ import {
   Users,
   Building2,
   PlayCircle,
+  ScanSearch,
+  ClipboardCheck,
+  Scale,
+  MessageSquareQuote,
+  ShieldOff,
 } from "lucide-react";
+import { HELP_SECTIONS, type HelpAnchor } from "@/lib/help-anchors";
 
 export const Route = createFileRoute("/help/")({
   component: HelpPage,
@@ -26,14 +32,10 @@ const TOC: TocEntry[] = [
   ...(hasTutorialVideo
     ? [{ id: "video", label: "Video walkthrough" }]
     : []),
-  { id: "templates", label: "1. Creating Templates" },
-  { id: "sessions", label: "2. Creating Sessions" },
-  { id: "live", label: "3. Running a Live Session" },
-  { id: "participant", label: "4. Participant Experience" },
-  { id: "analytics", label: "5. Analytics & Results" },
-  { id: "exports", label: "6. PDF Exports" },
-  { id: "participants-mgmt", label: "7. Managing Participants" },
-  { id: "organizations", label: "8. Organizations & Classrooms" },
+  ...(Object.keys(HELP_SECTIONS) as HelpAnchor[]).map((id) => ({
+    id,
+    label: HELP_SECTIONS[id],
+  })),
 ];
 
 function HelpPage() {
@@ -64,7 +66,7 @@ function HelpPage() {
           {/* ── 1. Templates ─────────────────────────────────────── */}
           <HelpSection
             id="templates"
-            title="1. Creating Templates"
+            title={HELP_SECTIONS.templates}
             icon={<FileText className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -142,7 +144,7 @@ function HelpPage() {
           {/* ── 2. Sessions ──────────────────────────────────────── */}
           <HelpSection
             id="sessions"
-            title="2. Creating Sessions"
+            title={HELP_SECTIONS.sessions}
             icon={<ClipboardList className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -200,7 +202,7 @@ function HelpPage() {
           {/* ── 3. Live Session ──────────────────────────────────── */}
           <HelpSection
             id="live"
-            title="3. Running a Live Session"
+            title={HELP_SECTIONS.live}
             icon={<Play className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -241,7 +243,7 @@ function HelpPage() {
           {/* ── 4. Participant Experience ────────────────────────── */}
           <HelpSection
             id="participant"
-            title="4. Participant Experience"
+            title={HELP_SECTIONS.participant}
             icon={<Smartphone className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -265,7 +267,7 @@ function HelpPage() {
           {/* ── 5. Analytics ─────────────────────────────────────── */}
           <HelpSection
             id="analytics"
-            title="5. Analytics & Results"
+            title={HELP_SECTIONS.analytics}
             icon={<BarChart3 className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -301,7 +303,7 @@ function HelpPage() {
           {/* ── 6. Exports ───────────────────────────────────────── */}
           <HelpSection
             id="exports"
-            title="6. PDF Exports"
+            title={HELP_SECTIONS.exports}
             icon={<FileDown className="h-5 w-5 text-primary" />}
           >
             <ul>
@@ -327,7 +329,7 @@ function HelpPage() {
           {/* ── 7. Participant management ────────────────────────── */}
           <HelpSection
             id="participants-mgmt"
-            title="7. Managing Participants"
+            title={HELP_SECTIONS["participants-mgmt"]}
             icon={<Users className="h-5 w-5 text-primary" />}
           >
             <HelpScreenshot
@@ -366,7 +368,7 @@ function HelpPage() {
           {/* ── 8. Organizations & classrooms ────────────────────── */}
           <HelpSection
             id="organizations"
-            title="8. Organizations & Classrooms"
+            title={HELP_SECTIONS.organizations}
             icon={<Building2 className="h-5 w-5 text-primary" />}
           >
             <p>
@@ -415,6 +417,186 @@ function HelpPage() {
               professor sees every project, session, and analysis from one
               account. Note that participant-captured media (photos,
               recordings) stays visible only to whoever ran the session.
+            </p>
+          </HelpSection>
+
+          {/* ── 9. Heuristic inspection ───────────────────────────── */}
+          <HelpSection
+            id="inspection"
+            title={HELP_SECTIONS.inspection}
+            icon={<ScanSearch className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              An <strong>inspection</strong> comes before a usability test.
+              Several evaluators check an interface against a list of
+              heuristics, by default Nielsen's ten, and write down every
+              problem they find with a severity from 0 (not a problem) to 4
+              (catastrophe). It needs no participants and no ethical approval,
+              and the problems it finds are what a test's tasks are then
+              written to confirm.
+            </p>
+            <p>
+              Start one from a template's overview with{" "}
+              <em>Start an inspection</em>. Inspect <strong>your own design</strong>,
+              or, before a prototype exists, a <strong>comparable product</strong>.
+            </p>
+            <ol>
+              <li>
+                <strong>Work alone.</strong> Until you submit, nobody can see
+                your findings and you cannot see theirs. This is enforced, not
+                requested: reading a teammate's list first anchors you to it.
+              </li>
+              <li>
+                <strong>Submit your pass.</strong> Submitting freezes it. You
+                can then read the passes of anyone who has also submitted.
+                When the last evaluator submits, collection closes. A template
+                owner can close it early if someone will not finish; their pass
+                is frozen as it stands.
+              </li>
+              <li>
+                <strong>Merge.</strong> Tick the findings that describe the
+                same problem and give them one agreed wording. Only merged
+                problems count in the statistics.
+              </li>
+              <li>
+                <strong>Read the statistics.</strong> <em>Any-two agreement</em>{" "}
+                is the share of problems two evaluators found in common, averaged
+                over every pair; published studies report 5% to 65%. The curve
+                shows how many problems a group of each size would find, which is
+                where the usual advice to use three to five evaluators comes
+                from.
+              </li>
+              <li>
+                <strong>Test it.</strong> <em>Test this in a session</em> turns
+                a merged problem into a task on the template, remembering which
+                problem it came from.
+              </li>
+            </ol>
+            <p>
+              An organization owner can tick{" "}
+              <em>Require a merged inspection before review</em> on a template,
+              so the protocol cannot be sent for review until one exists.
+            </p>
+          </HelpSection>
+
+          {/* ── 10. Instructor review and consent ─────────────────── */}
+          <HelpSection
+            id="review"
+            title={HELP_SECTIONS.review}
+            icon={<ClipboardCheck className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              On an organization template, an owner can put the protocol under
+              <strong> instructor review</strong>, from the template's overview.
+              It is off by default and chosen per template.
+            </p>
+            <ul>
+              <li>
+                <strong>Off</strong>: no review workflow.
+              </li>
+              <li>
+                <strong>Advisory</strong>: students request review and see the
+                decision, but nothing is blocked.
+              </li>
+              <li>
+                <strong>Required</strong>: join links cannot be created until an
+                owner approves. Sessions can still be run to rehearse the
+                protocol; they are marked <em>Pilot</em> and left out of the
+                template's analytics and report.
+              </li>
+            </ul>
+            <p>
+              Editing the protocol after it is approved or submitted sends it
+              back to draft, so what was approved is what runs. A reviewer who
+              asks for changes must say what to change.
+            </p>
+            <p>
+              <strong>Consent.</strong> A template can carry consent text.
+              Participants who join by link see it first and must accept it;
+              the time is recorded on the session. For a session you ran in
+              person, where consent was given on paper or out loud, use{" "}
+              <em>Record consent obtained</em> on the session page.
+            </p>
+          </HelpSection>
+
+          {/* ── 11. Observing and co-rating ────────────────────────── */}
+          <HelpSection
+            id="co-rating"
+            title={HELP_SECTIONS["co-rating"]}
+            icon={<Scale className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              <strong>Observe</strong> opens a read-only view of a session that
+              is in progress. It follows the moderator's current task and lets
+              you add timestamped notes, such as a hint the moderator gave. It
+              never changes the session's data. Anyone who can open the session
+              can observe it.
+            </p>
+            <p>
+              <strong>Co-rate</strong> lets a second person score a completed
+              session's tasks on their own: completion, actions, errors,
+              hesitations, and ease rating. It does not change the primary
+              evaluator's data. The session then shows how far the two of you
+              agreed, including Cohen's kappa on completion. Two careful people
+              rarely log a session identically, and the number shows how much
+              the scores depend on who logged them.
+            </p>
+          </HelpSection>
+
+          {/* ── 12. Reflection ─────────────────────────────────────── */}
+          <HelpSection
+            id="reflection"
+            title={HELP_SECTIONS.reflection}
+            icon={<MessageSquareQuote className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              When a session is completed, everyone who took part answers three
+              questions at the top of the session page: what happened that you
+              did not expect, what you would change in the protocol, and what
+              you said or did that may have led the participant.
+            </p>
+            <p>
+              Beside the questions is what the session recorded: tasks that
+              failed or took twice the expected time, hesitations and errors, a
+              task rated easy that went badly, and notes teammates took while
+              observing. Answer from that, not from memory.
+            </p>
+            <ul>
+              <li>
+                Your reflection is a <strong>private draft</strong> until you
+                submit it. Each answer needs at least a sentence.
+              </li>
+              <li>
+                <strong>Submitting is final.</strong> After that you can read
+                what teammates wrote about the same session, once they have
+                submitted theirs too.
+              </li>
+              <li>
+                Organization owners read submitted reflections, never drafts.
+                Submitted reflections are included in the data export.
+              </li>
+            </ul>
+          </HelpSection>
+
+          {/* ── 13. Anonymizing ────────────────────────────────────── */}
+          <HelpSection
+            id="data-protection"
+            title={HELP_SECTIONS["data-protection"]}
+            icon={<ShieldOff className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              <strong>Anonymize</strong>, on a completed session you ran,
+              replaces the participant's name with a random identifier and
+              removes their email, notes, and custom field values. Their age,
+              gender, occupation, tech proficiency, and every metric are kept,
+              so the analysis is unaffected.
+            </p>
+            <p>
+              Identity belongs to the participant, not the session, so this
+              applies to <strong>every session</strong> that participant took
+              part in. It cannot be undone. Photos and recordings the
+              participant captured stay private: they are only visible to
+              whoever ran the session.
             </p>
           </HelpSection>
         </div>

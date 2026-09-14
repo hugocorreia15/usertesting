@@ -38,7 +38,7 @@ function NewParticipantPage() {
   };
 
   return (
-    <PageWrapper title="New Participant">
+    <PageWrapper help="participants-mgmt" title="New Participant">
       <ParticipantForm onSubmit={handleSubmit} submitLabel="Create Participant" />
     </PageWrapper>
   );

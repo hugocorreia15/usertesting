@@ -1,15 +1,20 @@
 import { useRef, useEffect, type ReactNode } from "react";
 import gsap from "gsap";
+import { HelpButton } from "@/components/help/help-button";
+import type { HelpAnchor } from "@/lib/help-anchors";
 
 export function PageWrapper({
   title,
   description,
   actions,
+  help,
   children,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
+  /** Help section for this page, shown as a question mark beside the title. */
+  help?: HelpAnchor;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -46,7 +51,10 @@ export function PageWrapper({
     <div ref={ref} className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="break-words text-2xl font-bold tracking-tight gradient-text">{title}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="break-words text-2xl font-bold tracking-tight gradient-text">{title}</h1>
+            {help && <HelpButton section={help} />}
+          </div>
           {description && (
             <p className="mt-1 text-muted-foreground">{description}</p>
           )}

@@ -324,7 +324,7 @@ export function Sidebar() {
       <div className="fixed left-4 top-4 z-40 md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button tooltip="Open navigation" variant="outline" size="icon">
               <Menu className="h-4 w-4" />
             </Button>
           </SheetTrigger>

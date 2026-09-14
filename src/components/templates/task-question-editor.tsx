@@ -105,7 +105,7 @@ export function TaskQuestionEditor({ questions, onChange }: TaskQuestionEditorPr
                 <SelectItem value="photo">Photo</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="ghost" size="icon" onClick={() => remove(q.key)}>
+            <Button tooltip="Remove this question" variant="ghost" size="icon" onClick={() => remove(q.key)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -120,7 +120,7 @@ export function TaskQuestionEditor({ questions, onChange }: TaskQuestionEditorPr
                     onChange={(e) => updateOption(q.key, i, e.target.value)}
                     className="flex-1"
                   />
-                  <Button variant="ghost" size="icon" onClick={() => removeOption(q.key, i)}>
+                  <Button tooltip="Remove this option" variant="ghost" size="icon" onClick={() => removeOption(q.key, i)}>
                     <X className="h-3 w-3" />
                   </Button>
                 </div>

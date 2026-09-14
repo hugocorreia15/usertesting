@@ -58,7 +58,7 @@ function ParticipantsPage() {
   );
 
   return (
-    <PageWrapper
+    <PageWrapper help="participants-mgmt"
       title="Participants"
       description="Manage test participants"
       actions={
@@ -81,7 +81,7 @@ function ParticipantsPage() {
           />
         </div>
         <div className="flex rounded-md border">
-          <Button
+          <Button tooltip="Table view"
             variant={viewMode === "table" ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8 rounded-r-none"
@@ -89,7 +89,7 @@ function ParticipantsPage() {
           >
             <List className="h-4 w-4" />
           </Button>
-          <Button
+          <Button tooltip="Card view"
             variant={viewMode === "card" ? "secondary" : "ghost"}
             size="icon"
             className="h-8 w-8 rounded-l-none"
@@ -159,7 +159,7 @@ function ParticipantsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button
+                      <Button tooltip="Open participant"
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
@@ -172,7 +172,7 @@ function ParticipantsPage() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
+                      <Button tooltip="Delete participant"
                         variant="ghost"
                         size="icon"
                         onClick={(e) => {
@@ -221,7 +221,7 @@ function ParticipantsPage() {
                   </p>
                 </div>
                 <div className="flex gap-1 border-t pt-3">
-                  <Button
+                  <Button tooltip="Open participant"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
@@ -235,7 +235,7 @@ function ParticipantsPage() {
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
+                  <Button tooltip="Delete participant"
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"

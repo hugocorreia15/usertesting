@@ -88,7 +88,7 @@ function GroupDetailPage() {
   );
 
   return (
-    <PageWrapper
+    <PageWrapper help="organizations"
       title={group.name}
       description={`${org.name} · ${group.org_group_members.length} members · ${templates?.length ?? 0} templates`}
       actions={
@@ -188,19 +188,19 @@ function GroupDetailPage() {
                       {t.test_sessions?.[0]?.count ?? 0} sessions
                     </Badge>
                     {t.repo_url && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                      <Button tooltip="Open the repository in a new tab" variant="ghost" size="icon" className="h-7 w-7" asChild>
                         <a href={t.repo_url} target="_blank" rel="noreferrer" aria-label="Repository">
                           <Github className="h-3.5 w-3.5" />
                         </a>
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                    <Button tooltip="Open template" variant="ghost" size="icon" className="h-7 w-7" asChild>
                       <Link to="/templates/$templateId" params={{ templateId: t.id }} aria-label="Open template">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </Link>
                     </Button>
                     {isOwner && (
-                      <Button
+                      <Button tooltip="Remove this template from the group"
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -295,7 +295,7 @@ function GroupDetailPage() {
                         {displayName(m.member_email, m.user_id)}
                       </span>
                       {isOwner && (
-                        <Button
+                        <Button tooltip="Remove from the group"
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-destructive"

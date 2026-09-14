@@ -39,7 +39,7 @@ export function ActionCounter({
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center gap-4">
-          <Button
+          <Button aria-label="Remove one action"
             variant="outline"
             size="icon"
             onClick={onDecrement}
@@ -54,7 +54,7 @@ export function ActionCounter({
           >
             {count}
           </span>
-          <Button
+          <Button aria-label="Add one action"
             variant="outline"
             size="icon"
             onClick={onIncrement}

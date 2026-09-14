@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -81,13 +82,15 @@ function RootLayout() {
   if (isBarePage) {
     return (
       <ThemeProvider>
-        <AnimatedBackground />
-        <main className="min-h-screen p-4 md:p-6">
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </main>
-        <Toaster />
+        <TooltipProvider>
+          <AnimatedBackground />
+          <main className="min-h-screen p-4 md:p-6">
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </main>
+          <Toaster />
+        </TooltipProvider>
       </ThemeProvider>
     );
   }
@@ -104,6 +107,7 @@ function RootLayout() {
         extraScale={1}
       >
         <AnimatedBackground />
+        <TooltipProvider>
         <SidebarProvider>
           <div className="flex h-screen overflow-hidden">
             <Sidebar />
@@ -117,6 +121,7 @@ function RootLayout() {
             </div>
           </div>
         </SidebarProvider>
+        </TooltipProvider>
         <Toaster />
       </ClickSpark>
     </ThemeProvider>

@@ -86,7 +86,7 @@ function NewTemplatePage() {
   };
 
   return (
-    <PageWrapper title="New Template" description="Create a usability test template">
+    <PageWrapper help="templates" title="New Template" description="Create a usability test template">
       <TemplateForm onSubmit={handleSubmit} submitLabel="Create Template" />
     </PageWrapper>
   );

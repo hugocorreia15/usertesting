@@ -192,7 +192,7 @@ function NewSessionPage() {
   };
 
   return (
-    <PageWrapper title="New Session" description="Set up a usability test session">
+    <PageWrapper help="sessions" title="New Session" description="Set up a usability test session">
       <Card className="bg-transparent backdrop-blur-md">
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
@@ -349,7 +349,7 @@ function NewSessionPage() {
                     <Label>Shareable Link</Label>
                     <div className="flex gap-2">
                       <Input value={generatedLink} readOnly className="bg-muted font-mono text-sm" />
-                      <Button variant="outline" size="icon" onClick={() => handleCopyLink(generatedLink, setCopied)}>
+                      <Button tooltip="Copy personal link" variant="outline" size="icon" onClick={() => handleCopyLink(generatedLink, setCopied)}>
                         {copied ? (
                           <Check className="h-4 w-4 text-green-500" />
                         ) : (
@@ -401,7 +401,7 @@ function NewSessionPage() {
                     <Label>Shareable Link (unlimited participants)</Label>
                     <div className="flex gap-2">
                       <Input value={sharedLink} readOnly className="bg-muted font-mono text-sm" />
-                      <Button variant="outline" size="icon" onClick={() => handleCopyLink(sharedLink, setSharedCopied)}>
+                      <Button tooltip="Copy shared link" variant="outline" size="icon" onClick={() => handleCopyLink(sharedLink, setSharedCopied)}>
                         {sharedCopied ? (
                           <Check className="h-4 w-4 text-green-500" />
                         ) : (

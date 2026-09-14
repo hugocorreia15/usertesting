@@ -42,7 +42,7 @@ export function ErrorTypeEditor({ items, onChange }: ErrorTypeEditorProps) {
             onChange={(e) => update(item.key, "label", e.target.value)}
             className="flex-1"
           />
-          <Button variant="ghost" size="icon" onClick={() => remove(item.key)}>
+          <Button tooltip="Remove this error type" variant="ghost" size="icon" onClick={() => remove(item.key)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

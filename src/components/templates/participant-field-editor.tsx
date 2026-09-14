@@ -95,7 +95,7 @@ export function ParticipantFieldEditor({
                 ))}
               </SelectContent>
             </Select>
-            <Button
+            <Button tooltip="Remove this field"
               type="button"
               variant="ghost"
               size="icon"
