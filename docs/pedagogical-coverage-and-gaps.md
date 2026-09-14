@@ -127,11 +127,16 @@ instructor comment on a completed session.
 the session with a decision.
 
 ### D. Moderation-quality metrics the student can see
-**Gap.** The cockpit records undos, resets, skips and idle gaps, but never
-shows them back as a reflection on moderation.
+**Gap.** Nothing shows a student how their moderation went.
+**Correction, 2026-09-14.** This section first claimed the cockpit records
+undos and resets. It does not. Undo deletes the just-logged error or
+hesitation row, and resetting the timer is client state only, so neither
+leaves any trace. Skips and task timings are stored; undos and resets would
+have to be logged before they could be shown. That makes this gap larger than
+first estimated.
 **Why.** L2 `BIAS`. A student cannot improve moderation they cannot see.
-**Shape.** A "how this session ran" card: undo count, resets, time between
-tasks, tasks with no logged events at all.
+**Shape.** A "how this session ran" card: skips, time between tasks, tasks
+with no logged events at all, and, once they are logged, undos and resets.
 
 ### E. Cross-iteration comparison (already in the backlog)
 **Gap.** No way to compare design v1 against v2 on the same protocol.
@@ -217,7 +222,7 @@ narrative form, which is what an advisor is actually asking for.
 | Protocol design | Reads 12 Word documents, comments by hand | Opens each project; the review has already flagged leading tasks, missing criteria, missing baselines. Comments on what is left | **shipped** |
 | Approval | Emails "go ahead" | Approves in the app; recruiting unlocks. Students rehearsed meanwhile and the pilot data is attached | **shipped** |
 | Sessions running | Invisible until the report | Cross-team view: who has run what, which teams have no sessions yet | **gap A** |
-| After sessions | Invisible | Reads reflections; sees which teams moderated with lots of undos and hints | **gaps B, D** |
+| After sessions | Invisible | Reads reflections; sees which teams moderated with lots of skips and hints | **gaps B, D** |
 | Analysis | Twelve spreadsheets of varying quality | Same metrics, same instruments across teams, because the org set them | **shipped** |
 | Marking | Reads 12 reports, guesses at rigour | Kappa per team, uncertainty reported or not, review warnings resolved or not, all visible | **gap A** |
 | Next iteration | Starts over | v1 versus v2 on the same protocol | **gap E** |
@@ -270,7 +275,7 @@ remembered, on the date this file was written:
 | No reflection prompt anywhere in the app | yes |
 | Review decisions and notes are not in the export | yes |
 | Consent text is not stored on the session, only the timestamp | yes |
-| Undo and reset are logged but never shown back to the student | yes |
+| Undo and reset are logged but never shown back to the student | **no, wrong**: undo deletes the row, reset is client state; corrected in gap D |
 | Related Work contains no education citation at all | yes, zero matches |
 
 ## 8. Things I could not check
