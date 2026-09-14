@@ -113,3 +113,9 @@ if want 22; then
   $AB wait 500 >/dev/null
   shoot 22-anonymize.png
 fi
+
+if want 23; then
+  visit "/organizations/org-hci?as=ana" "Class overview"
+  scroll_to_text "Class overview" 16
+  shoot 23-class-overview.png
+fi

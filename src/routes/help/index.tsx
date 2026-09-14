@@ -21,6 +21,7 @@ import {
   Scale,
   MessageSquareQuote,
   ShieldOff,
+  LayoutList,
 } from "lucide-react";
 import { HELP_SECTIONS, type HelpAnchor } from "@/lib/help-anchors";
 
@@ -627,6 +628,62 @@ function HelpPage() {
               part in. It cannot be undone. Photos and recordings the
               participant captured stay private: they are only visible to
               whoever ran the session.
+            </p>
+          </HelpSection>
+
+          {/* ── 14. Class overview ─────────────────────────────────── */}
+          <HelpSection
+            id="class-overview"
+            title={HELP_SECTIONS["class-overview"]}
+            icon={<LayoutList className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              Owners of an organization see a <strong>class overview</strong>{" "}
+              at the top of the organization page: one row per project, so you
+              can see which teams need something without opening each one.
+              Projects waiting for your review come first, then projects with
+              warnings, then the rest.
+            </p>
+            <HelpScreenshot
+              src="/help/23-class-overview.png"
+              alt="The class overview table, one row per project with inspection, protocol, review, sessions, consent, order, co-rating, observation and reflection"
+              caption="Four teams at different stages. The first row is waiting for your review."
+            />
+            <p>
+              Each column is the evidence a learning objective asks for, where
+              the platform records it:
+            </p>
+            <ul>
+              <li>
+                <strong>Inspection</strong>: passes in so far, or merged with
+                the share of problems evaluators found in common.
+              </li>
+              <li>
+                <strong>Protocol</strong>: warnings the protocol review still
+                raises, such as tasks that lead the participant.
+              </li>
+              <li>
+                <strong>Review</strong>: where the instructor review stands.
+              </li>
+              <li>
+                <strong>Consent</strong>, <strong>Order</strong>,{" "}
+                <strong>Co-rated</strong>, <strong>Observed</strong>,{" "}
+                <strong>Reflected</strong>: of the completed sessions, how many
+                have consent on file, a counterbalanced task order, a second
+                rater, an observer, and a submitted reflection. Order is only
+                expected once a protocol has four measured tasks.
+              </li>
+            </ul>
+            <p>
+              Pilot sessions are not counted, because they rehearse a protocol
+              before approval. The overview shows only what you are already
+              allowed to read: an inspection still collecting passes shows its
+              progress, not its findings.
+            </p>
+            <p>
+              Two things it cannot tell you, so it does not pretend to: whether a
+              team's report states the uncertainty of its results, and whether a
+              warning was dismissed for a good reason. Those still need reading.
             </p>
           </HelpSection>
         </div>

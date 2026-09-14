@@ -6,6 +6,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
+import { ClassOverview } from "@/components/organizations/class-overview";
 import { OrgSettingsDialog } from "@/components/organizations/org-settings-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -152,6 +153,8 @@ function OrgDetailPage() {
         </>
       }
     >
+      {isOwner && projectCount > 0 && <ClassOverview orgId={orgId} />}
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="min-w-0 space-y-4 lg:col-span-2">
           <GroupsSection org={org} isOwner={isOwner} />

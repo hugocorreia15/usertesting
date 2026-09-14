@@ -118,7 +118,7 @@ const template: TemplateWithRelations = {
   description: "Moderated test of the heating schedule and away mode flows, iteration 1.",
   user_id: USERS.bruno.id,
   org_id: ORG_ID,
-  org_group_id: null,
+  org_group_id: "grp-delta",
   repo_url: null,
   is_public: false,
   instruments: ["sus"],
@@ -417,21 +417,171 @@ const findings: InspectionFinding[] = [
   { id: "g3", inspection_id: "i2", evaluator_id: "e2-b", heuristic_id: "h5", location: "Away mode", description: "Nothing stops you setting the away temperature above the home one", severity: 2, evidence_path: null, problem_id: null, created_at: at(47.4) },
 ];
 
+
+// ── more teams, for the class overview ────────────────────────
+// Three further projects in contrasting states, so one screenshot shows the
+// view doing its job: a review waiting on the instructor, warnings, missing
+// consent, an order never counterbalanced, and a team with nothing to chase.
+
+const groups = [
+  ["grp-aurora", "Team Aurora", [USERS.carla, USERS.eva]],
+  ["grp-boreal", "Team Boreal", [USERS.diogo]],
+  ["grp-cirrus", "Team Cirrus", [USERS.eva, USERS.carla]],
+  ["grp-delta", "Team Delta", [USERS.bruno, USERS.carla]],
+].map(([id, name, members]) => ({
+  id: id as string,
+  org_id: ORG_ID,
+  name: name as string,
+  created_at: T0,
+  org_group_members: (members as { id: string; email: string }[]).map((m) => ({
+    group_id: id as string,
+    user_id: m.id,
+    member_email: m.email,
+    created_at: T0,
+  })),
+}));
+
+const simpleTasks = (prefix: string, names: string[], over: Partial<(typeof tasks)[number]> = {}) =>
+  names.map((name, i) => ({
+    id: `${prefix}${i}`,
+    template_id: prefix,
+    group_id: null,
+    sort_order: i,
+    name,
+    description: `Done when ${name.toLowerCase()} is confirmed on screen.`,
+    optimal_time_seconds: 40,
+    optimal_actions: 4,
+    is_practice: false,
+    created_at: T0,
+    from_problem_id: null,
+    task_questions: [],
+    ...over,
+  }));
+
+const otherTemplate = (
+  id: string,
+  name: string,
+  group: string,
+  taskList: ReturnType<typeof simpleTasks>,
+  over: Partial<TemplateWithRelations>,
+): TemplateWithRelations => ({
+  ...template,
+  id,
+  name,
+  description: null,
+  user_id: USERS.carla.id,
+  org_group_id: group,
+  review_mode: "off",
+  review_status: "draft",
+  review_submitted_at: null,
+  require_inspection: false,
+  consent_text: null,
+  template_tasks: taskList,
+  template_error_types: [{ id: `${id}-et`, template_id: id, code: "WB", label: "Wrong button", created_at: T0 }],
+  template_questions: [],
+  ...over,
+});
+
+const library = otherTemplate(
+  "tpl-library",
+  "Campus library kiosk",
+  "grp-aurora",
+  simpleTasks("tpl-library", ["Renew a borrowed book", "Reserve a study room", "Find a journal article", "Pay a late fee"]),
+  { review_mode: "required", review_status: "approved", reviewed_at: at(20) },
+);
+const bike = otherTemplate(
+  "tpl-bike",
+  "Bike-share app",
+  "grp-boreal",
+  simpleTasks("tpl-bike", ["Tap the 'Unlock' button to start a ride", "End a ride at a full station", "Report a broken bike"]),
+  { review_mode: "required", review_status: "changes_requested", review_note: "The first task tells the participant which button to press." },
+);
+const museum = otherTemplate(
+  "tpl-museum",
+  "Museum audio guide",
+  "grp-cirrus",
+  simpleTasks("tpl-museum", ["Play the guide for room 3", "Switch the language to Portuguese", "Save a favourite exhibit"]),
+  {},
+);
+
+type LightSession = {
+  id: string; template_id: string; org_id: string; status: "completed" | "planned";
+  is_pilot: boolean; consent_accepted_at: string | null; consent_method: string | null;
+  task_order_strategy: "fixed" | "shuffled" | "latin_square"; completed_at: string | null;
+};
+const light = (id: string, tpl: string, over: Partial<LightSession> = {}): LightSession => ({
+  id, template_id: tpl, org_id: ORG_ID, status: "completed", is_pilot: false,
+  consent_accepted_at: at(50), consent_method: "join_form", task_order_strategy: "fixed",
+  completed_at: at(52), ...over,
+});
+const otherSessions: LightSession[] = [
+  light("lib1", "tpl-library"),
+  light("lib2", "tpl-library", { consent_accepted_at: null, consent_method: null }),
+  light("lib3", "tpl-library", { completed_at: at(60) }),
+  light("mus1", "tpl-museum", { task_order_strategy: "shuffled" }),
+  light("mus2", "tpl-museum", { task_order_strategy: "shuffled", completed_at: at(58) }),
+];
+
+// Museum's two sessions were co-rated with matching completion judgements.
+const museumResults = ["tpl-museum0", "tpl-museum1", "tpl-museum2"].flatMap((task_id, i) =>
+  ["mus1", "mus2"].map((session_id) => ({
+    session_id, task_id, completion_status: i === 1 ? "partial" : "success",
+    action_count: 4, error_count: 0, hesitation_count: 0, seq_rating: 6,
+  })),
+);
+const museumScores = museumResults.map((r, i) => ({
+  ...r, id: `mrs${i}`, rater_id: USERS.carla.id, rater_email: USERS.carla.email,
+  created_at: at(59), updated_at: at(59),
+}));
+
+const bikeInspection = {
+  id: "i3", template_id: "tpl-bike", heuristic_set_id: NIELSEN, subject_kind: "comparator" as const,
+  subject_name: "CityBike Lisbon", subject_url: null, status: "collecting" as const,
+  created_by: USERS.diogo.id, created_at: at(30), collection_closed_at: null, closed_at: null,
+};
+const bikeEvaluators = [
+  ev("e3-d", "i3", USERS.diogo.id, at(33)),
+  ev("e3-b", "i3", USERS.bruno.id, at(34)),
+  ev("e3-e", "i3", USERS.eva.id, null),
+];
+
 // ── the table store the mock reads ────────────────────────────
 
 export const DB: Record<string, unknown[]> = {
   organizations,
-  templates: [template],
+  org_groups: groups,
+  // The organization page also reads each project's members and a session count.
+  templates: [template, library, bike, museum].map((t) => ({
+    ...t,
+    template_members: templateMembers.filter((m) => m.template_id === t.id),
+    test_sessions: [
+      { count: [session, ...otherSessions].filter((x) => x.template_id === t.id).length },
+    ],
+  })),
   template_members: templateMembers,
-  test_sessions: [session],
+  test_sessions: [session, ...otherSessions],
+  // Flat copy for queries that read task results directly rather than nested.
+  task_results: [
+    ...taskResults.map(({ template_tasks: _t, error_logs: _e, hesitation_logs: _h, task_question_answers: _a, ...r }) => r),
+    ...museumResults,
+  ],
   participants: [participant],
-  observer_notes: observerNotes,
-  rater_scores: raterScores,
-  session_reflections: reflections,
+  observer_notes: [
+    ...observerNotes,
+    { id: "on-m", session_id: "mus1", author_id: USERS.carla.id, author_email: USERS.carla.email, note: "Found the language switch without help.", task_index: 1, created_at: at(52) },
+    { id: "on-m2", session_id: "mus2", author_id: USERS.eva.id, author_email: USERS.eva.email, note: "No prompting.", task_index: 0, created_at: at(58) },
+  ],
+  rater_scores: [...raterScores, ...museumScores],
+  session_reflections: [
+    ...reflections,
+    { id: "rf-l1", session_id: "lib1", user_id: USERS.carla.id, surprised: "x", protocol_change: "x", may_have_led: "x", submitted_at: at(53), created_at: at(53), updated_at: at(53) },
+    { id: "rf-m1", session_id: "mus1", user_id: USERS.eva.id, surprised: "x", protocol_change: "x", may_have_led: "x", submitted_at: at(53), created_at: at(53), updated_at: at(53) },
+    { id: "rf-m2", session_id: "mus2", user_id: USERS.carla.id, surprised: "x", protocol_change: "x", may_have_led: "x", submitted_at: at(59), created_at: at(59), updated_at: at(59) },
+  ],
   heuristic_sets: heuristicSets,
   heuristics,
-  inspections,
-  inspection_evaluators: evaluators,
+  inspections: [...inspections, bikeInspection],
+  inspection_evaluators: [...evaluators, ...bikeEvaluators],
   inspection_findings: findings,
   inspection_problems: problems,
   template_codes: [],

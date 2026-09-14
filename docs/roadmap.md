@@ -263,6 +263,32 @@ and note that the protocol review flags a template with no instrument at all.
 | G | Export review and inspection history | Recoverable by querying the database, so it sits below the items above | S |
 | D | Moderation metrics shown back to the student | Skips and timings are stored. Undo and reset leave no trace today, so they must be logged first; see the correction in the analysis | M |
 
+### Phase 3 status
+
+**A, the class view, built on 2026-09-14.** Owners see it at the top of the
+organization page: one row per project, with the list of what needs their
+attention beside the project name, then the evidence columns.
+
+The columns are the evidence column of the alignment table where the platform
+records it: inspection merged and the evaluators' agreement, protocol warnings
+outstanding, review status, and of the completed sessions how many have consent
+on file, a counterbalanced order, a co-rater and the kappa, an observer, and a
+submitted reflection. Pilots are counted but excluded from every expectation.
+
+Two alignment rows are deliberately not shown because the platform cannot see
+them: whether a report states its uncertainty, and whether a warning was
+resolved with a written justification.
+
+**Reads go through row-level security, not a database function.** A function
+would have to bypass the verified policies and restate them, including "no
+inspection findings until every pass is in". Reading as the owner means the
+view can only show what the owner may already see. No migration was needed.
+
+**The screenshot changed the design.** The first version put "Needs attention"
+last, and at 1440 pixels it had scrolled out of view, so the one column saying
+what to do was the one an instructor could not see. It now sits beside the
+project name.
+
 ---
 
 ## Phase 4: paper writing
