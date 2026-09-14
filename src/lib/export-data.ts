@@ -5,6 +5,7 @@
 
 import { zipSync, strToU8 } from "fflate";
 import { calculateSusScore } from "@/lib/sus";
+import type { ModerationEvent } from "@/lib/moderation";
 import type {
   Inspection,
   InspectionEvaluator,
@@ -57,6 +58,7 @@ export interface ExportExtras {
   inspectionProblems?: InspectionProblem[];
   testProblems?: TestProblem[];
   problemEvidence?: ProblemEvidence[];
+  moderationEvents?: ModerationEvent[];
 }
 
 export function buildExportTables(
@@ -74,6 +76,7 @@ export function buildExportTables(
     inspectionProblems = [],
     testProblems = [],
     problemEvidence = [],
+    moderationEvents = [],
   }: ExportExtras = {},
 ): Record<string, ExportTable> {
   const interviewQuestionText = new Map(
@@ -456,6 +459,17 @@ export function buildExportTables(
       ]),
   };
 
+  // Corrections made while logging. The logging_started marker is kept: it is
+  // what distinguishes a session logged without corrections from one that was
+  // never recorded.
+  const moderationEventsT: ExportTable = {
+    headers: ["session_id", "seq", "kind", "task_id", "task_index", "timer_seconds", "occurred_at"],
+    rows: moderationEvents
+      .filter((e) => sessionIds.has(e.session_id))
+      .sort((a, b) => a.seq - b.seq)
+      .map((e) => [e.session_id, e.seq, e.kind, e.task_id, e.task_index, e.timer_seconds, e.occurred_at]),
+  };
+
   return {
     sessions: sessionsT,
     task_results: taskResultsT,
@@ -477,6 +491,7 @@ export function buildExportTables(
     inspection_problems: inspectionProblemsT,
     test_problems: testProblemsT,
     problem_evidence: problemEvidenceT,
+    moderation_events: moderationEventsT,
   };
 }
 

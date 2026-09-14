@@ -445,5 +445,20 @@ describe("buildExportTables", () => {
       ["test_only", "tp1"],
     ]);
   });
+
+  it("exports corrections in order, keeping the logging marker", () => {
+    const e = (seq: number, kind: string, session_id = "s1") => ({
+      seq, session_id, task_id: kind === "logging_started" ? null : "task1",
+      task_index: 0, kind, timer_seconds: 12.5, occurred_at: "t",
+    });
+    const t = buildExportTables(fakeTemplate(), [fakeSession()], {
+      moderationEvents: [e(3, "task_reset"), e(1, "logging_started"), e(2, "undo_error"), e(9, "undo_action", "s-other")] as never,
+    }).moderation_events;
+    expect(t.rows.map((r) => r[t.headers.indexOf("kind")])).toEqual([
+      "logging_started",
+      "undo_error",
+      "task_reset",
+    ]);
+  });
 });
 

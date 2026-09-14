@@ -489,10 +489,9 @@ against the template's optimal baselines.}
 \label{sec:pedagogy}
 Avalux is also deployed in an undergraduate HCI course, where student
 teams each run a moderated study of a system they are
-designing~\cite{churchill2013teaching}. A systematic mapping of HCI
-teaching found active, project-based approaches dominant, only two
-tools built for HCI teaching, and few empirical evaluations of
-either~\cite{lima2019tools}. What novices actually find hard has been
+designing~\cite{churchill2013teaching}, a setting in which, as Related Work
+notes, tools built for the purpose are rare and rarely
+evaluated~\cite{lima2019tools}. What novices actually find hard has been
 characterized empirically rather than assumed: Oleson et al.\ identify
 eighteen types of learning difficulty in HCI design education, among them
 why an activity is done this way (\textsc{why}), how to perform a method
@@ -846,6 +845,25 @@ evaluator and classroom studies of Section~\ref{sec:future} are
 technical performance and a heuristic analysis of the toolkit's own design,
 are not yet attempted.
 
+\subsection*{Threats to the pedagogical claim}
+The argument of Section~\ref{sec:pedagogy} has threats of its own, distinct
+from those of the case studies, and the classroom study is designed around
+them. The platform keeps inspection passes and reflections apart, but
+students who share findings in a chat are beyond its reach; the agreement of
+a team's passes detects only the gross case, since agreement far above the
+published range suggests the passes were not independent. The class view
+shows which evidence each team has produced, which invites filling a column
+without the understanding it stands for, so the study's outcomes are
+understanding items and blind grading, never the columns themselves.
+Instructors read submitted reflections, which may lead students to write for
+the reader, so grades must not depend on what a reflection admits. Because
+several features add work by design, effort differs between cohorts more
+than it would for a tool that only saves time. A new tool also carries a
+novelty effect that a familiar toolchain does not. Finally, students are a
+captive population: taking part in the study must be separable from the
+assignment, and grading should involve someone independent of the tool's
+development.
+
 \subsection*{Security surface}
 The anonymous-participant model trades open link joins for RLS
 policies that must admit exactly the rows a code-holder is entitled
@@ -899,8 +917,14 @@ protocol quality scored against the evidence column of
 Table~\ref{tab:pedagogy}, inter-rater agreement between team
 members on a shared recorded session, the proportion of reports
 stating uncertainty with their estimates, and a pre/post test of
-methodological understanding, the protocol review's findings showing
-which mistakes recur; it is the kind of rigorous evaluation the mapping
+methodological understanding. That test asks, among other things, whether
+students who saw their own evaluators' agreement understand why one
+evaluator is not enough, and whether those who compared predictions with
+testing stop reading an unobserved prediction as a false alarm; coded
+reflections show whether one written beside the recorded evidence names the
+moderator's own interventions more often than one written from memory; and
+the protocol review, run over each kept submission, shows which mistakes
+persist after feedback; it is the kind of rigorous evaluation the mapping
 of HCI teaching found largely absent~\cite{lima2019tools}. The platform
 now records much of what that study needs rather than leaving it to be
 reconstructed: the agreement of each team's inspection passes, the ratios

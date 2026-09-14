@@ -384,6 +384,35 @@ Only once there is something to describe.
 | P5 | Threats to the pedagogical claim | S |
 | CS | Extend the classroom study design with inspection research questions | M |
 
+### Phase 4 status
+
+Complete on 2026-09-14.
+
+| # | State |
+|---|---|
+| P-new | Done in the paper update that followed Phase 3: Section III-H, inspection and synthesis |
+| P6 | Done: an inspection and method-comparison thread, then an education thread positioning the tools for teaching evaluation, generative assistants, and the toolkit evaluation taxonomy |
+| P5 | Done: a "Threats to the pedagogical claim" subsection in the Discussion |
+| CS | Done: `docs/classroom-study-design.md` gains RQ6 to RQ9, two understanding items, matched control procedures, and the confounds the new features introduce |
+
+**Two design decisions in the study update are worth knowing.** Evaluator
+agreement is not an outcome for RQ6: it is a property of the method and should
+be similar in both cohorts. What should differ is whether students understand
+it, so the outcome is an understanding item, and agreement serves as a check
+that passes were really independent. And control teams answer the same three
+reflection questions as the treatment cohort, so RQ8 tests when and beside what
+a reflection is written, not which questions are asked.
+
+**One export gap closed.** The extended reliability question reads the record
+of corrections made while logging, which the data export did not include. It
+does now, keeping the logging marker so an unrecorded session stays
+distinguishable from a clean one.
+
+**One earlier assumption removed.** The first study draft said the tool's
+author teaches the course. That was never established, so the design and the
+paper now say only that grading should involve someone independent of the
+tool's development.
+
 ---
 
 ## Phase 5: after the first cohort

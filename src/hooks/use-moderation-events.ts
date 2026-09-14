@@ -74,3 +74,16 @@ export function useModerationLoggingStarted(
     log("logging_started");
   }, [active, log]);
 }
+
+/** For exports: every correction the viewer may read across these sessions. */
+export async function fetchModerationEventsForSessions(
+  sessionIds: string[],
+): Promise<ModerationEvent[]> {
+  if (sessionIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("moderation_events")
+    .select("seq, session_id, task_id, task_index, kind, timer_seconds, occurred_at")
+    .in("session_id", sessionIds);
+  if (error) throw error;
+  return (data ?? []) as ModerationEvent[];
+}
