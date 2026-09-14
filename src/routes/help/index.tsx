@@ -440,6 +440,11 @@ function HelpPage() {
               <em>Start an inspection</em>. Inspect <strong>your own design</strong>,
               or, before a prototype exists, a <strong>comparable product</strong>.
             </p>
+            <HelpScreenshot
+              src="/help/17-inspection-pass.png"
+              alt="An evaluator's own pass on an inspection, with the notice that other passes stay hidden until submission"
+              caption="Your pass. Other evaluators' findings stay hidden until you submit."
+            />
             <ol>
               <li>
                 <strong>Work alone.</strong> Until you submit, nobody can see
@@ -472,6 +477,11 @@ function HelpPage() {
                 problem it came from.
               </li>
             </ol>
+            <HelpScreenshot
+              src="/help/18-inspection-results.png"
+              alt="Inspection statistics: any-two agreement, problems found by one person only, and problems found by groups of each size"
+              caption="After merging: how much the evaluators overlapped, and how many evaluators the study needed."
+            />
             <p>
               An organization owner can tick{" "}
               <em>Require a merged inspection before review</em> on a template,
@@ -510,6 +520,11 @@ function HelpPage() {
               back to draft, so what was approved is what runs. A reviewer who
               asks for changes must say what to change.
             </p>
+            <HelpScreenshot
+              src="/help/19-instructor-review.png"
+              alt="A template awaiting instructor review, with Approve and Request changes, below its heuristic inspections"
+              caption="An organization owner reviewing a protocol that requires review and a merged inspection."
+            />
             <p>
               <strong>Consent.</strong> A template can carry consent text.
               Participants who join by link see it first and must accept it;
@@ -541,6 +556,11 @@ function HelpPage() {
               rarely log a session identically, and the number shows how much
               the scores depend on who logged them.
             </p>
+            <HelpScreenshot
+              src="/help/20-corate.png"
+              alt="The co-rate page, scoring each task independently of the primary evaluator"
+              caption="Co-rating a completed session. Your scores never overwrite the primary evaluator's."
+            />
           </HelpSection>
 
           {/* ── 12. Reflection ─────────────────────────────────────── */}
@@ -561,6 +581,11 @@ function HelpPage() {
               task rated easy that went badly, and notes teammates took while
               observing. Answer from that, not from memory.
             </p>
+            <HelpScreenshot
+              src="/help/21-reflection.png"
+              alt="A reflection draft on a completed session, beside what the session recorded and notes from an observer"
+              caption="A reflection in progress, with the session's recorded evidence beside the questions."
+            />
             <ul>
               <li>
                 Your reflection is a <strong>private draft</strong> until you
@@ -591,6 +616,11 @@ function HelpPage() {
               gender, occupation, tech proficiency, and every metric are kept,
               so the analysis is unaffected.
             </p>
+            <HelpScreenshot
+              src="/help/22-anonymize.png"
+              alt="The confirmation dialog for anonymizing a participant"
+              caption="Anonymizing asks for confirmation, because it applies to every session of that participant and cannot be undone."
+            />
             <p>
               Identity belongs to the participant, not the session, so this
               applies to <strong>every session</strong> that participant took
