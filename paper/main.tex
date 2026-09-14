@@ -42,8 +42,9 @@ Question ratings; and a participant client that runs on the participant's
 own device via a join link, synchronized with the evaluator in real time
 over WebSocket channels, including a gating protocol that prevents the
 session from advancing while the participant is still answering. Sessions
-conclude with an automatically scored System Usability Scale questionnaire
-and a semi-structured interview, and export to a self-contained PDF report.
+can conclude with a semi-structured interview and with whichever
+automatically scored questionnaires a study selects, among them the System
+Usability Scale, and export to a self-contained PDF report.
 We describe the architecture, a React single-page application over a
 Postgres backend with row-level security, and report two case studies:
 a four-participant evaluation of a household touch-panel controller
@@ -143,7 +144,7 @@ of commodity services.
   arr/.style={-{Stealth[length=2mm]}, thick}
 ]
 \node[box, minimum width=26mm] (eval) {Evaluator SPA\\\tiny cockpit: timer, actions,\\\tiny errors, hesitations, SEQ};
-\node[box, minimum width=26mm, right=14mm of eval] (part) {Participant SPA\\\tiny own device, join link,\\\tiny questions, SUS, media};
+\node[box, minimum width=26mm, right=14mm of eval] (part) {Participant SPA\\\tiny own device, join link,\\\tiny questions, instruments, media};
 \node[cloud, minimum width=56mm, below=9mm of $(eval)!0.5!(part)$] (supa)
   {Postgres + RLS \quad Realtime (WS) \quad Auth \quad Storage};
 \draw[arr] (eval) -- node[left, font=\tiny, align=right] {REST\\WS} (eval |- supa.north);
@@ -166,10 +167,18 @@ types (open text, single and multiple choice, rating, audio, video,
 photo); a semi-structured \emph{interview script}; and \emph{participant
 fields}: extra attributes such as handedness or vision correction that
 the study collects per participant. Templates also select the
-post-session instruments a study administers: the SUS is always on, and
-studies can add the unweighted (raw) NASA-TLX workload
-scale~\cite{hart2006nasatlx} and the eight-item UEQ-S user experience
-questionnaire~\cite{schrepp2017ueqs}. A \emph{session} instantiates a
+post-session instruments a study administers, in any combination: the
+SUS~\cite{brooke1996sus}, the unweighted (raw) NASA-TLX workload
+scale~\cite{hart2006nasatlx}, and the eight-item UEQ-S user experience
+questionnaire~\cite{schrepp2017ueqs}. None is mandatory, because they
+answer different questions. A study of a system operated under time
+pressure may need workload and not perceived usability; a comparison of
+two designs' experiential appeal may need UEQ-S alone; a formative study
+run mid-iteration may need no questionnaire, its evidence being the
+problems observed. Opting out remains a visible decision rather than an
+oversight: the protocol review of Section~III-I notes a template that
+administers no instrument at all, with the reason a standardized scale
+matters. A \emph{session} instantiates a
 template for one participant and accumulates per-task results (status,
 time, action count, error and hesitation logs with timestamps, SEQ),
 question answers, interview answers, and the item scores of every
@@ -200,9 +209,10 @@ to questions per completed task), not from ephemeral messages, so either
 client can reload or lose connectivity mid-session and rejoin in a
 consistent state. The evaluator can step back one task without destroying
 recorded data, or explicitly reset a task (clearing its metrics, logs, and
-answers) after confirmation. After the last task the participant completes
-the interview and the SUS questionnaire on their own device; scores are
-computed and banded automatically~\cite{bangor2009determining,
+answers) after confirmation. After the last task the participant answers
+the interview, when the template has one, and then each instrument the
+template administers, on their own device; scores are computed
+automatically, and SUS scores are banded~\cite{bangor2009determining,
 sauro2011practical}.
 
 \begin{figure}[t]
@@ -257,8 +267,9 @@ $\frac{1}{|A|}\sum_{i \in A} t^{*}_i / t_i$ (and analogously for
 actions), where $A$ contains only \emph{attempted} tasks with
 $t_i > 0$ (skipped tasks are excluded rather than scored as zero-time
 successes, an aggregation rule we adopted after observing that including
-them produces unbounded efficiency values), and the SUS score with its
-adjective band~\cite{brooke1996sus,bangor2009determining}. Cross-session
+them produces unbounded efficiency values), and, when the SUS is
+administered, its score with the adjective
+band~\cite{brooke1996sus,bangor2009determining}. Cross-session
 SUS summaries are accompanied by two-sided 95\% confidence intervals
 computed with the $t$-distribution, following the small-sample
 recommendation of Sauro and Lewis~\cite{sauro2016quantifying}. A

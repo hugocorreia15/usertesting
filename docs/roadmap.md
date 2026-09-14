@@ -231,9 +231,13 @@ now `may_have_led`, and `scripts/verify/sql-lint.mjs` now rejects reserved
 column names. And the form first reloaded the stored draft on every refetch,
 which would have erased unsaved typing whenever the window regained focus.
 
-**Recorded for Phase 4, not fixed here.** The paper still says the participant
-completes the SUS questionnaire after the last task. SUS has been optional since
-migration 049.
+**Paper corrected on 2026-09-14.** The paper said SUS was always on and that
+every session ended with it. SUS has been optional since migration 049, and
+that is the intended design: a study under time pressure may need workload
+rather than perceived usability, a comparison of experiential appeal may need
+UEQ-S alone, and a formative study may need no questionnaire. The abstract,
+Protocol Model, Live Session, Measures, and the architecture figure now say so,
+and note that the protocol review flags a template with no instrument at all.
 
 ---
 
