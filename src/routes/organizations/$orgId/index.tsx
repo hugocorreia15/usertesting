@@ -41,6 +41,7 @@ import {
   useOrgGroups,
   useCreateGroup,
   useDeleteGroup,
+  useSetTemplateOrg,
   useSetMemberRole,
   type OrgTemplateRow,
 } from "@/hooks/use-orgs";
@@ -83,6 +84,9 @@ function OrgDetailPage() {
   const { user } = useAuth();
   const { data: orgs, isLoading: orgsLoading } = useMyOrgs();
   const { data: projects, isLoading: projectsLoading } = useOrgTemplates(orgId);
+  const setTemplateOrg = useSetTemplateOrg();
+  // Declared before the early returns below, because hooks cannot be skipped.
+  const [removing, setRemoving] = useState<{ id: string; name: string } | null>(null);
 
   if (orgsLoading)
     return <p className="p-6 text-muted-foreground">Loading...</p>;
@@ -183,6 +187,7 @@ function OrgDetailPage() {
               students={students}
               emailByUser={emailByUser}
               isOwner={isOwner}
+              onRemove={() => setRemoving({ id: project.id, name: project.name })}
             />
           ))}
         </div>
@@ -198,6 +203,31 @@ function OrgDetailPage() {
           {isOwner && <InvitesCard org={org} />}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!removing}
+        onOpenChange={(o) => !o && setRemoving(null)}
+        title="Remove from this organization"
+        description={
+          removing
+            ? `"${removing.name}" will no longer be shared with ${org.name}. The project is not deleted: it goes back to whoever created it, with its sessions and data intact. Its group link and any student assignments are cleared, so sharing it again starts from nobody assigned.`
+            : ""
+        }
+        confirmLabel="Remove from organization"
+        variant="destructive"
+        onConfirm={() => {
+          if (!removing) return;
+          setTemplateOrg.mutate(
+            { template_id: removing.id, org_id: null },
+            {
+              onSuccess: () => toast.success(`${removing.name} is no longer shared here`),
+              onError: (err: unknown) =>
+                toast.error(err instanceof Error ? err.message : "Could not remove it"),
+            },
+          );
+          setRemoving(null);
+        }}
+      />
     </PageWrapper>
   );
 }
@@ -208,12 +238,15 @@ function ProjectCard({
   students,
   emailByUser,
   isOwner,
+  onRemove,
 }: {
   project: OrgTemplateRow;
   org: OrganizationWithRelations;
   students: OrganizationMember[];
   emailByUser: Map<string, string | null>;
   isOwner: boolean;
+  /** Take this project back out of the organization. */
+  onRemove: () => void;
 }) {
   const assignMember = useAssignTemplateMember();
   const unassignMember = useUnassignTemplateMember();
@@ -260,6 +293,18 @@ function ProjectCard({
           <Badge variant="secondary" className="whitespace-nowrap">
             {sessionCount} {sessionCount === 1 ? "session" : "sessions"}
           </Badge>
+          {isOwner && (
+            <Button
+              tooltip="Take this project out of the organization. It is not deleted."
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+              aria-label={`Remove ${project.name} from the organization`}
+              onClick={onRemove}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

@@ -165,12 +165,22 @@ export function useSetTemplateOrg() {
       });
       if (error) throw error;
       if (data !== true)
-        throw new Error("Only the template creator can change sharing");
+        throw new Error(
+          input.org_id
+            ? "Only the person who created this template can share it"
+            : "Only its creator, or an owner of this organization, can remove it",
+        );
     },
     onSuccess: (_d, input) => {
       qc.invalidateQueries({ queryKey: ["templates"] });
       qc.invalidateQueries({ queryKey: ["templates", input.template_id] });
       qc.invalidateQueries({ queryKey: ["sessions"] });
+      // Migration 060 also clears the group link and the student assignments,
+      // so every list that shows either has to be refetched, not only the
+      // template lists.
+      qc.invalidateQueries({ queryKey: ["org-templates"] });
+      qc.invalidateQueries({ queryKey: ["group-templates"] });
+      qc.invalidateQueries({ queryKey: ["template-members"] });
     },
   });
 }

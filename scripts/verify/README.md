@@ -15,6 +15,7 @@ flow.
 | `ai-suggestions.sql` | Migration 058: suggestions are impossible until an organization opts in and every pass is in, a stored proposal cannot be rewritten, and accepted groupings are marked assisted. | SQL editor |
 | `test-synthesis.sql` | Migration 056: evidence must come from the same study as the problem, there is no false-alarm outcome, outsiders see nothing. | SQL editor |
 | `session-summary.sql` | Migration 059: participant text is off by default, cannot be turned on without the consent clause, and a session that consented before the wording changed stays excluded forever. A summary needs a problem the team wrote first. | SQL editor |
+| `leave-organization.sql` | Migration 060: an owner may take a template out of their own organization, nobody may put someone else's in, and leaving clears the group link, the student assignments and the sessions' organization. | SQL editor |
 | `ai-provider.mts` | That a model provider works before anything is deployed: the key is accepted, whether the model is free or billed, that the request the edge function sends comes back usable, and what it cost. | `npx tsx scripts/verify/ai-provider.mts` |
 
 `anon-rls.mjs` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from

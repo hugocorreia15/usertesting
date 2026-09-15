@@ -24,6 +24,7 @@ import {
 } from "@/hooks/use-orgs";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   ArrowLeft,
   Building2,
@@ -56,6 +57,7 @@ function GroupDetailPage() {
   const addMember = useAddGroupMember();
   const removeMember = useRemoveGroupMember();
   const setTemplateGroup = useSetTemplateGroup();
+  const [detaching, setDetaching] = useState<{ id: string; name: string } | null>(null);
 
   if (orgsLoading || groupLoading)
     return <p className="p-6 text-muted-foreground">Loading...</p>;
@@ -208,15 +210,7 @@ function GroupDetailPage() {
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         aria-label={`Detach ${t.name}`}
-                        onClick={() =>
-                          setTemplateGroup.mutate(
-                            { template_id: t.id, group_id: null },
-                            {
-                              onSuccess: () => toast.success("Detached from group"),
-                              onError: (err) => toast.error(err.message),
-                            },
-                          )
-                        }
+                        onClick={() => setDetaching({ id: t.id, name: t.name })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -323,6 +317,29 @@ function GroupDetailPage() {
           </Card>
         </div>
       </div>
+      <ConfirmDialog
+        open={!!detaching}
+        onOpenChange={(o) => !o && setDetaching(null)}
+        title="Remove from this group"
+        description={
+          detaching
+            ? `"${detaching.name}" will no longer belong to this group. It stays shared with the organization and appears under all shared templates, and none of its sessions or data are affected. To take it out of the organization entirely, use the organization page.`
+            : ""
+        }
+        confirmLabel="Remove from group"
+        variant="destructive"
+        onConfirm={() => {
+          if (!detaching) return;
+          setTemplateGroup.mutate(
+            { template_id: detaching.id, group_id: null },
+            {
+              onSuccess: () => toast.success("Removed from the group, still shared with the organization"),
+              onError: (err) => toast.error(err.message),
+            },
+          );
+          setDetaching(null);
+        }}
+      />
     </PageWrapper>
   );
 }

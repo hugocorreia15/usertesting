@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConsentBuilderDialog } from "@/components/templates/consent-builder-dialog";
+import { consentGaps } from "@/lib/consent-clauses";
 import {
   Select,
   SelectContent,
@@ -235,7 +237,10 @@ export function OrgSettingsDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="org-consent">Consent text</Label>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Label htmlFor="org-consent">Consent text</Label>
+                <ConsentBuilderDialog value={consent} onApply={setConsent} />
+              </div>
               <Textarea
                 id="org-consent"
                 rows={5}
@@ -243,6 +248,12 @@ export function OrgSettingsDialog({
                 onChange={(e) => setConsent(e.target.value)}
                 placeholder="Shown to participants on the join form before any data is collected. A shared class text saves every team writing their own."
               />
+              {consent.trim() && consentGaps(consent).length > 0 && (
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Every team starting from this text would be missing something
+                  participants usually need: {consentGaps(consent).join(", ")}.
+                </p>
+              )}
               {projectCount > 0 && (
                 <label className="flex items-center gap-2 text-xs">
                   <Checkbox
