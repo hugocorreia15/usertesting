@@ -250,6 +250,82 @@ export const copy = {
           },
         ],
       },
+      inspection: {
+        n: 9,
+        title: "Heuristic inspection",
+        lead: "Predict the problems before testing, then find out which ones were real.",
+        beats: [
+          {
+            heading: "Everyone evaluates alone",
+            body: "Each evaluator records findings against a heuristic set without seeing anyone else's. Nobody can read another pass until every pass is submitted, because an inspection read early is one evaluator's opinion repeated.",
+          },
+          {
+            heading: "Then the findings merge",
+            body: "The same problem arrives in four different sentences. Merging them into one problem list is the slow step, and the agreement figure tells a team whether their passes were really independent.",
+          },
+          {
+            heading: "Testing decides",
+            body: "After the sessions, each prediction is marked hit or not observed, and problems only testing found are added. Not observed never means wrong: a few sessions can miss a real problem.",
+          },
+        ],
+      },
+      review: {
+        n: 10,
+        title: "Instructor review and consent",
+        lead: "A protocol is reviewed before it runs, and participants are told what will happen.",
+        beats: [
+          {
+            heading: "Draft, submitted, approved",
+            body: "An owner can require approval before join links exist. Editing an approved protocol sends it back to draft, so what was approved is what runs, and rehearsal sessions are marked as pilots and left out of the results.",
+          },
+          {
+            heading: "Consent from a checklist",
+            body: "Most of a consent text is the same in every study. Tick the standard clauses, write what your study is about, and read the result as a participant would. The field warns when the right to stop is missing.",
+          },
+          {
+            heading: "A record, not a claim",
+            body: "Acceptance is timestamped on the session, and every review decision is kept with the protocol exactly as it was submitted, so two submissions show what a team changed in between.",
+          },
+        ],
+      },
+      observing: {
+        n: 11,
+        title: "Observing, co-rating and reflection",
+        lead: "Three ways of finding out that what you recorded is not simply what you expected.",
+        beats: [
+          {
+            heading: "A second pair of eyes",
+            body: "An observer takes timestamped notes while somebody else moderates, and the moderator's own corrections, an undo or a restarted task, are recorded as they happen.",
+          },
+          {
+            heading: "Two raters, one session",
+            body: "A second evaluator scores the same session without seeing the first scores. The agreement that comes back is a measurement of the instrument, not a mark for the student.",
+          },
+          {
+            heading: "Reflection while it is fresh",
+            body: "Three questions after each session, answered alone and visible to teammates only once they have written their own. The last one asks where you might have led the participant.",
+          },
+        ],
+      },
+      classAndModel: {
+        n: 12,
+        title: "Class overview and model assistance",
+        lead: "Seeing a whole class at once, and where a model is allowed to help.",
+        beats: [
+          {
+            heading: "One row per team",
+            body: "Every column is the evidence a learning objective asks for: the inspection, protocol warnings, review, sessions, consent, co-rating, reflection. Teams waiting on you come first.",
+          },
+          {
+            heading: "A model may propose",
+            body: "It groups findings across evaluators, or observations across sessions, into candidate problems. It is off by default and refused until the team has written a problem of its own, so it helps with what you might have missed and never with looking.",
+          },
+          {
+            heading: "And a person decides",
+            body: "Nothing is applied automatically. Accepting writes the problem you would have written by hand, marked assisted, so a report can say which work was your own. Participant answers are sent only where the consent text said so.",
+          },
+        ],
+      },
     },
   },
 } as const;

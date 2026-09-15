@@ -56,13 +56,18 @@ export const ChapterRail: React.FC = () => {
           opacity: visible,
         }}
       >
+        {/* Twelve chapters do not fit at the old size: labels wrapped onto two
+            lines and the last ones ran off the right edge. The row is now told
+            not to wrap, and the numbers carry the sequence so the labels can be
+            small. */}
         <div
           style={{
             display: "flex",
-            gap: 26,
+            gap: 18,
             marginBottom: 18,
-            fontSize: theme.size.micro,
+            fontSize: 19,
             fontWeight: 600,
+            whiteSpace: "nowrap",
           }}
         >
           {TUTORIAL_CHAPTERS.map((chapter, i) => {
@@ -73,20 +78,21 @@ export const ChapterRail: React.FC = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 9,
+                  gap: 7,
                   color: active ? theme.color.primaryInk : theme.color.inkSoft,
                   opacity: active ? 1 : 0.75,
                 }}
               >
                 <div
                   style={{
-                    width: 22,
-                    height: 22,
+                    width: 20,
+                    height: 20,
+                    flexShrink: 0,
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: active ? theme.color.white : theme.color.inkSoft,
                     backgroundColor: active

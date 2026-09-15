@@ -29,6 +29,10 @@ export const TUTORIAL = {
   exports: 750,
   coding: 750,
   orgs: 600,
+  inspection: 1350,
+  review: 1200,
+  observing: 1200,
+  classAndModel: 1200,
   outro: 300,
 } as const;
 
@@ -46,12 +50,16 @@ export const TUTORIAL_DURATION = totalOf(TUTORIAL);
 export const TUTORIAL_CHAPTERS = [
   { key: "templates", label: "Templates" },
   { key: "sessions", label: "Sessions" },
-  { key: "live", label: "Live session" },
+  { key: "live", label: "Live" },
   { key: "participant", label: "Participant" },
   { key: "results", label: "Results" },
   { key: "exports", label: "Exports" },
   { key: "coding", label: "Coding" },
-  { key: "orgs", label: "Organizations" },
+  { key: "orgs", label: "Orgs" },
+  { key: "inspection", label: "Inspection" },
+  { key: "review", label: "Review" },
+  { key: "observing", label: "Observing" },
+  { key: "classAndModel", label: "Class" },
 ] as const;
 
 /**

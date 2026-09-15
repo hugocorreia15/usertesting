@@ -13,6 +13,10 @@ import { C5Results } from "./scenes/tutorial/C5Results";
 import { C6Exports } from "./scenes/tutorial/C6Exports";
 import { C7Coding } from "./scenes/tutorial/C7Coding";
 import { C8Orgs } from "./scenes/tutorial/C8Orgs";
+import { C9Inspection } from "./scenes/tutorial/C9Inspection";
+import { C10Review } from "./scenes/tutorial/C10Review";
+import { C11Observing } from "./scenes/tutorial/C11Observing";
+import { C12ClassAndModel } from "./scenes/tutorial/C12ClassAndModel";
 import { Outro } from "./scenes/tutorial/Outro";
 
 const cut = (
@@ -60,6 +64,22 @@ export const Tutorial: React.FC = () => {
         {cut}
         <TransitionSeries.Sequence durationInFrames={TUTORIAL.orgs} name="8 Organizations">
           <C8Orgs />
+        </TransitionSeries.Sequence>
+        {cut}
+        <TransitionSeries.Sequence durationInFrames={TUTORIAL.inspection} name="9 Inspection">
+          <C9Inspection />
+        </TransitionSeries.Sequence>
+        {cut}
+        <TransitionSeries.Sequence durationInFrames={TUTORIAL.review} name="10 Review & consent">
+          <C10Review />
+        </TransitionSeries.Sequence>
+        {cut}
+        <TransitionSeries.Sequence durationInFrames={TUTORIAL.observing} name="11 Observing">
+          <C11Observing />
+        </TransitionSeries.Sequence>
+        {cut}
+        <TransitionSeries.Sequence durationInFrames={TUTORIAL.classAndModel} name="12 Class & model">
+          <C12ClassAndModel />
         </TransitionSeries.Sequence>
         {cut}
         <TransitionSeries.Sequence durationInFrames={TUTORIAL.outro} name="Outro">
