@@ -20,6 +20,8 @@ export type TutorialVideo = {
 
 export const TUTORIAL_VIDEO: TutorialVideo = {
   provider: "youtube",
+  // Still the five-minute cut. Replace with the share link of the eight-minute
+  // one; see video/UPLOAD.md, which also carries the description timestamps.
   source: "https://youtu.be/FIeoc_4YQao",
 };
 
@@ -64,6 +66,16 @@ export const hasTutorialVideo = parsed.id.length > 0;
  * is re-cut with different scene lengths, re-derive these from
  * `tutorialStarts()` in that file.
  */
+/**
+ * Offsets into the walkthrough, derived from `video/src/timeline.ts`, which is
+ * the source of truth. Re-derive with tutorialStarts() divided by 30 after any
+ * re-cut, and keep the description timestamps in video/UPLOAD.md in step.
+ *
+ * These belong to the eight-minute cut. The first eight are unchanged from the
+ * five-minute one, because the new chapters were appended rather than
+ * inserted, so only the last four depend on `source` being swapped for the new
+ * upload; until it is, they seek past the end.
+ */
 export const TUTORIAL_VIDEO_CHAPTERS: { label: string; at: number }[] = [
   { label: "Templates", at: 14 },
   { label: "Sessions", at: 64 },
@@ -73,6 +85,10 @@ export const TUTORIAL_VIDEO_CHAPTERS: { label: string; at: number }[] = [
   { label: "Exports", at: 232 },
   { label: "Coding", at: 256 },
   { label: "Organizations", at: 281 },
+  { label: "Heuristic inspection", at: 300 },
+  { label: "Review and consent", at: 345 },
+  { label: "Observing and reflection", at: 384 },
+  { label: "Class overview and model help", at: 424 },
 ];
 
 /** Player URL for an optional start offset, on the privacy-preserving host. */

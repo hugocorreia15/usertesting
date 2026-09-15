@@ -58,12 +58,8 @@ function HelpPage() {
               icon={<PlayCircle className="h-5 w-5 text-primary" />}
             >
               <p>
-                A five-minute tour of the core workflow, in the same order as
-                the sections below: templates, sessions, the live cockpit, what
-                the participant sees, results, exports, coding and
-                organizations. Use the jump links to go straight to a chapter.
-                The teaching features from section 9 onwards are written up
-                below rather than filmed.
+                An eight-minute tour of every feature, in the same order as the
+                sections below. Use the jump links to go straight to a chapter.
               </p>
               <HelpVideo />
             </HelpSection>

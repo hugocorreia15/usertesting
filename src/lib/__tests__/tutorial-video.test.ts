@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   TUTORIAL_VIDEO,
@@ -83,13 +85,44 @@ describe("player urls", () => {
   });
 });
 
+/**
+ * The runtime read from the Remotion project rather than written down here.
+ * These offsets were hardcoded against a 9315 frame cut, and a re-cut left them
+ * pointing past the end of the video without anything noticing until the next
+ * time someone ran this file. Reading the timeline means a re-cut updates the
+ * expectation by itself, and adding a chapter without moving the offsets fails.
+ */
+function tutorialRuntimeSeconds(): number {
+  const source = readFileSync(
+    resolve(__dirname, "../../../video/src/timeline.ts"),
+    "utf8",
+  );
+  const block = source.match(/export const TUTORIAL = \{([\s\S]*?)\} as const;/);
+  const transition = source.match(/export const TRANSITION = (\d+);/);
+  const fps = source.match(/export const FPS = (\d+);/);
+  if (!block || !transition || !fps) throw new Error("timeline.ts is not the shape this test expects");
+
+  const scenes = [...block[1].matchAll(/\w+:\s*(\d+)/g)].map((m) => Number(m[1]));
+  const frames =
+    scenes.reduce((a, b) => a + b, 0) - (scenes.length - 1) * Number(transition[1]);
+  return frames / Number(fps[1]);
+}
+
 describe("chapter offsets", () => {
   it("stay inside the rendered runtime and in order", () => {
-    // The tutorial composition is 9315 frames at 30 fps.
-    const runtime = 9315 / 30;
+    const runtime = tutorialRuntimeSeconds();
     const offsets = TUTORIAL_VIDEO_CHAPTERS.map((c) => c.at);
     expect(Math.min(...offsets)).toBeGreaterThanOrEqual(0);
     expect(Math.max(...offsets)).toBeLessThan(runtime);
     expect([...offsets].sort((a, b) => a - b)).toEqual(offsets);
+  });
+
+  it("has one jump link per chapter in the video", () => {
+    const rail = readFileSync(
+      resolve(__dirname, "../../../video/src/timeline.ts"),
+      "utf8",
+    ).match(/export const TUTORIAL_CHAPTERS = \[([\s\S]*?)\] as const;/);
+    const chapters = [...(rail?.[1] ?? "").matchAll(/key:\s*"/g)].length;
+    expect(TUTORIAL_VIDEO_CHAPTERS).toHaveLength(chapters);
   });
 });
