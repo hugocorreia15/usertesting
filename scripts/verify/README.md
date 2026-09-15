@@ -39,10 +39,22 @@ guard checks in `gate-and-consent.sql` work without switching.
 node scripts/verify/sql-lint.mjs
 ```
 
-Catches a bare apostrophe inside a single-quoted SQL literal, which is the one
-mistake in these files that no local check used to find. Postgres reports it as
-a syntax error far from the real line, so it costs a round trip to the SQL
-editor every time. Run it before pasting any migration or verification script.
+Catches three mistakes in these files that no local check used to find, each of
+which otherwise costs a round trip to the SQL editor:
+
+- a bare apostrophe inside a single-quoted literal, which Postgres reports as a
+  syntax error far from the real line;
+- a column named with a reserved word, such as `leading`;
+- an INSERT naming a column its table does not have, which is worse than a
+  syntax error because a verification script fails partway through, after
+  changing things.
+
+The column list is built from the migrations themselves, from CREATE TABLE and
+every later ADD COLUMN, so it cannot drift from the schema. Tables the
+migrations never create, such as the temporary tables these scripts make for
+themselves, are skipped rather than guessed at.
+
+Run it before pasting any migration or verification script.
 
 ## ai-provider.mts
 

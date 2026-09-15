@@ -40,7 +40,7 @@ BEGIN
     RETURNING id INTO v_org2;
   INSERT INTO organization_members (org_id, user_id, role) VALUES (v_org2, v_c, 'owner');
 
-  INSERT INTO org_groups (org_id, name, created_by) VALUES (v_org1, 'ZZ group', v_a)
+  INSERT INTO org_groups (org_id, name) VALUES (v_org1, 'ZZ group')
     RETURNING id INTO v_grp;
 
   INSERT INTO templates (name, user_id) VALUES ('ZZ leave template', v_a)

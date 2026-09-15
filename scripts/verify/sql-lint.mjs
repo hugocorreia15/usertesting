@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
- * Catches two classes of SQL error that only show up when you paste a file
+ * Catches three classes of SQL error that only show up when you paste a file
  * into the SQL editor. The first is a bare apostrophe inside a single-quoted
  * literal. The second is a column named with a reserved word, such as
- * "leading" or "user", which fails unless quoted.
+ * "leading" or "user", which fails unless quoted. The third is an INSERT naming
+ * a column the table does not have, which is how a verification script fails
+ * after doing half its work.
  *
  *   'The design should speak the users' language, ...'
  *                                    ^ ends the string here
@@ -163,6 +165,64 @@ function countNewlines(s, from, to) {
   return n;
 }
 
+/**
+ * Every column each table has, from CREATE TABLE and from later ADD COLUMN.
+ * Built from the migrations themselves, so it cannot drift from the schema.
+ */
+function schemaColumns() {
+  const sql = globSync("supabase/migrations/*.sql")
+    .sort()
+    .map((f) => readFileSync(f, "utf8"))
+    .join("\n");
+
+  const cols = new Map();
+  const add = (table, column) => {
+    const t = table.toLowerCase().replace(/^public\./, "");
+    if (!cols.has(t)) cols.set(t, new Set());
+    cols.get(t).add(column.toLowerCase());
+  };
+
+  for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?([a-z_.]+)\s*\(([\s\S]*?)\n\);/gi)) {
+    for (const line of m[2].split("\n")) {
+      const c = line.match(/^\s+([a-z_]+)\s+[a-z]/i);
+      // Table level clauses start with a keyword, not a column name.
+      if (c && !/^(constraint|unique|check|primary|foreign|exclude|like)$/i.test(c[1])) {
+        add(m[1], c[1]);
+      }
+    }
+  }
+
+  for (const m of sql.matchAll(/alter\s+table\s+([a-z_.]+)([\s\S]*?);/gi)) {
+    for (const a of m[2].matchAll(/add\s+column\s+(?:if\s+not\s+exists\s+)?([a-z_]+)/gi)) {
+      add(m[1], a[1]);
+    }
+  }
+  return cols;
+}
+
+/**
+ * An INSERT naming a column that does not exist. Tables the migrations never
+ * create, such as the temporary tables a verification script makes for itself,
+ * are skipped rather than guessed at.
+ */
+function unknownColumns(source, cols) {
+  const issues = [];
+  for (const m of source.matchAll(/insert\s+into\s+([a-z_.]+)\s*\(([^)]*)\)/gi)) {
+    const known = cols.get(m[1].toLowerCase().replace(/^public\./, ""));
+    if (!known) continue;
+    const line = source.slice(0, m.index).split("\n").length;
+    for (const raw of m[2].split(",")) {
+      const col = raw.trim().toLowerCase();
+      if (col && !known.has(col)) {
+        issues.push({ line, message: `${m[1]} has no column "${col}"` });
+      }
+    }
+  }
+  return issues;
+}
+
+const columnsByTable = schemaColumns();
+
 const files =
   process.argv.length > 2
     ? process.argv.slice(2)
@@ -174,7 +234,11 @@ const files =
 let failed = 0;
 for (const file of files) {
   const text = readFileSync(file, "utf8");
-  const issues = [...scan(text), ...reservedColumns(text)];
+  const issues = [
+    ...scan(text),
+    ...reservedColumns(text),
+    ...unknownColumns(text, columnsByTable),
+  ];
   if (issues.length === 0) {
     console.log(`  ok    ${file}`);
   } else {
@@ -187,7 +251,7 @@ for (const file of files) {
 
 console.log(
   failed === 0
-    ? `\n${files.length} files, no quoting or reserved-word problems.`
+    ? `\n${files.length} files, no quoting, reserved-word or unknown-column problems.`
     : `\n${failed} of ${files.length} files have problems.`,
 );
 process.exit(failed === 0 ? 0 : 1);
