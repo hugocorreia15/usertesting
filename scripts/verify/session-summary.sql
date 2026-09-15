@@ -171,14 +171,6 @@ BEGIN
     INSERT INTO _result VALUES (11, 'the proposal cannot be rewritten', 'PASS', SQLERRM);
   END;
 
-  BEGIN
-    INSERT INTO ai_suggestions (template_id, inspection_id, kind, payload, requested_by)
-      VALUES (v_tpl, gen_random_uuid(), 'session_summary', '{}'::jsonb, v_a);
-    INSERT INTO _result VALUES (12, 'a suggestion belongs to one subject, not two', 'FAIL', 'insert succeeded');
-  EXCEPTION WHEN OTHERS THEN
-    INSERT INTO _result VALUES (12, 'a suggestion belongs to one subject, not two', 'PASS', SQLERRM);
-  END;
-
   INSERT INTO test_problems (template_id, title, assisted)
     VALUES (v_tpl, 'Accepted from a summary', true);
   SELECT count(*) INTO n FROM test_problems WHERE template_id = v_tpl AND assisted;
@@ -199,6 +191,35 @@ BEGIN
 END $rls2$;
 
 RESET ROLE;
+
+-- Checks 12 and 16 run as the superuser on purpose. Row-level security does not
+-- apply to this role, so the CHECK constraints are what refuse, rather than a
+-- policy answering first and hiding whether the constraint works at all.
+DO $constraints$
+DECLARE v_tpl uuid; v_a uuid;
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM _fx WHERE k = 'C') THEN RETURN; END IF;
+  SELECT v INTO v_tpl FROM _fx WHERE k = 'tpl';
+  SELECT v INTO v_a FROM _fx WHERE k = 'A';
+
+  BEGIN
+    INSERT INTO ai_suggestions (template_id, inspection_id, kind, payload, requested_by)
+      VALUES (v_tpl, gen_random_uuid(), 'session_summary', '{}'::jsonb, v_a);
+    INSERT INTO _result VALUES (12, 'a suggestion belongs to one subject, not two', 'FAIL', 'insert succeeded');
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO _result VALUES (12, 'a suggestion belongs to one subject, not two',
+      CASE WHEN SQLERRM LIKE '%one_subject%' THEN 'PASS' ELSE 'FAIL' END, SQLERRM);
+  END;
+
+  BEGIN
+    INSERT INTO ai_suggestions (kind, payload, requested_by)
+      VALUES ('session_summary', '{}'::jsonb, v_a);
+    INSERT INTO _result VALUES (16, 'a suggestion with no subject at all is refused', 'FAIL', 'insert succeeded');
+  EXCEPTION WHEN OTHERS THEN
+    INSERT INTO _result VALUES (16, 'a suggestion with no subject at all is refused',
+      CASE WHEN SQLERRM LIKE '%one_subject%' THEN 'PASS' ELSE 'FAIL' END, SQLERRM);
+  END;
+END $constraints$;
 
 DO $clean$
 DECLARE v_org uuid; v_p uuid;
