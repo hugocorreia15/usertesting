@@ -5,7 +5,7 @@ set, so nothing changes on the site until you decide to publish.
 
 ## 1. Upload
 
-Upload `out/avalux-tutorial.mp4` (1920x1080, 7:53). Both YouTube and Vimeo
+Upload `out/avalux-tutorial.mp4` (89 MB, 1920x1080, 7:53). Both YouTube and Vimeo
 accept it as is; no re-encode needed.
 
 **Visibility:** *Unlisted* is usually the right choice. An unlisted video still
