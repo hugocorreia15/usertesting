@@ -18,6 +18,7 @@ export const HELP_SECTIONS = {
   reflection: "12. Reflection After a Session",
   "data-protection": "13. Anonymizing Participant Data",
   "class-overview": "14. Class Overview",
+  "session-summary": "15. Summarising a Study",
 } as const;
 
 export type HelpAnchor = keyof typeof HELP_SECTIONS;

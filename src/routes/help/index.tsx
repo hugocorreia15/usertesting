@@ -7,21 +7,22 @@ import { HelpVideo } from "@/components/help/help-video";
 import { hasTutorialVideo } from "@/lib/tutorial-video";
 import { Badge } from "@/components/ui/badge";
 import {
-  FileText,
-  ClipboardList,
-  Play,
-  Smartphone,
   BarChart3,
-  FileDown,
-  Users,
   Building2,
-  PlayCircle,
-  ScanSearch,
   ClipboardCheck,
-  Scale,
-  MessageSquareQuote,
-  ShieldOff,
+  ClipboardList,
+  FileDown,
+  FileText,
   LayoutList,
+  MessageSquareQuote,
+  Play,
+  PlayCircle,
+  Scale,
+  ScanSearch,
+  ShieldOff,
+  Smartphone,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { HELP_SECTIONS, type HelpAnchor } from "@/lib/help-anchors";
 
@@ -419,6 +420,18 @@ function HelpPage() {
               account. Note that participant-captured media (photos,
               recordings) stays visible only to whoever ran the session.
             </p>
+            <p>
+              <strong>Taking a project back out.</strong> On the organization
+              page, each project has a remove button. The project is not
+              deleted: it goes back to whoever created it with its sessions and
+              data intact, and its group link and student assignments are
+              cleared, so sharing it again starts from nobody assigned. Its
+              creator can always do this, and so can an owner of the
+              organization it is in. Putting a template into an organization
+              stays with its creator alone. Removing a template from a group,
+              on the group page, is a smaller step: it stays shared with the
+              organization and appears under all shared templates.
+            </p>
           </HelpSection>
 
           {/* ── 9. Heuristic inspection ───────────────────────────── */}
@@ -568,6 +581,18 @@ function HelpPage() {
               the time is recorded on the session. For a session you ran in
               person, where consent was given on paper or out loud, use{" "}
               <em>Record consent obtained</em> on the session page.
+            </p>
+            <p>
+              <strong>Building the text.</strong> Most of a consent text is the
+              same in every study: taking part is voluntary, you may stop, we
+              are testing the system and not you, results are reported without
+              names. Only the purpose really changes. <em>Build it</em>, next to
+              the consent field on the template's Basics tab, turns that into a
+              checklist with a preview of what a participant will read. The
+              field then warns if the saved text is missing something
+              participants usually need, most often the right to stop. An
+              organization can set one text every team starts from, in its
+              settings, using the same builder.
             </p>
           </HelpSection>
 
@@ -734,6 +759,64 @@ function HelpPage() {
               Two things it cannot tell you, so it does not pretend to: whether a
               team's report states the uncertainty of its results, and whether a
               warning was dismissed for a good reason. Those still need reading.
+            </p>
+          </HelpSection>
+
+          {/* ── 15. Summarising a study ────────────────────────────── */}
+          <HelpSection
+            id="session-summary"
+            title={HELP_SECTIONS["session-summary"]}
+            icon={<Sparkles className="h-5 w-5 text-primary" />}
+          >
+            <p>
+              After a team has run its sessions, the same problem usually
+              appears in several of them, described differently each time.
+              Pulling that together is the same work the inspection does across
+              evaluators, with the evidence spread across sessions instead, and
+              it can be proposed the same way. On the <em>Sessions</em> tab of a
+              study, <strong>Summarise the sessions</strong> asks a model which
+              observations point to one problem.
+            </p>
+            <p>
+              It is off unless the organization has turned model suggestions on,
+              and it refuses until your team has written at least one problem of
+              its own. A summary is for what you might have missed, not a
+              substitute for looking. Each proposal shows how many sessions it
+              draws on, because a problem seen in four sessions is worth more
+              than one seen once, and accepting it writes the problem you would
+              have written by hand, marked as assisted, with those sessions
+              attached as evidence.
+            </p>
+            <HelpScreenshot
+              src="/help/26-session-summary.png"
+              alt="The session summary card on a study's Sessions tab, with three proposed problems, how many sessions each draws on, and an Accept button beside each"
+              caption="Three problems proposed across three sessions. The one seen in three matters more than the one seen in one, and nothing is written until someone accepts it."
+            />
+            <p>
+              <strong>What is sent.</strong> Always: what your team wrote, the
+              observer notes and the moderator's recorded corrections. Sessions
+              are numbered 1, 2, 3, so no name, email, id or date goes with
+              them.
+            </p>
+            <p>
+              <strong>What participants wrote is different.</strong> Their
+              answers are their words, given under a consent text that probably
+              said nothing about a model, so sending them is off by default and
+              decided per study rather than per organization, on the study's
+              overview. It cannot be turned on until the consent text carries
+              the sentence about automated processing, which <em>Build it</em>{" "}
+              will add for you, and it then applies only to sessions whose
+              participant accepted <em>after</em> that moment.
+            </p>
+            <p>
+              That last point is the one worth knowing before you recruit.
+              Turning this on stamps the moment it was turned on, so a study
+              whose sessions have already run can never include their answers,
+              however it is set afterwards. Switching it off and on again does
+              not change that in either direction. The same card tells you where
+              a study stands: how many sessions are eligible, how many consented
+              before the clause, how many never consented, and how many are
+              pilots.
             </p>
           </HelpSection>
         </div>

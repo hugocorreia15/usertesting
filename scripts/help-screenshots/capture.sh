@@ -131,3 +131,13 @@ if want 25; then
   scroll_to_text "After testing" 16
   shoot 25-after-testing.png
 fi
+
+if want 26; then
+  visit "/templates/tpl-thermo?as=bruno" "Sessions"
+  # The tab carries its count, and the sidebar has a button of the same name.
+  $AB find role tab click --name "Sessions (3)" >/dev/null
+  $AB wait --text "What these sessions point to" >/dev/null
+  $AB wait 800 >/dev/null
+  scroll_to_text "What these sessions point to" 16
+  shoot 26-session-summary.png
+fi

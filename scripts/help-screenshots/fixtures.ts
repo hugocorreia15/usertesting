@@ -69,6 +69,7 @@ const organizations: OrganizationWithRelations[] = [
     default_review_mode: "required",
     default_consent_text: null,
     default_instruments: ["sus"],
+    ai_suggestions_enabled: true,
     created_at: T0,
     organization_invites: [],
     organization_members: [
@@ -130,6 +131,8 @@ const template: TemplateWithRelations = {
   reviewed_at: null,
   reviewed_by: null,
   approval_invalidated_at: null,
+  ai_participant_text_enabled: true,
+  ai_participant_text_from: at(48),
   consent_text:
     "This study records how you use a thermostat app. No video of your face is taken. You can stop at any time.",
   require_inspection: true,
@@ -379,6 +382,8 @@ const problems: InspectionProblem[] = [
   // problems nobody predicted, so predictions covered only four of seven (57%).
   test_outcome: (["confirmed", "not_observed", "confirmed", "untested", "confirmed", "untested", "confirmed", "untested", "untested"] as const)[i],
   outcome_note: null,
+  // Migration 058. These were all merged by hand.
+  assisted: false,
   created_at: at(27),
 }));
 
@@ -515,11 +520,19 @@ type LightSession = {
   id: string; template_id: string; org_id: string; status: "completed" | "planned";
   is_pilot: boolean; consent_accepted_at: string | null; consent_method: string | null;
   task_order_strategy: "fixed" | "shuffled" | "latin_square"; completed_at: string | null;
+  task_results: unknown[];
+  created_at: string;
 };
 const light = (id: string, tpl: string, over: Partial<LightSession> = {}): LightSession => ({
   id, template_id: tpl, org_id: ORG_ID, status: "completed", is_pilot: false,
   consent_accepted_at: at(50), consent_method: "join_form", task_order_strategy: "fixed",
-  completed_at: at(52), ...over,
+  completed_at: at(52),
+  created_at: at(50),
+  // The real query selects task_results, so a session always arrives with an
+  // array. Without one here the template's Sessions tab crashes on reduce,
+  // which is the demo missing a column rather than the app being wrong.
+  task_results: [],
+  ...over,
 });
 const otherSessions: (LightSession & { participants?: { name: string } })[] = [
   { ...light("th2", "tpl-thermo", { task_order_strategy: "latin_square", completed_at: at(20) }), participants: { name: "Hugo Pires" } },
@@ -594,10 +607,55 @@ export const DB: Record<string, unknown[]> = {
   inspection_findings: findings,
   inspection_problems: problems,
   // After testing: what only the sessions showed, and which sessions show what.
+  // A summary proposal over the three thermostat sessions, as the model made it.
+  ai_suggestions: [
+    {
+      id: "sum1",
+      template_id: "tpl-thermo",
+      inspection_id: null,
+      kind: "session_summary",
+      model: "openrouter/free",
+      status: "open",
+      requested_by: USERS.bruno.id,
+      created_at: at(44),
+      resolved_at: null,
+      payload: {
+        clusters: [
+          {
+            title: "The away temperature reads as the current temperature",
+            findingIds: ["obs-1", "obs-2", "obs-5"],
+            heuristicCode: "H2",
+            severity: 3,
+          },
+          {
+            title: "Nobody expects the schedule to need saving on each day",
+            findingIds: ["obs-3", "obs-6"],
+            heuristicCode: "H6",
+            severity: 2,
+          },
+          {
+            title: "The hold button gives no sign that it did anything",
+            findingIds: ["obs-4"],
+            heuristicCode: "H1",
+            severity: 2,
+          },
+        ],
+        discarded: [{ reason: "unknown finding", count: 1 }],
+        observations: [
+          { id: "obs-1", session_id: "s1", source: "note" },
+          { id: "obs-2", session_id: "th2", source: "note" },
+          { id: "obs-3", session_id: "th2", source: "participant" },
+          { id: "obs-4", session_id: "th3", source: "event" },
+          { id: "obs-5", session_id: "th3", source: "participant" },
+          { id: "obs-6", session_id: "s1", source: "note" },
+        ],
+      },
+    },
+  ],
   test_problems: [
-    { id: "tp1", template_id: "tpl-thermo", title: "Participants expected the schedule to repeat weekly without asking", severity: 3, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
-    { id: "tp2", template_id: "tpl-thermo", title: "The away temperature was mistaken for the current temperature", severity: 2, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
-    { id: "tp3", template_id: "tpl-thermo", title: "Nobody noticed the schedule could be copied to other days", severity: 1, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45) },
+    { id: "tp1", template_id: "tpl-thermo", title: "Participants expected the schedule to repeat weekly without asking", severity: 3, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45), assisted: false },
+    { id: "tp2", template_id: "tpl-thermo", title: "The away temperature was mistaken for the current temperature", severity: 2, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45), assisted: false },
+    { id: "tp3", template_id: "tpl-thermo", title: "Nobody noticed the schedule could be copied to other days", severity: 1, heuristic_id: null, note: null, created_by: USERS.bruno.id, created_at: at(45), assisted: false },
   ],
   problem_evidence: (
     [
