@@ -34,6 +34,12 @@ shape. Three have a free tier that needs no payment method:
 | Groq | `https://api.groq.com/openai/v1/chat/completions` | an id from the Groq console model list |
 | OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | a model id ending in `:free` |
 
+On OpenRouter, `AI_MODEL` also accepts `@preset/<slug>`, a configuration you
+name at `openrouter.ai/settings/presets`. Choosing the model there rather than
+here means swapping it later without touching a secret or redeploying. Its
+model and provider routing apply; its temperature and system prompt do not,
+because this function sends its own and request fields win over preset fields.
+
 Neither Google's nor Groq's compatibility layer documents `response_format`,
 and Groq rejects the whole request when it receives a parameter it does not
 support. That is what `AI_JSON_MODE=auto` is for: the request goes out once
