@@ -11,6 +11,13 @@
 -- The two that matter: an owner may take a template out of their own
 -- organization even though they did not create it, and nobody may put someone
 -- else's template into one.
+--
+-- One trap worth knowing when reading this file. A SELECT ... INTO inside these
+-- blocks runs under whatever claims are currently set, so it obeys row-level
+-- security. Reading a row back while impersonating someone who cannot see it
+-- returns no row and leaves the variable NULL, which is indistinguishable from
+-- the write having succeeded. Every read-back here is therefore done as someone
+-- entitled to see the row, whoever attempted the write.
 
 BEGIN;
 
@@ -102,23 +109,31 @@ BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_c::text)::text, true);
 
   ok := set_template_org(v_tpl, NULL);
+
+  -- Read back as the creator. Once the template has left the organization, C
+  -- cannot see it either, and a blind read would report NULL whether the
+  -- removal worked or not: the expected answer here, which is why this check
+  -- would have passed without proving anything.
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (6, 'an owner may take a template out of their own organization',
     CASE WHEN ok AND v_org IS NULL THEN 'PASS' ELSE 'FAIL' END,
     'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
   -- ── but not put it anywhere ───────────────────────────────
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_c::text)::text, true);
   ok := set_template_org(v_tpl, v_org2);
+
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (7, 'nobody may put someone elses template into an organization',
     CASE WHEN NOT ok AND v_org IS NULL THEN 'PASS' ELSE 'FAIL' END,
-    'org=' || COALESCE(v_org::text, 'null'));
+    'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
   -- ── and an outsider may not touch it at all ───────────────
   -- The creator puts it back first. Asserted separately, because if this were
   -- to fail silently the next check would fail for a reason that has nothing
   -- to do with outsiders.
-  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
   ok := set_template_org(v_tpl, v_org1);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (8, 'the creator may share it again after an owner removed it',
@@ -128,6 +143,13 @@ BEGIN
   PERFORM set_config('request.jwt.claims',
     json_build_object('sub', '11111111-1111-1111-1111-111111111111')::text, true);
   ok := set_template_org(v_tpl, NULL);
+
+  -- Read back as the creator, not as the outsider. Row-level security hides the
+  -- template from someone outside the organization, so SELECT ... INTO run
+  -- under their claims matches no row and leaves the variable NULL, which reads
+  -- exactly like the removal having succeeded. The refusal is what is being
+  -- tested here; whether an outsider can see the row is tested elsewhere.
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (9, 'someone outside the organization cannot remove it',
     CASE WHEN NOT ok AND v_org = v_org1 THEN 'PASS' ELSE 'FAIL' END,
