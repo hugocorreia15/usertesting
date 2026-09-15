@@ -490,6 +490,67 @@ against the template's optimal baselines.}
 \label{fig:dash}
 \end{figure}
 
+\subsection{Model Assistance, and Its Limits}
+\label{sec:assistance}
+Two steps in the workflow are slow in a way that is clerical rather than
+intellectual. Merging a dozen evaluators' findings into one problem list is
+the longest manual step of an inspection, and after a set of sessions the same
+problem appears in several of them described differently each time. Both are
+the same operation: deciding which descriptions refer to one underlying
+problem. A language model can propose that mapping. Whether it should is a
+pedagogical question before it is a technical one, because the operation it
+performs is precisely the one the exercise is meant to teach.
+
+The platform answers that with four constraints, each enforced in the database
+rather than in the interface, so that no client and no future feature can
+bypass them. First, an organization opts in, and the default is off: text
+leaves the system, so the decision belongs to whoever is accountable for the
+data rather than to a student mid-assignment. Second, and most important for
+the teaching argument, a suggestion cannot be obtained before the team has
+done the work itself. For an inspection, the row-level policy that releases
+other evaluators' findings only after every pass is submitted already gates it,
+so no student can read a proposed problem list before writing their own
+findings; for a study summary, the request is refused until the team has
+entered at least one problem of its own. Assistance is available for what a
+team might have missed, never as a substitute for looking. Third, nothing is
+applied automatically. A proposal is a stored record that a person accepts or
+dismisses, and accepting it writes the same rows the person would have written
+by hand, marked \emph{assisted}, so a report, the data export and the
+classroom study can separate assisted work from unassisted. Fourth, the
+model's answer is treated as untrusted input: a validator drops finding
+identifiers that do not exist, refuses to place one finding in two problems,
+rejects heuristic codes outside the inspection's own set and severities off the
+scale, and reports what it discarded, so a team is told when a proposal
+referred to three findings that were never written.
+
+What may be sent is decided in two tiers. Text the students wrote, their
+findings, observer notes and the moderator's recorded corrections, rides on the
+organization's decision. Text a participant wrote is different in kind: it was
+given under a consent text that almost certainly said nothing about a language
+model. Its release is therefore decided per study, defaults to off, and is
+refused until the consent text contains a specific clause that the platform
+supplies and then checks for. Eligibility is then a timestamp comparison rather
+than a promise in the interface. Enabling the option records the instant it was
+enabled, and a session qualifies only if its own recorded consent is at or
+after that instant. The consequence is deliberate and, in our experience of
+explaining it, initially surprising: a study whose sessions have already run can
+never have their answers included, whatever is set afterwards, and switching
+the setting off and on does not re-date it in either direction. A class that
+wants this must decide before recruiting, which is the same order in which
+consent itself has to be obtained. Session identifiers, participant names and
+dates are never sent; sessions are numbered.
+
+Deployment is provider-agnostic by construction. The feature runs as a server
+function configured by three environment variables, an endpoint, a model and a
+key, so a department that objects to student text reaching a third party can
+point it at a model on its own infrastructure without a code change, and a
+deployment that sets no key answers that no model is configured while
+everything else continues to work. We report this as a design, not as a result:
+the quality of the groupings a model proposes, and whether assisted teams
+learn more or less than unassisted ones, are exactly what the \emph{assisted}
+marking exists to let the classroom study measure, and neither question is
+answered here.
+
 \subsection{What Integration Buys}
 \label{sec:integration}
 Each instrument described above exists in some form in an ad-hoc toolchain: a
@@ -912,10 +973,17 @@ Instructors read submitted reflections, which may lead students to write for
 the reader, so grades must not depend on what a reflection admits. Because
 several features add work by design, effort differs between cohorts more
 than it would for a tool that only saves time. A new tool also carries a
-novelty effect that a familiar toolchain does not. Finally, students are a
-captive population: taking part in the study must be separable from the
-assignment, and grading should involve someone independent of the tool's
-development.
+novelty effect that a familiar toolchain does not. The model assistance of
+Section~\ref{sec:assistance} is the sharpest threat of all, since it can
+perform the very operation the exercise teaches. The design answers it by
+ordering rather than by prohibition, releasing a proposal only after a team has
+produced its own work, and by recording which problems were accepted from a
+proposal, so that a cohort using assistance can be compared with one that does
+not instead of the question being assumed away. Whether that ordering is enough
+is an empirical question the classroom study is designed to answer and this
+paper does not. Finally, students are a captive population: taking part in the
+study must be separable from the assignment, and grading should involve someone
+independent of the tool's development.
 
 \subsection*{Security surface}
 The anonymous-participant model trades open link joins for RLS
@@ -998,7 +1066,7 @@ they concluded.
 
 \section*{Availability}
 The platform is deployed at \url{https://avalux.pt}. Its source (the
-application, 57 SQL migrations, the seeded protocol of study~2, the
+application, 60 SQL migrations, the seeded protocol of study~2, the
 tutorial, and the report generator) is available under the MIT license
 at \url{https://github.com/hugocorreia15/usertesting}. Anonymized
 session data from the case studies is available on request within the
