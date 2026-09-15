@@ -25,6 +25,10 @@
 //                 Defaults to OpenAI. Point it at a gateway, another provider,
 //                 or a local model to keep text on your own infrastructure.
 //   AI_MODEL      optional, defaults to gpt-4o-mini
+//   AI_JSON_MODE  optional: auto (default), on, or off. Several providers,
+//                 including Google's and Groq's OpenAI-compatible endpoints, do
+//                 not document response_format and may reject it outright, so
+//                 auto retries once without it.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -43,6 +47,22 @@ const json = (body: unknown, status = 200) =>
 /** Enough to judge a finding, short enough to keep a request affordable. */
 const MAX_FINDINGS = 200;
 const MAX_TEXT = 400;
+
+/**
+ * Models often wrap JSON in a code fence or add a sentence before it. Take the
+ * outermost braces rather than failing on decoration.
+ */
+function extractJson(text: string): unknown {
+  const withoutFences = text.replace(/```(?:json)?/gi, "").trim();
+  try {
+    return JSON.parse(withoutFences);
+  } catch {
+    const first = withoutFences.indexOf("{");
+    const last = withoutFences.lastIndexOf("}");
+    if (first === -1 || last <= first) throw new Error("no JSON object in the answer");
+    return JSON.parse(withoutFences.slice(first, last + 1));
+  }
+}
 
 interface Finding {
   id: string;
@@ -153,28 +173,42 @@ Deno.serve(async (req) => {
   const url = Deno.env.get("AI_API_URL") ?? "https://api.openai.com/v1/chat/completions";
   const model = Deno.env.get("AI_MODEL") ?? "gpt-4o-mini";
 
-  let answer: string;
-  try {
-    const response = await fetch(url, {
+  const jsonMode = (Deno.env.get("AI_JSON_MODE") ?? "auto").toLowerCase();
+
+  const ask = (withJsonMode: boolean) =>
+    fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
         temperature: 0,
-        response_format: { type: "json_object" },
+        ...(withJsonMode ? { response_format: { type: "json_object" } } : {}),
         messages: [
           {
             role: "system",
             content:
-              "You group usability findings. You never invent identifiers and you answer with JSON only.",
+              "You group usability findings. You never invent identifiers and you answer with JSON only, with no code fence and no commentary.",
           },
           { role: "user", content: prompt },
         ],
       }),
     });
+
+  let answer: string;
+  try {
+    let response = await ask(jsonMode !== "off");
+    // Providers that do not accept response_format reject the whole request.
+    // One retry without it is the difference between working and not on most
+    // free tiers.
+    if (!response.ok && response.status === 400 && jsonMode === "auto") {
+      response = await ask(false);
+    }
     if (!response.ok) {
       const detail = await response.text();
-      return json({ error: `The model refused the request (${response.status})`, detail: detail.slice(0, 300) }, 502);
+      return json(
+        { error: `The model refused the request (${response.status})`, detail: detail.slice(0, 300) },
+        502,
+      );
     }
     const payload = await response.json();
     answer = payload?.choices?.[0]?.message?.content ?? "";
@@ -184,9 +218,9 @@ Deno.serve(async (req) => {
 
   let raw: unknown;
   try {
-    raw = JSON.parse(answer);
+    raw = extractJson(answer);
   } catch {
-    return json({ error: "The model did not return JSON" }, 502);
+    return json({ error: "The model did not return JSON", detail: answer.slice(0, 200) }, 502);
   }
 
   // The client validates this against the findings it holds before storing it.

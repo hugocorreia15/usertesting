@@ -18,9 +18,33 @@ Optional secrets:
 |---|---|---|
 | `AI_API_URL` | OpenAI chat completions | Any OpenAI-compatible endpoint: a gateway, another provider, or a model on your own machine so no text leaves your infrastructure |
 | `AI_MODEL` | `gpt-4o-mini` | A different model |
+| `AI_JSON_MODE` | `auto` | `auto` asks for JSON mode and retries once without it if the provider rejects the request. `off` never asks, `on` always does |
 
 Without `AI_API_KEY` the function answers 501 and the interface says the
 deployment has no model configured. Nothing else breaks.
+
+## Providers without a card
+
+The function only needs an endpoint that speaks the OpenAI chat completions
+shape. Three have a free tier that needs no payment method:
+
+| Provider | `AI_API_URL` | `AI_MODEL` |
+|---|---|---|
+| Google AI Studio | `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions` | a Gemini id from the AI Studio model list |
+| Groq | `https://api.groq.com/openai/v1/chat/completions` | an id from the Groq console model list |
+| OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | a model id ending in `:free` |
+
+Neither Google's nor Groq's compatibility layer documents `response_format`,
+and Groq rejects the whole request when it receives a parameter it does not
+support. That is what `AI_JSON_MODE=auto` is for: the request goes out once
+asking for JSON, and on a 400 it goes out again without asking. The answer is
+then parsed leniently, because a model told to answer in JSON and not held to
+it often wraps the object in a code fence.
+
+Read the provider's terms before pointing this at a class. A free tier is
+usually free because the provider may train on what you send, and what you send
+here is text students wrote. A paid tier, a gateway, or a model on your own
+machine avoids that; the organization opt-in stays off until someone decides.
 
 ## What it sends
 
