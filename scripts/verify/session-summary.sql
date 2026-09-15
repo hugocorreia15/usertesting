@@ -206,7 +206,13 @@ BEGIN
   SELECT v INTO v_org FROM _fx WHERE k = 'org';
   SELECT v INTO v_p FROM _fx WHERE k = 'p';
   IF v_org IS NOT NULL THEN
-    DELETE FROM templates WHERE org_id = v_org;   -- cascades to sessions and suggestions
+    -- test_sessions.template_id and .participant_id are the only two foreign
+    -- keys in the schema without ON DELETE CASCADE, so the sessions have to be
+    -- removed by hand and before the rows they point at. Everything hanging off
+    -- a session (notes, moderation events, task results, answers) does cascade.
+    DELETE FROM test_sessions
+     WHERE template_id IN (SELECT id FROM templates WHERE org_id = v_org);
+    DELETE FROM templates WHERE org_id = v_org;   -- cascades to problems and suggestions
     DELETE FROM organizations WHERE id = v_org;
   END IF;
   IF v_p IS NOT NULL THEN DELETE FROM participants WHERE id = v_p; END IF;
