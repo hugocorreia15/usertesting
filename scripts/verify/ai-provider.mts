@@ -133,6 +133,20 @@ console.log(`Model     ${MODEL}`);
 console.log(`JSON mode ${JSON_MODE}`);
 console.log(`Key       ${API_KEY.slice(0, 8)}...${API_KEY.slice(-4)} (${API_KEY.length} chars)\n`);
 
+// A key pasted into a field that already held a prefix comes out doubled. The
+// provider answers 401 and says nothing useful, so catch it before the call.
+const prefixes = API_KEY.match(/sk-or-v1-|sk-or-|sk-proj-|sk-/g) ?? [];
+if (prefixes.length > 1) {
+  console.log(
+    warn(
+      `The key starts with a prefix ${prefixes.length} times ("${prefixes.join('", "')}"). ` +
+        "That usually means it was pasted on top of one already there. An OpenRouter key " +
+        "begins with sk-or-v1- exactly once.",
+    ),
+  );
+}
+
+
 // ── 1. what the provider says about this key ─────────────────────────────────
 
 /** OpenRouter reports lifetime spend per key, which is how step 4 measures cost. */
