@@ -189,14 +189,6 @@ if (isOpenRouter) {
         ? warn("No credit limit set on this key, so it draws on the account balance.")
         : warn(`Credit limit on this key: $${limit.toFixed(2)}.`),
     );
-    if (usage === 0 && !MODEL.endsWith(":free")) {
-      console.log(
-        warn(
-          "An unfunded OpenRouter account gets 50 requests a day on :free models. " +
-            "This model id does not end in :free, so it will be billed.",
-        ),
-      );
-    }
   }
 }
 
@@ -217,6 +209,14 @@ if (isOpenRouter) {
       const perToken = Number(p.prompt ?? 0) + Number(p.completion ?? 0);
       if (perToken === 0) {
         console.log(ok(`"${MODEL}" is priced at zero. This is a free model.`));
+        if (spendBefore === 0) {
+          console.log(
+            warn(
+              "On an unfunded account that is 50 requests a day, shared across every free " +
+                "model. Buying $10 of credits once raises it to 1000 a day for good.",
+            ),
+          );
+        }
       } else {
         const perMillion = perToken * 1_000_000;
         console.log(
