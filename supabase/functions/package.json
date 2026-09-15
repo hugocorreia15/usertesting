@@ -1,0 +1,4 @@
+{
+  "type": "module",
+  "//": "Not deployed and not a package. Deno needs none of this. It sits one level above the function folders, so `supabase functions deploy <name>` never uploads it, and it exists only so Node treats prompt.ts as ESM when scripts/verify/ai-provider.mts imports the very same file the function runs."
+}

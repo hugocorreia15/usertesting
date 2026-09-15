@@ -31,6 +31,12 @@
 //                 auto retries once without it.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import {
+  buildPrompt,
+  chatBody,
+  extractJson,
+  MAX_FINDINGS,
+} from "./prompt.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -43,26 +49,6 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { ...CORS, "Content-Type": "application/json" },
   });
-
-/** Enough to judge a finding, short enough to keep a request affordable. */
-const MAX_FINDINGS = 200;
-const MAX_TEXT = 400;
-
-/**
- * Models often wrap JSON in a code fence or add a sentence before it. Take the
- * outermost braces rather than failing on decoration.
- */
-function extractJson(text: string): unknown {
-  const withoutFences = text.replace(/```(?:json)?/gi, "").trim();
-  try {
-    return JSON.parse(withoutFences);
-  } catch {
-    const first = withoutFences.indexOf("{");
-    const last = withoutFences.lastIndexOf("}");
-    if (first === -1 || last <= first) throw new Error("no JSON object in the answer");
-    return JSON.parse(withoutFences.slice(first, last + 1));
-  }
-}
 
 interface Finding {
   id: string;
@@ -141,34 +127,15 @@ Deno.serve(async (req) => {
     .eq("set_id", inspection.heuristic_set_id ?? "")
     .order("sort_order");
 
-  const list = (findings as Finding[])
-    .map((f) => {
-      const where = f.location ? ` [${f.location.slice(0, 80)}]` : "";
-      return `- id: ${f.id}${where} :: ${f.description.slice(0, MAX_TEXT)}`;
-    })
-    .join("\n");
-
   const heuristicList = (heuristics ?? [])
     .map((h: { code: string | null; name: string }) => `${h.code ?? "?"} = ${h.name}`)
     .join("; ");
 
-  const prompt = [
-    `Findings from an independent heuristic inspection of "${inspection.subject_name}".`,
-    "Several evaluators worked alone, so the same problem often appears more than once in different words.",
-    "",
-    "Group the findings that describe the SAME underlying problem. Rules:",
-    "- Use only the ids given below. Never invent an id.",
-    "- Put each id in at most one group. A problem only one evaluator found is a group of one.",
-    "- Write a title as one short sentence describing the problem, not the fix.",
-    heuristicList ? `- Choose heuristic_code from exactly this set: ${heuristicList}` : "- Set heuristic_code to null.",
-    "- severity is an integer 0 to 4, or null if the findings disagree.",
-    "",
-    "Answer with JSON only:",
-    '{"clusters":[{"title":"...","finding_ids":["..."],"heuristic_code":"H1","severity":3}]}',
-    "",
-    "Findings:",
-    list,
-  ].join("\n");
+  const prompt = buildPrompt({
+    subjectName: inspection.subject_name,
+    findings: findings as Finding[],
+    heuristicList,
+  });
 
   const url = Deno.env.get("AI_API_URL") ?? "https://api.openai.com/v1/chat/completions";
   const model = Deno.env.get("AI_MODEL") ?? "gpt-4o-mini";
@@ -179,19 +146,7 @@ Deno.serve(async (req) => {
     fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        temperature: 0,
-        ...(withJsonMode ? { response_format: { type: "json_object" } } : {}),
-        messages: [
-          {
-            role: "system",
-            content:
-              "You group usability findings. You never invent identifiers and you answer with JSON only, with no code fence and no commentary.",
-          },
-          { role: "user", content: prompt },
-        ],
-      }),
+      body: JSON.stringify(chatBody({ model, prompt, jsonMode: withJsonMode })),
     });
 
   let answer: string;

@@ -71,6 +71,19 @@ or send participant answers, observer notes, reflections, names, or emails.
   only then stores a suggestion. An invented finding id never reaches the
   database.
 
+## Checking the provider before deploying
+
+```
+AI_API_KEY=... AI_API_URL=... AI_MODEL=... npx tsx scripts/verify/ai-provider.mts
+```
+
+Tells you whether the key is accepted, whether the model is free or billed,
+whether the request this function sends comes back usable, and what it cost.
+It imports `prompt.ts` from this folder, so it sends the request the deployed
+function sends rather than an approximation of it, and it judges the answer
+with the same validator the browser uses. Invented findings, so nothing real is
+sent to a provider you have not chosen yet.
+
 ## Checking it by hand
 
 ```

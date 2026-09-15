@@ -14,6 +14,7 @@ flow.
 | `moderation-events.sql` | Migration 055: corrections are recorded only as yourself, cannot be edited or deleted, and go with their session. | SQL editor |
 | `ai-suggestions.sql` | Migration 058: suggestions are impossible until an organization opts in and every pass is in, a stored proposal cannot be rewritten, and accepted groupings are marked assisted. | SQL editor |
 | `test-synthesis.sql` | Migration 056: evidence must come from the same study as the problem, there is no false-alarm outcome, outsiders see nothing. | SQL editor |
+| `ai-provider.mts` | That a model provider works before anything is deployed: the key is accepted, whether the model is free or billed, that the request the edge function sends comes back usable, and what it cost. | `npx tsx scripts/verify/ai-provider.mts` |
 
 `anon-rls.mjs` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from
 `.env.local` and only issues GETs. It exits non-zero on any leak, so it can
@@ -40,3 +41,37 @@ Catches a bare apostrophe inside a single-quoted SQL literal, which is the one
 mistake in these files that no local check used to find. Postgres reports it as
 a syntax error far from the real line, so it costs a round trip to the SQL
 editor every time. Run it before pasting any migration or verification script.
+
+## ai-provider.mts
+
+```
+npx tsx scripts/verify/ai-provider.mts
+```
+
+Run this before `supabase secrets set`, not after. It reads `AI_API_KEY`,
+`AI_API_URL`, `AI_MODEL` and `AI_JSON_MODE` from the environment or
+`.env.local`, and answers the four questions in the order they bite:
+
+1. Does the provider accept the key.
+2. Is the model free or billed. On OpenRouter this is read from the model's
+   own pricing rather than guessed from the `:free` suffix.
+3. Does the request come back usable. It sends the exact body the deployed
+   function sends, by importing `supabase/functions/inspection-suggest/prompt.ts`,
+   and it judges the answer with `validateMergeSuggestion`, the same function
+   the browser runs before anything is stored. A check that rebuilt either in
+   its own words would prove only that the check works.
+4. What it cost. On OpenRouter the key's lifetime spend is read before and
+   after, so "that request was free" is measured rather than assumed.
+
+It sends invented findings about an invented library website. No study,
+participant or student text is read, so it is safe to point at a provider you
+are still deciding about.
+
+It exits non-zero when the feature would not work, and says which of the four
+steps failed. A 402 means no credits, a 404 usually means the model id is wrong
+for that endpoint, and a 429 on an unfunded OpenRouter account means you have
+used the fifty free requests for the day.
+
+One last thing it reports: whether the model put the two findings that describe
+the same problem in different words into one group. A model that cannot do that
+saves nobody any work, however cheap it is.
