@@ -434,10 +434,10 @@ export function buildExportTables(
       .map((f) => [f.inspection_id, f.evaluator_id, f.heuristic_id, f.location, f.description, f.severity, f.problem_id, f.created_at]),
   };
   const inspectionProblemsT: ExportTable = {
-    headers: ["inspection_id", "problem_id", "title", "heuristic_id", "agreed_severity", "test_outcome"],
+    headers: ["inspection_id", "problem_id", "title", "heuristic_id", "agreed_severity", "test_outcome", "assisted"],
     rows: inspectionProblems
       .filter((p) => inspectionIds.has(p.inspection_id))
-      .map((p) => [p.inspection_id, p.id, p.title, p.heuristic_id, p.agreed_severity, p.test_outcome]),
+      .map((p) => [p.inspection_id, p.id, p.title, p.heuristic_id, p.agreed_severity, p.test_outcome, p.assisted ? 1 : 0]),
   };
 
   // After testing: problems only testing found, and every problem's evidence.

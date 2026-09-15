@@ -12,6 +12,7 @@ flow.
 | `reflection-visibility.sql` | Migration 053: reflections are private drafts, frozen on submission, readable by a teammate only after submitting their own. | SQL editor |
 | `review-history.sql` | Migration 054: every review decision is kept in order with the protocol as submitted, and nobody can write or alter it. | SQL editor |
 | `moderation-events.sql` | Migration 055: corrections are recorded only as yourself, cannot be edited or deleted, and go with their session. | SQL editor |
+| `ai-suggestions.sql` | Migration 058: suggestions are impossible until an organization opts in and every pass is in, a stored proposal cannot be rewritten, and accepted groupings are marked assisted. | SQL editor |
 | `test-synthesis.sql` | Migration 056: evidence must come from the same study as the problem, there is no false-alarm outcome, outsiders see nothing. | SQL editor |
 
 `anon-rls.mjs` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from

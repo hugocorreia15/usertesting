@@ -96,7 +96,30 @@ export interface InspectionProblem {
   /** Whether usability testing showed this predicted problem (migration 056). */
   test_outcome: "untested" | "confirmed" | "not_observed";
   outcome_note: string | null;
+  /** Created by accepting a model suggestion (migration 058). */
+  assisted: boolean;
   created_at: string;
+}
+
+/** A model's proposal during consolidation, kept as made (migration 058). */
+export interface AiSuggestion {
+  id: string;
+  inspection_id: string;
+  kind: "merge" | "heuristic";
+  payload: {
+    clusters: {
+      title: string;
+      findingIds: string[];
+      heuristicCode: string | null;
+      severity: number | null;
+    }[];
+    discarded?: { reason: string; count: number }[];
+  };
+  model: string | null;
+  status: "open" | "accepted" | "dismissed";
+  requested_by: string | null;
+  created_at: string;
+  resolved_at: string | null;
 }
 
 /** A problem testing showed that the inspection did not predict. */
@@ -384,6 +407,8 @@ export interface Organization {
   default_review_mode: ReviewMode;
   default_consent_text: string | null;
   default_instruments: string[];
+  /** Opt-in for model suggestions during consolidation (migration 058). */
+  ai_suggestions_enabled: boolean;
   created_at: string;
 }
 

@@ -479,6 +479,7 @@ export function useUpdateOrg() {
       default_review_mode?: string;
       default_consent_text?: string | null;
       default_instruments?: string[];
+      ai_suggestions_enabled?: boolean;
     }) => {
       const { error } = await supabase
         .from("organizations")

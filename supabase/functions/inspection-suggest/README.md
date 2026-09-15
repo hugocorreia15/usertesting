@@ -1,0 +1,55 @@
+# inspection-suggest
+
+Proposes how an inspection's findings group into problems, and which heuristic
+each group violates. Deployed as a Supabase Edge Function so a self-hosted
+instance gets it with the rest of the project, and so the model key never
+reaches a browser.
+
+## Deploy
+
+```
+supabase functions deploy inspection-suggest
+supabase secrets set AI_API_KEY=sk-...
+```
+
+Optional secrets:
+
+| Secret | Default | Why change it |
+|---|---|---|
+| `AI_API_URL` | OpenAI chat completions | Any OpenAI-compatible endpoint: a gateway, another provider, or a model on your own machine so no text leaves your infrastructure |
+| `AI_MODEL` | `gpt-4o-mini` | A different model |
+
+Without `AI_API_KEY` the function answers 501 and the interface says the
+deployment has no model configured. Nothing else breaks.
+
+## What it sends
+
+Only text students wrote: the description, location, severity and heuristic of
+each finding, capped at 200 findings and 400 characters each. It does not read
+or send participant answers, observer notes, reflections, names, or emails.
+
+## What protects it
+
+- It builds its Supabase client from the caller's own `Authorization` header
+  and never from the service-role key, so row-level security applies exactly as
+  in the app. An inspection still collecting passes returns only the caller's
+  own findings, which is not enough to merge, and the request fails.
+- It refuses unless the organization opted in, checked through
+  `inspection_ai_enabled`.
+- It stores nothing. It returns the model's raw answer; the browser validates it
+  against findings it already holds (`src/lib/ai-suggestions.ts`, 14 tests) and
+  only then stores a suggestion. An invented finding id never reaches the
+  database.
+
+## Checking it by hand
+
+```
+curl -X POST "$SUPABASE_URL/functions/v1/inspection-suggest" \
+  -H "Authorization: Bearer <a signed-in user's access token>" \
+  -H "Content-Type: application/json" \
+  -d '{"inspection_id":"<id of an inspection being consolidated>"}'
+```
+
+Expected failures, all of which should be readable rather than a 500: 401
+without a token, 403 when the organization has not opted in, 409 while passes
+are still being collected or with fewer than two findings, 501 with no key set.

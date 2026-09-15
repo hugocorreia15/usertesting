@@ -418,7 +418,7 @@ describe("buildExportTables", () => {
         { id: "f1", inspection_id: "i1", evaluator_id: "e1", heuristic_id: "h1", location: "Home", description: "No feedback", severity: 3, evidence_path: null, problem_id: "p1", created_at: "c" },
       ],
       inspectionProblems: [
-        { id: "p1", inspection_id: "i1", title: "No feedback on save", notes: null, heuristic_id: "h1", agreed_severity: 3, sort_order: 0, test_outcome: "confirmed", outcome_note: null, created_at: "c" },
+        { id: "p1", inspection_id: "i1", title: "No feedback on save", notes: null, heuristic_id: "h1", agreed_severity: 3, sort_order: 0, test_outcome: "confirmed", outcome_note: null, assisted: false, created_at: "c" },
       ],
     });
     expect(tables.inspections.rows).toHaveLength(1);

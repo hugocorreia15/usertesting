@@ -41,6 +41,9 @@ import {
 } from "@/hooks/use-inspections";
 import { InspectionMetrics } from "@/components/inspection/inspection-metrics";
 import { SynthesisCard } from "@/components/inspection/synthesis-card";
+import { SuggestionsCard } from "@/components/inspection/suggestions-card";
+import { useMyOrgs } from "@/hooks/use-orgs";
+import { useTemplate } from "@/hooks/use-templates";
 import { SEVERITY, severityShort } from "@/components/inspection/severity";
 import type { InspectionPass } from "@/lib/inspection";
 import type { InspectionFinding } from "@/types";
@@ -54,6 +57,10 @@ function InspectionPage() {
   const { user } = useAuth();
   const { data, isLoading } = useInspection(inspectionId);
   const { data: sets } = useHeuristicSets();
+  // Model suggestions are off unless the study's organization opted in.
+  const { data: template } = useTemplate(data?.inspection.template_id);
+  const { data: orgs } = useMyOrgs();
+  const aiEnabled = !!orgs?.find((o) => o.id === template?.org_id)?.ai_suggestions_enabled;
 
   const join = useJoinInspection();
   const submit = useSubmitPass();
@@ -214,6 +221,15 @@ function InspectionPage() {
               })
             }
             remaining={evaluators.length - submittedCount}
+          />
+        )}
+
+        {!collecting && (
+          <SuggestionsCard
+            inspectionId={inspectionId}
+            enabled={aiEnabled}
+            findings={findings}
+            heuristics={heuristics}
           />
         )}
 

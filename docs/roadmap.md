@@ -429,3 +429,48 @@ Session review threads, cross-iteration comparison, consent versioning.
 | Export review history third | Phase 3 | Review decisions are already stored, so the export is recoverable at any time |
 | Paper edits after all app work | Five of them moved to Phase 0 | They are decisions that constrain the schema, not prose |
 | No inspection anywhere | The largest single item | The pipeline was missing its first stage |
+
+---
+
+## Beyond the roadmap: asked for on 2026-09-15
+
+**The case for integration, in the paper.** The pedagogical argument was
+written; the plainer one was not. Section III-I now argues what a single record
+buys, in terms that can be checked against the code: a measurement is written
+once and everything else reads it, definitions travel with the data, evidence
+stays attached to claims, and coordination leaves the session. It also states
+the costs, and that none of it is a measured productivity claim until the
+evaluator study runs.
+
+**A repository for a team.** Templates could already name one; groups could not,
+though a team usually builds one product across several studies. Migration 057
+adds it, and the class view links to it, falling back to the team's when a study
+names none.
+
+**Model suggestions during consolidation (migration 058).** Chosen shape, after
+asking: a Supabase Edge Function rather than a Vercel one, so self-hosted
+deployments get it and the paper's self-hostable claim stays true; only
+student-written findings are sent, never participant text; and suggestions are
+gated behind the team's own work.
+
+That last gate needed no new mechanism. A merge proposal needs every
+evaluator's findings, and those are readable only once every pass is submitted,
+so the anchoring rule already written into row-level security gates the model
+too. Because a submitted pass is frozen, the model can only ever touch the
+merged problem list, never anyone's original finding.
+
+Three further rules are in the database rather than the interface: an
+organization opts in and the default is off; a stored proposal cannot be
+rewritten, only accepted or dismissed; and a problem created by accepting one is
+marked `assisted`, so a report, the export, and the classroom study can separate
+assisted work from unassisted. The model's answer is untrusted input: a tested
+validator drops invented finding ids, refuses a finding in two groups, rejects
+heuristics outside the inspection's own set and severities off the scale, and
+reports what it discarded so a team knows before trusting the proposal.
+
+**Still to do.** Apply 057 and 058, run `scripts/verify/ai-suggestions.sql`,
+then deploy the function and set `AI_API_KEY`. Until that key is set the feature
+answers "no model configured" and nothing else changes. The session summary
+across tasks, the other half of the original request, is not built: it needs
+participant text, which is a separate decision about consent.
+

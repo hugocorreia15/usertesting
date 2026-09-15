@@ -66,6 +66,8 @@ export function OrgSettingsDialog({
     org.default_instruments ?? [],
   );
 
+  const [aiEnabled, setAiEnabled] = useState(org.ai_suggestions_enabled);
+
   const [applyReview, setApplyReview] = useState(false);
   const [applyConsent, setApplyConsent] = useState(false);
   const [applyInstruments, setApplyInstruments] = useState(false);
@@ -90,6 +92,7 @@ export function OrgSettingsDialog({
         default_review_mode: reviewMode,
         default_consent_text: consent.trim() || null,
         default_instruments: instruments,
+        ai_suggestions_enabled: aiEnabled,
       });
       if (anyToApply) {
         const touched = await applyDefaults.mutateAsync({
@@ -206,6 +209,29 @@ export function OrgSettingsDialog({
                   {projectCount === 1 ? "project" : "projects"}
                 </label>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Model suggestions</Label>
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox
+                  checked={aiEnabled}
+                  onCheckedChange={(c) => setAiEnabled(c === true)}
+                  className="mt-0.5"
+                />
+                <span>
+                  Let teams ask a model to propose how their inspection findings
+                  group into problems.
+                </span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Off by default. Only the findings your students wrote are sent,
+                never participant answers, notes, reflections, or names, and only
+                once every evaluator has submitted, so nobody can read a model's
+                list before writing their own. Nothing is applied automatically:
+                a team accepts a grouping, and what it accepts is recorded as
+                assisted.
+              </p>
             </div>
 
             <div className="space-y-2">

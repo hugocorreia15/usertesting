@@ -499,6 +499,20 @@ function HelpPage() {
               caption="Closing the loop: which predictions participants hit, and what testing found that the inspection missed."
             />
             <p>
+              <strong>Suggested groupings.</strong> If an organization turns them
+              on, a team consolidating an inspection can ask a model to propose
+              which findings describe the same problem and which heuristic each
+              violates. It is off by default. Only the findings your team wrote
+              are sent, never participant answers, observer notes, reflections,
+              or names, and only once every pass is in, so nobody can read a
+              model's list before writing their own. Nothing is applied
+              automatically: you accept a grouping, which creates the same
+              problem you would have created by hand, marked as assisted so your
+              report and the export can show which work was your own. The
+              proposal is kept as it was made, including anything the platform
+              ignored because the model referred to findings that do not exist.
+            </p>
+            <p>
               An organization owner can tick{" "}
               <em>Require a merged inspection before review</em> on a template,
               so the protocol cannot be sent for review until one exists.
