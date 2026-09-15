@@ -4,6 +4,7 @@ import {
   type TemplateFormData,
 } from "@/components/templates/template-form";
 import { useUpdateTemplate } from "@/hooks/use-templates";
+import { useMyOrgs } from "@/hooks/use-orgs";
 import type { TemplateWithRelations } from "@/types";
 import { toast } from "sonner";
 
@@ -13,6 +14,10 @@ interface TemplateEditTabProps {
 
 export function TemplateEditTab({ template }: TemplateEditTabProps) {
   const updateTemplate = useUpdateTemplate();
+  // An organization sets a consent text every team starts from; the builder
+  // offers it rather than making each team retype it.
+  const { data: orgs } = useMyOrgs();
+  const orgDefault = orgs?.find((o) => o.id === template.org_id)?.default_consent_text;
 
   const handleSubmit = async (data: TemplateFormData) => {
     try {
@@ -89,6 +94,7 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
       initial={template}
       onSubmit={handleSubmit}
       submitLabel="Save Changes"
+      orgDefault={orgDefault}
     />
   );
 }

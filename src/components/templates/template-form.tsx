@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ConsentBuilderDialog } from "@/components/templates/consent-builder-dialog";
+import { consentGaps } from "@/lib/consent-clauses";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +39,8 @@ interface TemplateFormProps {
   initial?: TemplateWithRelations;
   onSubmit: (data: TemplateFormData) => Promise<void>;
   submitLabel: string;
+  /** The organization's default consent text, offered in the builder. */
+  orgDefault?: string | null;
 }
 
 export interface TemplateFormData {
@@ -67,6 +71,7 @@ export function TemplateForm({
   initial,
   onSubmit,
   submitLabel,
+  orgDefault,
 }: TemplateFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -265,21 +270,34 @@ export function TemplateForm({
                   placeholder="https://github.com/org/project"
                 />
               </div>
-          <div className="space-y-2">
-            <Label htmlFor="consent_text">Consent text (optional)</Label>
-            <Textarea
-              id="consent_text"
-              value={consentText}
-              onChange={(e) => setConsentText(e.target.value)}
-              placeholder="What participants are told before they take part: purpose, what is recorded, how data is stored, that they can withdraw."
-              rows={5}
-            />
-            <p className="text-xs text-muted-foreground">
-              Shown on the join form before any data is collected, with a
-              required checkbox. Acceptance is timestamped on the session.
-              Leave empty for no consent step.
-            </p>
-          </div>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label htmlFor="consent_text">Consent text (optional)</Label>
+                  <ConsentBuilderDialog
+                    value={consentText}
+                    onApply={setConsentText}
+                    orgDefault={orgDefault}
+                  />
+                </div>
+                <Textarea
+                  id="consent_text"
+                  value={consentText}
+                  onChange={(e) => setConsentText(e.target.value)}
+                  placeholder="What participants are told before they take part: purpose, what is recorded, how data is stored, that they can withdraw."
+                  rows={5}
+                />
+                {consentGaps(consentText).length > 0 && consentText.trim() && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    This text is missing something participants usually need:{" "}
+                    {consentGaps(consentText).join(", ")}.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Shown on the join form before any data is collected, with a
+                  required checkbox. Acceptance is timestamped on the session.
+                  Leave empty for no consent step.
+                </p>
+              </div>
               <div className="flex items-center justify-between gap-3 rounded-md border px-4 py-3">
                 <div className="space-y-0.5">
                   <Label htmlFor="is_public">Visibility</Label>
