@@ -296,6 +296,28 @@ export function useCreateGroup() {
   });
 }
 
+/** Rename a group or set where its code lives. Owners only, by policy. */
+export function useUpdateGroup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      org_id: string;
+      name?: string;
+      repo_url?: string | null;
+    }) => {
+      const { id, org_id: _org, ...patch } = input;
+      const { error } = await supabase.from("org_groups").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ["org-groups", input.org_id] });
+      qc.invalidateQueries({ queryKey: ["org-group", input.id] });
+      qc.invalidateQueries({ queryKey: ["class-overview", input.org_id] });
+    },
+  });
+}
+
 export function useDeleteGroup() {
   const qc = useQueryClient();
   return useMutation({

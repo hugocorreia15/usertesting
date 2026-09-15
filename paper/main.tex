@@ -86,7 +86,12 @@ produce session videos and free-form notes that must be coded after the
 fact. In practice, a moderated session is therefore run with an ad-hoc
 toolchain (a stopwatch, a paper or spreadsheet observation grid, a
 separate questionnaire form, and manual report writing) that is slow,
-error-prone, and hard to standardize across studies.
+error-prone, and hard to standardize across studies. The cost is not only
+effort: a measurement in that toolchain is written down three times, once
+while observing, once when it is transferred for analysis, and once when it
+reaches the report, and no copy is authoritative.
+Section~\ref{sec:integration} argues what integration buys in exchange, and
+what it costs.
 
 This paper presents \emph{Avalux}, an open web platform that integrates
 the moderated-testing pipeline end to end. Its contributions are:
@@ -484,6 +489,54 @@ error, hesitation, and SEQ columns; charts below compare performance
 against the template's optimal baselines.}
 \label{fig:dash}
 \end{figure}
+
+\subsection{What Integration Buys}
+\label{sec:integration}
+Each instrument described above exists in some form in an ad-hoc toolchain: a
+stopwatch times a task, a spreadsheet holds counts, a form collects a
+questionnaire. The claim for a single platform is not that any one of them is
+novel, but that four things follow from their sharing one record, and each can
+be checked against the implementation rather than taken on faith.
+
+\emph{A measurement is recorded once.} The evaluator logs a count, an error,
+or a rating at the moment of observation, and the session dashboard, the
+cross-session analytics, the PDF report, and the raw export are all reads of
+that same row. Nothing is transcribed between tools, so the failure mode of the
+ad-hoc pipeline, a number that changes or disappears between the observation
+sheet and the report, has nowhere to occur. The report is rendered rather than
+assembled.
+
+\emph{Definitions travel with the data.} Success criteria, optimal-path
+baselines, the error taxonomy, and the choice of instruments live in the
+template, so every session of a study is scored against the same definitions,
+and every team that shares a template in a course uses the same ones. When
+those definitions live in a document beside a spreadsheet, drift between
+sessions is possible and invisible; here a change to them is a change to the
+protocol, which returns it to draft when it is under review.
+
+\emph{Evidence stays attached to claims.} A merged inspection problem can
+become a task, which records the problem it came from; the task produces
+per-task results in each session; a problem is marked encountered only with the
+sessions that show it; a report states $\kappa$ and an interval from the rows
+they summarize. Each link is a stored reference, so ``why is this task here''
+and ``what supports this claim'' are questions the platform answers by
+navigation. In a set of separate documents those links exist only in the
+author's memory of assembling them.
+
+\emph{Coordination disappears from the session.} The gating protocol and the
+participant's own device remove the verbal exchange that otherwise punctuates
+a moderated session, and the evaluator never leaves the cockpit to hand over a
+questionnaire.
+
+Integration also costs. A protocol must be encoded before a study runs, which
+front-loads effort a paper observation sheet never demands; a measure the
+model does not support cannot simply be written in a spare column; and a single
+system is a single point of failure, mitigated here only by the platform being
+open, self-hostable, and able to export every row it holds. None of this is a
+measured productivity claim: that the integrated pipeline is faster or more
+complete than the ad-hoc one is what the counterbalanced evaluator study of
+Section~\ref{sec:future} is designed to test, and until it runs the argument
+above is structural, not empirical.
 
 \subsection{Pedagogical Design}
 \label{sec:pedagogy}
@@ -945,7 +998,7 @@ they concluded.
 
 \section*{Availability}
 The platform is deployed at \url{https://avalux.pt}. Its source (the
-application, 56 SQL migrations, the seeded protocol of study~2, the
+application, 57 SQL migrations, the seeded protocol of study~2, the
 tutorial, and the report generator) is available under the MIT license
 at \url{https://github.com/hugocorreia15/usertesting}. Anonymized
 session data from the case studies is available on request within the

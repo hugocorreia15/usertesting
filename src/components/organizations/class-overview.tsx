@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CircleDot, LayoutList } from "lucide-react";
+import { AlertTriangle, CircleDot, Github, LayoutList } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -135,13 +135,31 @@ function ProjectTable({ projects }: { projects: ProjectStatus[] }) {
           {projects.map((p) => (
             <TableRow key={p.templateId} className="align-top">
               <TableCell>
-                <Link
-                  to="/templates/$templateId"
-                  params={{ templateId: p.templateId }}
-                  className="font-medium hover:underline"
-                >
-                  {p.name}
-                </Link>
+                <span className="flex items-center gap-1.5">
+                  <Link
+                    to="/templates/$templateId"
+                    params={{ templateId: p.templateId }}
+                    className="font-medium hover:underline"
+                  >
+                    {p.name}
+                  </Link>
+                  {p.repoUrl && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a
+                          href={p.repoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`Repository for ${p.name}`}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Github className="h-3.5 w-3.5" />
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent>Open the code in a new tab</TooltipContent>
+                    </Tooltip>
+                  )}
+                </span>
                 {p.groupName && (
                   <span className="block text-xs text-muted-foreground">
                     {p.groupName}

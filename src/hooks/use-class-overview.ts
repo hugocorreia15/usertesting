@@ -49,7 +49,7 @@ export function useClassOverview(orgId: string | undefined, enabled = true) {
         rows<GroupRow>(
           supabase
             .from("org_groups")
-            .select("id, name, org_group_members(user_id, member_email)")
+            .select("id, name, repo_url, org_group_members(user_id, member_email)")
             .eq("org_id", orgId!),
         ),
         rows<SessionRow>(

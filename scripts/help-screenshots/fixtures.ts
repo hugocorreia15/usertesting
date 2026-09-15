@@ -434,10 +434,11 @@ const groups = [
   ["grp-boreal", "Team Boreal", [USERS.diogo]],
   ["grp-cirrus", "Team Cirrus", [USERS.eva, USERS.carla]],
   ["grp-delta", "Team Delta", [USERS.bruno, USERS.carla]],
-].map(([id, name, members]) => ({
+].map(([id, name, members], i) => ({
   id: id as string,
   org_id: ORG_ID,
   name: name as string,
+  repo_url: i < 2 ? `https://github.com/hci2026/${(id as string).replace("grp-", "")}` : null,
   created_at: T0,
   org_group_members: (members as { id: string; email: string }[]).map((m) => ({
     group_id: id as string,

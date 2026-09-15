@@ -20,7 +20,10 @@ import {
   useAddGroupMember,
   useRemoveGroupMember,
   useSetTemplateGroup,
+  useUpdateGroup,
 } from "@/hooks/use-orgs";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import {
   ArrowLeft,
   Building2,
@@ -225,8 +228,10 @@ function GroupDetailPage() {
           )}
         </div>
 
-        {/* Members */}
-        <div className="min-w-0">
+        {/* Repository and members */}
+        <div className="min-w-0 space-y-6">
+          <GroupRepositoryCard group={group} orgId={orgId} isOwner={isOwner} />
+
           <Card className="bg-transparent backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
               <CardTitle className="text-base">
@@ -319,5 +324,100 @@ function GroupDetailPage() {
         </div>
       </div>
     </PageWrapper>
+  );
+}
+
+/**
+ * Where the team's code lives. A study can name its own repository; this is
+ * the team's, used for every study that does not, and it is what the class
+ * view links to.
+ */
+function GroupRepositoryCard({
+  group,
+  orgId,
+  isOwner,
+}: {
+  group: { id: string; repo_url: string | null };
+  orgId: string;
+  isOwner: boolean;
+}) {
+  const update = useUpdateGroup();
+  const [value, setValue] = useState(group.repo_url ?? "");
+  const saved = (group.repo_url ?? "") === value.trim();
+
+  if (!isOwner && !group.repo_url) return null;
+
+  return (
+    <Card className="bg-transparent backdrop-blur-md">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Github className="h-4 w-4 text-primary" />
+          Repository
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {group.repo_url && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            asChild
+            tooltip="Open the team's repository in a new tab"
+          >
+            <a href={group.repo_url} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Open repository
+            </a>
+          </Button>
+        )}
+        {isOwner && (
+          <>
+            <Input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="https://github.com/team/project"
+              aria-label="Repository URL"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={saved || update.isPending}
+                tooltip={saved ? "Nothing has changed" : "Save the link for this team"}
+                onClick={() =>
+                  update.mutate(
+                    { id: group.id, org_id: orgId, repo_url: value.trim() || null },
+                    {
+                      onSuccess: () => toast.success("Repository saved"),
+                      onError: (e: unknown) =>
+                        toast.error(e instanceof Error ? e.message : "Could not save"),
+                    },
+                  )
+                }
+              >
+                Save
+              </Button>
+              {group.repo_url && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="cursor-pointer"
+                  tooltip="Remove the link"
+                  onClick={() => {
+                    setValue("");
+                    update.mutate({ id: group.id, org_id: orgId, repo_url: null });
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Used for every study of this team that does not name its own, and
+              linked from the class view.
+            </p>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

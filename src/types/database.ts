@@ -419,6 +419,8 @@ export interface OrgGroup {
   id: string;
   org_id: string;
   name: string;
+  /** Where the team's code lives (migration 057). Any forge, not only GitHub. */
+  repo_url: string | null;
   created_at: string;
 }
 

@@ -263,6 +263,7 @@ describe("projectStatus", () => {
           {
             id: "g",
             name: "Team Aurora",
+            repo_url: "https://github.com/example/aurora",
             org_group_members: [
               { user_id: "u1", member_email: "a@example.edu" },
               { user_id: "u2", member_email: null },
@@ -273,6 +274,22 @@ describe("projectStatus", () => {
     );
     expect(p.groupName).toBe("Team Aurora");
     expect(p.students).toEqual(["a@example.edu"]);
+    // The study names no repository, so the team's stands in.
+    expect(p.repoUrl).toBe("https://github.com/example/aurora");
+  });
+
+  it("prefers the study's own repository over the team's", () => {
+    const t = template("p", { org_group_id: "g", repo_url: "https://github.com/example/study" });
+    const p = projectStatus(
+      t,
+      empty({
+        templates: [t],
+        groups: [
+          { id: "g", name: "Team Aurora", repo_url: "https://github.com/example/aurora", org_group_members: [] },
+        ],
+      }),
+    );
+    expect(p.repoUrl).toBe("https://github.com/example/study");
   });
 });
 

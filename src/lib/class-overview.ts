@@ -86,6 +86,7 @@ export interface FindingRow {
 export interface GroupRow {
   id: string;
   name: string;
+  repo_url: string | null;
   org_group_members: { user_id: string; member_email: string | null }[];
 }
 
@@ -119,6 +120,8 @@ export interface ProjectStatus {
   name: string;
   groupName: string | null;
   students: string[];
+  /** The study's repository, or the team's when the study names none. */
+  repoUrl: string | null;
   inspection:
     | { state: "none" }
     | { state: "collecting"; submitted: number; evaluators: number }
@@ -299,6 +302,7 @@ export function projectStatus(template: TemplateWithRelations, data: ClassData):
     templateId: template.id,
     name: template.name,
     groupName: group?.name ?? null,
+    repoUrl: template.repo_url ?? group?.repo_url ?? null,
     students: (group?.org_group_members ?? [])
       .map((m) => m.member_email)
       .filter((e): e is string => !!e),
