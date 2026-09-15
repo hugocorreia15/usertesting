@@ -16,6 +16,8 @@
  * and no student text is read, so it is safe to run against any provider you
  * are still deciding about.
  *
+ * Pass --models to list the free models on OpenRouter instead of testing one.
+ *
  * Reads AI_API_KEY, AI_API_URL, AI_MODEL, AI_JSON_MODE from the environment or
  * from .env.local. Exits non-zero if the feature would not work.
  */
@@ -80,6 +82,51 @@ if (!API_KEY) {
 
 const isOpenRouter = API_URL.includes("openrouter.ai");
 const origin = new URL(API_URL).origin;
+
+// ── --models: what can this key actually ask for ─────────────────────────────
+
+// A key is not bound to a model. Omitting one falls back to an account default
+// set in a web page, which is the last place a class should discover it.
+if (process.argv.includes("--models")) {
+  if (!isOpenRouter) {
+    console.error(
+      "--models only works against OpenRouter. Other providers list their models in their own console.",
+    );
+    process.exit(2);
+  }
+  const r = await fetch(`${origin}/api/v1/models`);
+  const body = await r.json();
+  const all = (body?.data ?? []) as {
+    id: string;
+    name: string;
+    context_length?: number;
+    pricing?: { prompt?: string; completion?: string };
+    architecture?: { input_modalities?: string[]; output_modalities?: string[] };
+  }[];
+
+  const free = all
+    .filter((m) => Number(m.pricing?.prompt ?? 1) + Number(m.pricing?.completion ?? 1) === 0)
+    // Zero per-token pricing is not the same as free. A music or image model is
+    // billed per second or per picture, and shows zero here. Only a model that
+    // takes text and answers with nothing but text can do this job anyway.
+    .filter((m) => {
+      const out = m.architecture?.output_modalities ?? ["text"];
+      const inp = m.architecture?.input_modalities ?? ["text"];
+      return inp.includes("text") && out.length === 1 && out[0] === "text";
+    })
+    .sort((a, b) => (b.context_length ?? 0) - (a.context_length ?? 0));
+
+  console.log(`\n${free.length} free models of ${all.length} listed. Largest context first:\n`);
+  for (const m of free.slice(0, 30)) {
+    const ctx = m.context_length ? `${Math.round(m.context_length / 1000)}k` : "?";
+    console.log(`  ${m.id.padEnd(52)} ${ctx.padStart(6)}  ${m.name}`);
+  }
+  console.log(
+    "\nPut one of the ids in AI_MODEL, then run this script again without --models\n" +
+      "to check it can actually do the grouping.\n",
+  );
+  process.exit(0);
+}
 
 console.log(`\nEndpoint  ${API_URL}`);
 console.log(`Model     ${MODEL}`);

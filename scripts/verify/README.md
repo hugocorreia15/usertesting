@@ -63,6 +63,21 @@ Run this before `supabase secrets set`, not after. It reads `AI_API_KEY`,
 4. What it cost. On OpenRouter the key's lifetime spend is read before and
    after, so "that request was free" is measured rather than assumed.
 
+```
+AI_API_KEY=... AI_API_URL=https://openrouter.ai/api/v1/chat/completions \
+  npx tsx scripts/verify/ai-provider.mts --models
+```
+
+lists the free text models on OpenRouter, largest context first, and nothing
+else. A key is not tied to a model: the model is chosen per request, and a
+request that names none falls back to an account default set in a web page,
+which is the last place a class should discover it. Always set `AI_MODEL`.
+
+The listing keeps only models that cost zero per token *and* answer with text
+alone. Zero per-token pricing on its own is not proof of anything, because a
+music or image model is billed per second or per picture and reads as zero
+here.
+
 It sends invented findings about an invented library website. No study,
 participant or student text is read, so it is safe to point at a provider you
 are still deciding about.
