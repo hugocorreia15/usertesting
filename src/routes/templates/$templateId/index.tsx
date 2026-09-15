@@ -26,6 +26,10 @@ import {
 import { TemplateOverviewTab } from "@/components/templates/template-overview-tab";
 import type { OrgRole } from "@/lib/review-gate";
 import { TemplateSessionsTab } from "@/components/templates/template-sessions-tab";
+import { SessionSummaryCard } from "@/components/sessions/session-summary-card";
+import { ParticipantTextAiCard } from "@/components/templates/participant-text-ai-card";
+import { useSynthesis } from "@/hooks/use-synthesis";
+import { useHeuristicsForTemplate } from "@/hooks/use-session-summary-support";
 import { TemplateParticipantsTab } from "@/components/templates/template-participants-tab";
 import { TemplateEditTab } from "@/components/templates/template-edit-tab";
 import { CodeBookEditor } from "@/components/coding/code-book-editor";
@@ -74,6 +78,11 @@ function TemplateDetailPage() {
   const myMembership = sharedOrg?.organization_members.find(
     (m) => m.user_id === user?.id,
   );
+  // Model summaries ride on the organization opt-in, like the inspection ones.
+  const aiEnabled = !!orgs?.find((o) => o.id === template?.org_id)?.ai_suggestions_enabled;
+  const { data: synthesis } = useSynthesis(templateId);
+  const { data: summaryHeuristics } = useHeuristicsForTemplate(templateId, aiEnabled);
+
   const orgRole: OrgRole = template?.org_id
     ? ((myMembership?.role as OrgRole | undefined) ?? "none")
     : "none";
@@ -354,12 +363,17 @@ function TemplateDetailPage() {
           </div>
         </div>
 
-        <TabsContent value="overview" className="mt-6">
+        <TabsContent value="overview" className="mt-6 space-y-6">
           <TemplateOverviewTab
             templateId={templateId}
             template={template}
             orgRole={orgRole}
             canEdit={canEditTemplate}
+          />
+          <ParticipantTextAiCard
+            template={template}
+            isOwner={orgRole === "owner"}
+            orgEnabled={aiEnabled}
           />
         </TabsContent>
 
@@ -367,7 +381,18 @@ function TemplateDetailPage() {
           {sessionsLoading ? (
             <p className="text-muted-foreground">Loading sessions...</p>
           ) : (
-            <TemplateSessionsTab sessions={sessions ?? []} />
+            <div className="space-y-6">
+              {(sessions?.length ?? 0) > 0 && (
+                <SessionSummaryCard
+                  templateId={templateId}
+                  enabled={aiEnabled}
+                  participantTextOn={!!template?.ai_participant_text_enabled}
+                  heuristics={summaryHeuristics ?? []}
+                  problemsWritten={synthesis?.testProblems.length ?? 0}
+                />
+              )}
+              <TemplateSessionsTab sessions={sessions ?? []} />
+            </div>
           )}
         </TabsContent>
 

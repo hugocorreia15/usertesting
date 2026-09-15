@@ -18,6 +18,10 @@ export interface Template {
   reviewed_by: string | null;
   approval_invalidated_at: string | null;
   consent_text: string | null;
+  /** Migration 059. Off by default; only set through set_participant_text_ai(). */
+  ai_participant_text_enabled?: boolean;
+  /** When this study first turned it on. Sessions consenting earlier never qualify. */
+  ai_participant_text_from?: string | null;
   require_inspection: boolean;
   created_at: string;
   updated_at: string;
@@ -104,8 +108,10 @@ export interface InspectionProblem {
 /** A model's proposal during consolidation, kept as made (migration 058). */
 export interface AiSuggestion {
   id: string;
-  inspection_id: string;
-  kind: "merge" | "heuristic";
+  /** Exactly one of these is set: a suggestion belongs to one subject. */
+  inspection_id: string | null;
+  template_id: string | null;
+  kind: "merge" | "heuristic" | "session_summary";
   payload: {
     clusters: {
       title: string;

@@ -14,6 +14,7 @@ flow.
 | `moderation-events.sql` | Migration 055: corrections are recorded only as yourself, cannot be edited or deleted, and go with their session. | SQL editor |
 | `ai-suggestions.sql` | Migration 058: suggestions are impossible until an organization opts in and every pass is in, a stored proposal cannot be rewritten, and accepted groupings are marked assisted. | SQL editor |
 | `test-synthesis.sql` | Migration 056: evidence must come from the same study as the problem, there is no false-alarm outcome, outsiders see nothing. | SQL editor |
+| `session-summary.sql` | Migration 059: participant text is off by default, cannot be turned on without the consent clause, and a session that consented before the wording changed stays excluded forever. A summary needs a problem the team wrote first. | SQL editor |
 | `ai-provider.mts` | That a model provider works before anything is deployed: the key is accepted, whether the model is free or billed, that the request the edge function sends comes back usable, and what it cost. | `npx tsx scripts/verify/ai-provider.mts` |
 
 `anon-rls.mjs` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from
