@@ -83,6 +83,15 @@ if (!API_KEY) {
 const isOpenRouter = API_URL.includes("openrouter.ai");
 const origin = new URL(API_URL).origin;
 
+const usingDefaultUrl = !process.env.AI_API_URL && !fileEnv.AI_API_URL;
+const usingDefaultModel = !process.env.AI_MODEL && !fileEnv.AI_MODEL;
+
+console.log(`\nEndpoint  ${API_URL}${usingDefaultUrl ? "   (default: AI_API_URL is not set)" : ""}`);
+console.log(`Model     ${MODEL}${usingDefaultModel ? "   (default: AI_MODEL is not set)" : ""}`);
+console.log(`JSON mode ${JSON_MODE}`);
+console.log(`Key       ${API_KEY.slice(0, 8)}...${API_KEY.slice(-4)} (${API_KEY.length} chars)\n`);
+
+
 // ── --models: what can this key actually ask for ─────────────────────────────
 
 // A key is not bound to a model. Omitting one falls back to an account default
@@ -90,7 +99,12 @@ const origin = new URL(API_URL).origin;
 if (process.argv.includes("--models")) {
   if (!isOpenRouter) {
     console.error(
-      "--models only works against OpenRouter. Other providers list their models in their own console.",
+      `--models only works against OpenRouter, and the endpoint above is not one.\n` +
+        (usingDefaultUrl
+          ? "AI_API_URL is not set, so this fell back to OpenAI. Add to .env.local:\n" +
+            "  AI_API_URL=https://openrouter.ai/api/v1/chat/completions\n" +
+            "  AI_MODEL=openrouter/free\n"
+          : "Other providers list their models in their own console.\n"),
     );
     process.exit(2);
   }
@@ -128,10 +142,6 @@ if (process.argv.includes("--models")) {
   process.exit(0);
 }
 
-console.log(`\nEndpoint  ${API_URL}`);
-console.log(`Model     ${MODEL}`);
-console.log(`JSON mode ${JSON_MODE}`);
-console.log(`Key       ${API_KEY.slice(0, 8)}...${API_KEY.slice(-4)} (${API_KEY.length} chars)\n`);
 
 // A key pasted into a field that already held a prefix comes out doubled. The
 // provider answers 401 and says nothing useful, so catch it before the call.
