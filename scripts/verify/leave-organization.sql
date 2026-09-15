@@ -70,12 +70,13 @@ BEGIN
 
   ok := set_template_org(v_tpl, v_org1);
   INSERT INTO _result VALUES (1, 'the creator may share it with an organization',
-    CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END, '');
+    CASE WHEN ok THEN 'PASS' ELSE 'FAIL' END, 'returned=' || ok);
 
   ok := set_template_group(v_tpl, v_grp);
   SELECT org_id, org_group_id INTO v_org, v_group FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (2, 'attaching to a group also shares it with that organization',
-    CASE WHEN ok AND v_org = v_org1 AND v_group = v_grp THEN 'PASS' ELSE 'FAIL' END, '');
+    CASE WHEN ok AND v_org = v_org1 AND v_group = v_grp THEN 'PASS' ELSE 'FAIL' END,
+    'org=' || COALESCE(v_org::text, 'null'));
 
   -- Someone is assigned, to prove the assignment does not outlive the sharing.
   INSERT INTO template_members (template_id, user_id) VALUES (v_tpl, v_c);
@@ -103,7 +104,8 @@ BEGIN
   ok := set_template_org(v_tpl, NULL);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
   INSERT INTO _result VALUES (6, 'an owner may take a template out of their own organization',
-    CASE WHEN ok AND v_org IS NULL THEN 'PASS' ELSE 'FAIL' END, '');
+    CASE WHEN ok AND v_org IS NULL THEN 'PASS' ELSE 'FAIL' END,
+    'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
   -- ── but not put it anywhere ───────────────────────────────
   ok := set_template_org(v_tpl, v_org2);
@@ -113,15 +115,23 @@ BEGIN
     'org=' || COALESCE(v_org::text, 'null'));
 
   -- ── and an outsider may not touch it at all ───────────────
+  -- The creator puts it back first. Asserted separately, because if this were
+  -- to fail silently the next check would fail for a reason that has nothing
+  -- to do with outsiders.
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
-  PERFORM set_template_org(v_tpl, v_org1);
+  ok := set_template_org(v_tpl, v_org1);
+  SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
+  INSERT INTO _result VALUES (8, 'the creator may share it again after an owner removed it',
+    CASE WHEN ok AND v_org = v_org1 THEN 'PASS' ELSE 'FAIL' END,
+    'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
   PERFORM set_config('request.jwt.claims',
     json_build_object('sub', '11111111-1111-1111-1111-111111111111')::text, true);
   ok := set_template_org(v_tpl, NULL);
   SELECT org_id INTO v_org FROM templates WHERE id = v_tpl;
-  INSERT INTO _result VALUES (8, 'someone outside the organization cannot remove it',
-    CASE WHEN NOT ok AND v_org = v_org1 THEN 'PASS' ELSE 'FAIL' END, '');
+  INSERT INTO _result VALUES (9, 'someone outside the organization cannot remove it',
+    CASE WHEN NOT ok AND v_org = v_org1 THEN 'PASS' ELSE 'FAIL' END,
+    'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
   -- ── moving between organizations ──────────────────────────
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
@@ -130,10 +140,11 @@ BEGIN
   -- moving the template somewhere it does not belong.
   ok := set_template_org(v_tpl, v_org2);
   SELECT org_id, org_group_id INTO v_org, v_group FROM templates WHERE id = v_tpl;
-  INSERT INTO _result VALUES (9, 'it cannot be moved to an organization the creator is not in',
-    CASE WHEN NOT ok AND v_org = v_org1 AND v_group = v_grp THEN 'PASS' ELSE 'FAIL' END, '');
+  INSERT INTO _result VALUES (10, 'it cannot be moved to an organization the creator is not in',
+    CASE WHEN NOT ok AND v_org = v_org1 AND v_group = v_grp THEN 'PASS' ELSE 'FAIL' END,
+    'returned=' || ok || ' org=' || COALESCE(v_org::text, 'null'));
 
-  INSERT INTO _result VALUES (10, 'a refused move leaves the group link untouched',
+  INSERT INTO _result VALUES (11, 'a refused move leaves the group link untouched',
     CASE WHEN v_group = v_grp THEN 'PASS' ELSE 'FAIL' END,
     'group=' || COALESCE(v_group::text, 'null'));
 END $rls$;
