@@ -15,9 +15,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useTemplates, useDeleteTemplate, useDuplicateTemplate } from "@/hooks/use-templates";
+import {
+  useTemplates,
+  useDeleteTemplate,
+  useDuplicateTemplate,
+  templateCounts,
+} from "@/hooks/use-templates";
+import {
+  TemplateCardFacts,
+  TemplateAttention,
+  factsFor,
+} from "@/components/templates/template-card-facts";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Pencil, Copy, CalendarDays, FileText, Download, FileBarChart, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Pencil, Copy, FileText, Download, FileBarChart, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { exportTemplatePdf } from "@/lib/export-template-pdf";
@@ -27,6 +37,16 @@ import type { TemplateWithRelations, TestSessionWithRelations } from "@/types";
 export const Route = createFileRoute("/templates/")({
   component: TemplatesPage,
 });
+
+/** A labelled value in the preview, so the grid reads as a table would. */
+function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground/70">{label}</p>
+      <p className="truncate text-sm">{children}</p>
+    </div>
+  );
+}
 
 function TemplatesPage() {
   const { data: templates, isLoading } = useTemplates();
@@ -90,18 +110,25 @@ function TemplatesPage() {
             <CardHeader>
               <CardTitle className="text-base">{t.name}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <p className="line-clamp-2 text-sm text-muted-foreground">
                 {t.description || "No description"}
               </p>
-              <div className="mt-3 flex gap-2">
-                <Badge variant="secondary">
-                  {new Date(t.created_at).toLocaleDateString()}
-                </Badge>
-                <Badge variant={t.is_public ? "default" : "outline"}>
-                  {t.is_public ? "Public" : "Private"}
-                </Badge>
-                {t.org_id && <Badge variant="secondary">Shared</Badge>}
+
+              <TemplateCardFacts facts={factsFor(t, templateCounts(t))} />
+
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span title={`Created ${new Date(t.created_at).toLocaleString()}`}>
+                  Created {new Date(t.created_at).toLocaleDateString()}
+                </span>
+                <span aria-hidden>·</span>
+                <span>{t.is_public ? "Public" : "Private"}</span>
+                {t.org_id && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span>Shared with an organization</span>
+                  </>
+                )}
               </div>
             </CardContent>
             <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
@@ -169,12 +196,58 @@ function TemplatesPage() {
                 {previewTemplate?.description || "No description"}
               </p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4" />
-              Created{" "}
-              {previewTemplate &&
-                new Date(previewTemplate.created_at).toLocaleDateString()}
-            </div>
+            {previewTemplate && (
+              <>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+                    Where it has got to
+                  </p>
+                  <TemplateCardFacts
+                    facts={factsFor(previewTemplate, templateCounts(previewTemplate))}
+                  />
+                  <TemplateAttention
+                    facts={factsFor(previewTemplate, templateCounts(previewTemplate))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <Detail label="Consent step">
+                    {previewTemplate.consent_text?.trim() ? "Set" : "None"}
+                  </Detail>
+                  <Detail label="Review">
+                    {previewTemplate.review_mode === "off"
+                      ? "Not required"
+                      : `${previewTemplate.review_mode}, ${String(
+                          previewTemplate.review_status,
+                        ).replace(/_/g, " ")}`}
+                  </Detail>
+                  <Detail label="Questionnaires">
+                    {previewTemplate.instruments?.length
+                      ? previewTemplate.instruments.join(", ").toUpperCase()
+                      : "None"}
+                  </Detail>
+                  <Detail label="Visibility">
+                    {previewTemplate.is_public ? "Public" : "Private"}
+                    {previewTemplate.org_id ? ", shared with an organization" : ""}
+                  </Detail>
+                  {previewTemplate.repo_url && (
+                    <Detail label="Repository">
+                      <a
+                        href={previewTemplate.repo_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {previewTemplate.repo_url.replace(/^https?:\/\//, "")}
+                      </a>
+                    </Detail>
+                  )}
+                  <Detail label="Created">
+                    {new Date(previewTemplate.created_at).toLocaleDateString()}
+                  </Detail>
+                </div>
+              </>
+            )}
           </div>
           <Separator />
           <DialogFooter>

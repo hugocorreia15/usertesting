@@ -19,18 +19,41 @@ async function getCurrentUserId() {
   return user.id;
 }
 
+/**
+ * Templates for the list page, with the counts the cards show.
+ *
+ * The counts come back as aggregates on the same request rather than as one
+ * query per card, so a list of twenty studies is still one round trip.
+ */
+export type TemplateListRow = Template & {
+  template_tasks: { count: number }[];
+  test_sessions: { count: number }[];
+  inspections: { count: number }[];
+};
+
 export function useTemplates() {
   return useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("templates")
-        .select("*")
+        .select(
+          "*, template_tasks(count), test_sessions(count), inspections(count)",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Template[];
+      return data as TemplateListRow[];
     },
   });
+}
+
+/** The counts, defaulted, since an empty relation comes back as an empty array. */
+export function templateCounts(row: TemplateListRow) {
+  return {
+    tasks: row.template_tasks?.[0]?.count ?? 0,
+    sessions: row.test_sessions?.[0]?.count ?? 0,
+    inspections: row.inspections?.[0]?.count ?? 0,
+  };
 }
 
 export function useMyTemplates() {
