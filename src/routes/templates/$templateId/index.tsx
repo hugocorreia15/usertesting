@@ -374,6 +374,7 @@ function TemplateDetailPage() {
             template={template}
             isOwner={orgRole === "owner"}
             orgEnabled={aiEnabled}
+            sessions={sessions ?? []}
           />
         </TabsContent>
 

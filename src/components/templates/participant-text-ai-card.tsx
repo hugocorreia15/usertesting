@@ -9,6 +9,7 @@ import {
   useAppendConsentClause,
   useSetParticipantTextAi,
 } from "@/hooks/use-session-summary-support";
+import { consentOverview, describeConsent } from "@/lib/consent-overview";
 import type { Template } from "@/types";
 
 /**
@@ -25,12 +26,15 @@ export function ParticipantTextAiCard({
   template,
   isOwner,
   orgEnabled,
+  sessions,
 }: {
   template: Template;
   /** Only an organization owner may change this. */
   isOwner: boolean;
   /** The organization enabled model suggestions at all. */
   orgEnabled: boolean;
+  /** Every session of this study, to say whose answers would be sent. */
+  sessions: { id: string; consent_accepted_at: string | null; is_pilot: boolean }[];
 }) {
   const { data: clause } = useAiConsentClause(orgEnabled);
   const setEnabled = useSetParticipantTextAi();
@@ -41,6 +45,7 @@ export function ParticipantTextAiCard({
   const consent = template.consent_text ?? "";
   const hasClause = !!clause && consent.includes(clause);
   const on = !!template.ai_participant_text_enabled;
+  const overview = consentOverview(sessions, template.ai_participant_text_from ?? null);
 
   return (
     <Card className="bg-transparent backdrop-blur-md">
@@ -125,6 +130,39 @@ export function ParticipantTextAiCard({
             switched off and on again.
           </p>
         )}
+
+        {/* The question an ethics reviewer asks is not whether it is on, but
+            whose answers went and whose did not. */}
+        {overview.total > 0 && (
+          <div className="space-y-1 rounded-md border px-4 py-3">
+            <p className="text-xs font-medium">Whose answers this covers</p>
+            <p className="text-xs text-muted-foreground">{describeConsent(overview)}</p>
+            {overview.everySessionWouldBeExcluded && (
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Every session has already run. Turning this on now stamps this
+                moment, so none of them would qualify and the summary would
+                still read only what your team wrote. To include participant
+                answers, the clause has to be in the consent text before the
+                sessions happen.
+              </p>
+            )}
+            {!overview.everySessionWouldBeExcluded && overview.beforeClause > 0 && (
+              <p className="text-xs text-muted-foreground">
+                The excluded ones consented to a text that did not mention
+                automated processing. Nothing can bring them in.
+              </p>
+            )}
+          </div>
+        )}
+
+        <details className="text-xs">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            See the consent text participants are shown
+          </summary>
+          <p className="mt-2 whitespace-pre-wrap rounded bg-muted/50 p-2">
+            {consent.trim() || "This study has no consent step at all."}
+          </p>
+        </details>
       </CardContent>
     </Card>
   );
