@@ -468,9 +468,22 @@ validator drops invented finding ids, refuses a finding in two groups, rejects
 heuristics outside the inspection's own set and severities off the scale, and
 reports what it discarded so a team knows before trusting the proposal.
 
-**Still to do.** Apply 057 and 058, run `scripts/verify/ai-suggestions.sql`,
-then deploy the function and set `AI_API_KEY`. Until that key is set the feature
-answers "no model configured" and nothing else changes. The session summary
-across tasks, the other half of the original request, is not built: it needs
-participant text, which is a separate decision about consent.
+**Verified on 2026-09-15.** Migrations 057 and 058 are applied;
+`scripts/verify/ai-suggestions.sql` passes 10 of 10, so a suggestion cannot
+exist before an organization opts in, cannot exist before every pass is in,
+cannot be rewritten once stored, cannot be filed as someone else, and is
+invisible outside the organization.
+
+The provider is checked separately by `scripts/verify/ai-provider.mts`, which
+sends the deployed function's own request, built from the same `prompt.ts`, and
+judges the answer with the same validator the browser runs. Against OpenRouter's
+free router it groups the two findings that describe one problem in different
+words, and the account balance does not move, which is what makes "free"
+a measurement rather than a claim.
+
+**Still to do.** Deploy the function, set the three secrets, and tick the
+organization opt-in. Until the key is set the feature answers "no model
+configured" and nothing else changes. The session summary across tasks, the
+other half of the original request, is not built: it needs participant text,
+which is a separate decision about consent.
 
