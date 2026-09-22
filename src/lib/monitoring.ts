@@ -1,15 +1,20 @@
 // Client error monitoring (Sentry). Entirely inert unless a DSN is
-// configured via VITE_SENTRY_DSN, so local/dev and DSN-less deploys
-// behave exactly as before. Participant privacy: no PII is sent —
+// configured via VITE_SENTRY_DSN *and* the visitor has agreed to it, so
+// local/dev, DSN-less deploys, and anyone who declined behave identically. Participant privacy: no PII is sent —
 // no replays, no default PII, and context tags carry only opaque
 // UUIDs (session/template ids), never names, emails, or answers.
 
 import * as Sentry from "@sentry/react";
+import { allows, readConsent } from "./consent-preferences";
 
 const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 
 export function initMonitoring() {
   if (!dsn) return;
+  // Error monitoring is not strictly necessary to provide the service, so it
+  // waits for consent rather than starting and asking afterwards. Withdrawing
+  // stops it on the next load; Sentry offers no reliable teardown.
+  if (!allows(readConsent(), "monitoring")) return;
   Sentry.init({
     dsn,
     environment: import.meta.env.MODE,
@@ -24,7 +29,7 @@ export function initMonitoring() {
 }
 
 export function captureError(error: unknown, context?: Record<string, string>) {
-  if (!dsn) return;
+  if (!dsn || !allows(readConsent(), "monitoring")) return;
   Sentry.captureException(error, context ? { tags: context } : undefined);
 }
 
@@ -35,7 +40,7 @@ export function setSessionContext(tags: {
   templateId?: string;
   role?: "evaluator" | "participant";
 }) {
-  if (!dsn) return;
+  if (!dsn || !allows(readConsent(), "monitoring")) return;
   Sentry.setTags({
     session_id: tags.sessionId ?? null,
     template_id: tags.templateId ?? null,

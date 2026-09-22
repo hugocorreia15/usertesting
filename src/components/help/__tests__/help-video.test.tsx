@@ -11,15 +11,43 @@ vi.mock("@/lib/tutorial-video", async (importOriginal) => {
 });
 
 import { HelpVideo } from "../help-video";
+import { acceptAll, rejectAll, writeConsent } from "@/lib/consent-preferences";
 
 // This project has no vitest setup file, so testing-library's automatic
 // cleanup does not run and renders would stack up across tests.
 afterEach(cleanup);
+// Loading the player contacts a third party, so it waits for consent. Each
+// test says which state it is exercising rather than inheriting the last one.
+afterEach(() => window.localStorage.clear());
 
 const iframe = () => document.querySelector("iframe");
 
 describe("HelpVideo", () => {
-  it("embeds the configured video on the no-cookie host", () => {
+  it("loads nothing from the video host until the visitor agrees", () => {
+    writeConsent(rejectAll());
+    render(<HelpVideo />);
+    expect(iframe()).toBeNull();
+    expect(screen.getByRole("button", { name: /load the video/i })).toBeTruthy();
+  });
+
+  it("waits when no answer has been given at all, rather than assuming yes", () => {
+    render(<HelpVideo />);
+    expect(iframe()).toBeNull();
+  });
+
+  it("loads it, and remembers, when the visitor asks for it", () => {
+    render(<HelpVideo />);
+    fireEvent.click(screen.getByRole("button", { name: /load the video/i }));
+    expect(iframe()?.getAttribute("src")).toContain("youtube-nocookie.com/embed/");
+    // Recorded through the same store the cookie settings read and write, so
+    // it can be withdrawn there rather than being an exception it cannot see.
+    expect(
+      JSON.parse(window.localStorage.getItem("avalux-consent") ?? "{}").embeds,
+    ).toBe(true);
+  });
+
+  it("embeds the configured video on the no-cookie host, once allowed", () => {
+    writeConsent(acceptAll());
     render(<HelpVideo />);
     expect(iframe()?.getAttribute("src")).toContain(
       "youtube-nocookie.com/embed/dQw4w9WgXcQ",
@@ -28,12 +56,14 @@ describe("HelpVideo", () => {
   });
 
   it("offers a jump link per chapter", () => {
+    writeConsent(acceptAll());
     render(<HelpVideo />);
     expect(screen.getByRole("button", { name: "Templates" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Organizations" })).toBeTruthy();
   });
 
   it("re-points the player when a chapter is picked", () => {
+    writeConsent(acceptAll());
     render(<HelpVideo />);
     fireEvent.click(screen.getByRole("button", { name: "Results" }));
     expect(iframe()?.getAttribute("src")).toContain("start=187");

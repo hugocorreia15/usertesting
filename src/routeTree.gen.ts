@@ -26,6 +26,9 @@ import { Route as TemplatesNewRouteImport } from './routes/templates/new'
 import { Route as SessionsNewRouteImport } from './routes/sessions/new'
 import { Route as ParticipantsNewRouteImport } from './routes/participants/new'
 import { Route as ParticipantsParticipantIdRouteImport } from './routes/participants/$participantId'
+import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
+import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as InspectionsInspectionIdRouteImport } from './routes/inspections/$inspectionId'
 import { Route as TemplatesTemplateIdIndexRouteImport } from './routes/templates/$templateId/index'
@@ -124,6 +127,21 @@ const ParticipantsParticipantIdRoute =
     path: '/participants/$participantId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LegalTermsRoute = LegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
+  id: '/legal/privacy',
+  path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalCookiesRoute = LegalCookiesRouteImport.update({
+  id: '/legal/cookies',
+  path: '/legal/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCodeRoute = JoinCodeRouteImport.update({
   id: '/join/$code',
   path: '/join/$code',
@@ -192,6 +210,9 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -222,6 +243,9 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -253,6 +277,9 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/inspections/$inspectionId': typeof InspectionsInspectionIdRoute
   '/join/$code': typeof JoinCodeRoute
+  '/legal/cookies': typeof LegalCookiesRoute
+  '/legal/privacy': typeof LegalPrivacyRoute
+  '/legal/terms': typeof LegalTermsRoute
   '/participants/$participantId': typeof ParticipantsParticipantIdRoute
   '/participants/new': typeof ParticipantsNewRoute
   '/sessions/new': typeof SessionsNewRoute
@@ -285,6 +312,9 @@ export interface FileRouteTypes {
     | '/profile'
     | '/inspections/$inspectionId'
     | '/join/$code'
+    | '/legal/cookies'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -315,6 +345,9 @@ export interface FileRouteTypes {
     | '/profile'
     | '/inspections/$inspectionId'
     | '/join/$code'
+    | '/legal/cookies'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -345,6 +378,9 @@ export interface FileRouteTypes {
     | '/profile'
     | '/inspections/$inspectionId'
     | '/join/$code'
+    | '/legal/cookies'
+    | '/legal/privacy'
+    | '/legal/terms'
     | '/participants/$participantId'
     | '/participants/new'
     | '/sessions/new'
@@ -376,6 +412,9 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   InspectionsInspectionIdRoute: typeof InspectionsInspectionIdRoute
   JoinCodeRoute: typeof JoinCodeRoute
+  LegalCookiesRoute: typeof LegalCookiesRoute
+  LegalPrivacyRoute: typeof LegalPrivacyRoute
+  LegalTermsRoute: typeof LegalTermsRoute
   ParticipantsParticipantIdRoute: typeof ParticipantsParticipantIdRoute
   ParticipantsNewRoute: typeof ParticipantsNewRoute
   SessionsNewRoute: typeof SessionsNewRoute
@@ -520,6 +559,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParticipantsParticipantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/terms': {
+      id: '/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof LegalTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/privacy': {
+      id: '/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/cookies': {
+      id: '/legal/cookies'
+      path: '/legal/cookies'
+      fullPath: '/legal/cookies'
+      preLoaderRoute: typeof LegalCookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join/$code': {
       id: '/join/$code'
       path: '/join/$code'
@@ -608,6 +668,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   InspectionsInspectionIdRoute: InspectionsInspectionIdRoute,
   JoinCodeRoute: JoinCodeRoute,
+  LegalCookiesRoute: LegalCookiesRoute,
+  LegalPrivacyRoute: LegalPrivacyRoute,
+  LegalTermsRoute: LegalTermsRoute,
   ParticipantsParticipantIdRoute: ParticipantsParticipantIdRoute,
   ParticipantsNewRoute: ParticipantsNewRoute,
   SessionsNewRoute: SessionsNewRoute,

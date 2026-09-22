@@ -10,6 +10,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Footer } from "@/components/layout/footer";
+import { CookieBanner } from "@/components/legal/cookie-settings";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -89,6 +91,8 @@ function RootLayout() {
               <Outlet />
             </ErrorBoundary>
           </main>
+          <Footer />
+          <CookieBanner />
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
@@ -117,11 +121,13 @@ function RootLayout() {
                 <ErrorBoundary>
                   <Outlet />
                 </ErrorBoundary>
+                <Footer />
               </main>
             </div>
           </div>
         </SidebarProvider>
         </TooltipProvider>
+        <CookieBanner />
         <Toaster />
       </ClickSpark>
     </ThemeProvider>
