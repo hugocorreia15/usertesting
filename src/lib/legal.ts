@@ -27,9 +27,12 @@ export interface LegalEntity {
 }
 
 export const LEGAL_ENTITY: LegalEntity = {
-  controllerName: "",
-  address: "",
-  contactEmail: "",
+  controllerName: "Hugo Correia",
+  // Incomplete: this is a postal code, not an address anyone could write to.
+  // Article 13 GDPR expects contact details a data subject can actually use,
+  // so add the street and locality before relying on these pages.
+  address: "3800-740, Portugal",
+  contactEmail: "hf_correya@hotmail.com",
   hostingRegion: "the European Union",
   supervisoryAuthority: "Comissão Nacional de Proteção de Dados (CNPD)",
   supervisoryAuthorityUrl: "https://www.cnpd.pt",
