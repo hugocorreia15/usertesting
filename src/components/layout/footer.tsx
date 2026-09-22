@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { CookieSettingsButton } from "@/components/legal/cookie-settings";
+import { useConsent } from "@/hooks/use-consent";
 
 /**
  * The legal footer. Kept to what a visitor has a right to find easily: who
@@ -7,9 +8,19 @@ import { CookieSettingsButton } from "@/components/legal/cookie-settings";
  * their mind about the optional parts.
  */
 export function Footer() {
+  const { pending } = useConsent();
+
   return (
-    <footer className="border-t px-6 py-6 text-sm">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    // The top margin is the point: without it the rule sits against whatever
+    // card ends the page and reads as part of it rather than as the end.
+    <footer
+      className={`mt-12 border-t px-6 pt-8 text-sm md:mt-16 ${
+        // The cookie banner is fixed to the bottom of the viewport, so while it
+        // is showing it would sit on top of these links.
+        pending ? "pb-44 sm:pb-36" : "pb-10"
+      }`}
+    >
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
           Avalux. Open source, self-hostable.
         </p>

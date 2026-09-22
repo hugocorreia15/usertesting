@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Cookie } from "lucide-react";
 import {
@@ -16,12 +16,12 @@ import { Label } from "@/components/ui/label";
 import {
   acceptAll,
   allows,
-  needsDecision,
   readConsent,
   rejectAll,
   writeConsent,
   type OptionalPurpose,
 } from "@/lib/consent-preferences";
+import { useConsent } from "@/hooks/use-consent";
 
 const PURPOSES: {
   id: OptionalPurpose;
@@ -163,13 +163,7 @@ export function CookieSettingsButton({
  * while this is open.
  */
 export function CookieBanner() {
-  const [pending, setPending] = useState(false);
-
-  // Read after mount: a server-rendered or prerendered page must not bake in
-  // one visitor's answer, and localStorage may throw before this point.
-  useEffect(() => {
-    setPending(needsDecision(readConsent()));
-  }, []);
+  const { pending } = useConsent();
 
   if (!pending) return null;
 
@@ -193,25 +187,15 @@ export function CookieBanner() {
             size="sm"
             variant="ghost"
             className="cursor-pointer"
-            onClick={() => {
-              writeConsent(rejectAll());
-              setPending(false);
-            }}
+            onClick={() => writeConsent(rejectAll())}
           >
             Reject optional
           </Button>
-          <CookieSettingsButton
-            variant="outline"
-            label="Choose"
-            onSaved={() => setPending(false)}
-          />
+          <CookieSettingsButton variant="outline" label="Choose" />
           <Button
             size="sm"
             className="cursor-pointer"
-            onClick={() => {
-              writeConsent(acceptAll());
-              setPending(false);
-            }}
+            onClick={() => writeConsent(acceptAll())}
           >
             Accept all
           </Button>

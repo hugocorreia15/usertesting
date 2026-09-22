@@ -27,6 +27,9 @@
 
 export const CONSENT_STORAGE_KEY = "avalux-consent";
 
+/** Fired on this tab when the answer changes, so the page can react at once. */
+export const CONSENT_CHANGED_EVENT = "avalux-consent-changed";
+
 /**
  * Bumped when what is asked for changes. An older answer is then treated as no
  * answer, because consent to one thing is not consent to another.
@@ -91,6 +94,11 @@ export function writeConsent(
   const store = storage ?? safeStorage();
   try {
     store?.setItem(CONSENT_STORAGE_KEY, JSON.stringify(record));
+    // Storage events only fire in other tabs, so anything in this one that
+    // depends on the answer is told directly.
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(CONSENT_CHANGED_EVENT));
+    }
   } catch {
     // A browser refusing storage is not a reason to break the page. The answer
     // then lasts for this page only, which is the safe direction: it expires
