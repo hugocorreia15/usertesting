@@ -3,10 +3,10 @@ import { PageWrapper } from "@/components/layout/page-wrapper";
 import { LEGAL_ENTITY, LEGAL_LAST_UPDATED, entityIsConfigured } from "@/lib/legal";
 
 /**
- * The frame every legal page shares: a readable column, the date the wording
- * took effect, and an honest warning when the deployment has not yet said who
- * it is. A policy naming nobody is not a policy, so the page says so at the
- * top rather than letting a reader assume it was completed.
+ * The frame shared by every legal page: a readable column, the date the
+ * current version took effect, and a notice where the deployment has not been
+ * configured with a controller. A policy that names nobody cannot function as
+ * a notice, so this is stated rather than left for a reader to discover.
  */
 export function LegalPage({
   title,
@@ -23,13 +23,13 @@ export function LegalPage({
         {!entityIsConfigured() && (
           <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-4 text-sm">
             <p className="font-medium text-amber-800 dark:text-amber-300">
-              This deployment has not been identified yet.
+              This deployment has not been configured.
             </p>
             <p className="mt-1 text-amber-800/90 dark:text-amber-300/90">
-              Whoever runs this instance must set their name, postal address and
-              contact address in <code>src/lib/legal.ts</code>. Until then this
-              page describes how the software behaves, but names no controller,
-              and cannot be relied on as this instance's notice.
+              The operator of this instance has not provided a name, postal
+              address, or contact address. This page describes the behaviour of
+              the software but identifies no controller and does not constitute
+              a notice for this instance.
             </p>
           </div>
         )}

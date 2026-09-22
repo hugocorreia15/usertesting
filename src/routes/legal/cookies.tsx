@@ -62,17 +62,25 @@ function CookiePolicy() {
       title="Cookie policy"
       description="What is stored in your browser, and what you can refuse"
     >
-      <Section heading="Mostly not cookies">
+      <p>
+        This policy describes the information stored on your device when you
+        use this instance of Avalux, and the choices available to you.
+      </p>
+
+      <Section heading="1. Scope">
         <p>
-          Almost nothing here is a cookie in the technical sense. The platform
-          keeps what it needs in your browser's local storage instead. The law
-          does not care about the mechanism: storing or reading anything on your
-          device needs your consent unless it is strictly necessary to provide
-          the service you asked for, so that is the line this page draws.
+          Avalux stores most of this information in your browser's local
+          storage rather than in cookies. Article 5(3) of Directive 2002/58/EC,
+          as transposed in Portugal by Article 5 of Lei n.º 41/2004, applies to
+          the storing of information on, and the gaining of access to
+          information stored on, a user's terminal equipment regardless of the
+          technology used. Consent is therefore required except where the
+          storage is strictly necessary to provide the service you have
+          requested.
         </p>
       </Section>
 
-      <Section heading="What is stored">
+      <Section heading="2. Information stored">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
@@ -97,36 +105,47 @@ function CookiePolicy() {
         </div>
       </Section>
 
-      <Section heading="Why some of it is not offered as a choice">
+      <Section heading="3. Strictly necessary items">
         <p>
-          The items marked strictly necessary are not presented as options,
-          because refusing them would mean refusing the service: you cannot stay
-          signed in without a session, and a live session cannot survive a
-          reload without its timer. Offering a switch that cannot honestly be
-          turned off would be worse than offering none. None of them tracks you,
-          and none is shared with anyone.
+          The items identified as strictly necessary are not subject to
+          consent, as the service cannot be provided without them: an
+          authenticated session is required to remain signed in, and the task
+          timer is required for a live session to survive a page reload without
+          loss of measurement. None of these items is used for tracking, and
+          none is disclosed to a third party.
         </p>
       </Section>
 
-      <Section heading="What you can refuse, and change your mind about">
+      <Section heading="4. Optional items and consent">
         <p>
-          Error monitoring and the embedded video are optional. Both are off
-          until you say otherwise, and you can withdraw as easily as you agreed.
-          Withdrawal stops the video immediately; error monitoring stops on the
-          next page load, because it cannot be reliably torn down once started.
+          Error monitoring and the embedded walkthrough video are not strictly
+          necessary and are disabled until consent is given. Consent may be
+          withdrawn at any time through the settings below. Withdrawal takes
+          effect immediately for the embedded video; error monitoring ceases on
+          the next page load, as it cannot reliably be terminated once
+          initialised.
+        </p>
+        <p>
+          Your choice is recorded in your browser and is versioned. Where the
+          purposes described in this policy change, a previous choice is
+          treated as no longer given and consent is requested again.
         </p>
         <CookieSettingsButton />
       </Section>
 
-      <Section heading="Clearing everything">
+      <Section heading="5. Withdrawing consent and clearing stored data">
         <p>
-          Clearing site data in your browser removes all of it, including your
-          answer to this question, which means you will be asked again. Signing
-          out removes the session.
+          Clearing site data in your browser removes all information described
+          in this policy, including your recorded choice, in which case consent
+          will be requested again on your next visit. Signing out terminates
+          the authenticated session.
         </p>
         <p>
-          What happens to personal data more broadly is in the{" "}
-          <Link className="underline" to="/legal/privacy">privacy policy</Link>.
+          The processing of personal data more generally is described in the{" "}
+          <Link className="underline" to="/legal/privacy">
+            privacy policy
+          </Link>
+          .
         </p>
       </Section>
     </LegalPage>
