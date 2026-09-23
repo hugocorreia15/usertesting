@@ -487,3 +487,33 @@ configured" and nothing else changes. The session summary across tasks, the
 other half of the original request, is not built: it needs participant text,
 which is a separate decision about consent.
 
+
+
+## Legal and consent, 2026-09-23
+
+Three policy pages (terms, privacy, cookies), a cookie banner whose choices
+actually gate what runs, and an acceptance gate on first sign-in.
+
+**Verified.** Migration 061 applied; `scripts/verify/legal-acceptance.sql`
+passes 10 of 10, including that one document is not enough, that a later
+version asks again, that an acceptance cannot be rewritten or deleted, that
+nobody can accept on another user's behalf, and that the optional cookie
+purposes are refused by a check constraint rather than merely left out of the
+interface.
+
+**What the consent actually changed.** Two things had been contacting third
+parties before anyone agreed: Sentry started at app boot whenever a DSN was
+set, and the help page video loaded its iframe on render. Both now wait, which
+is tested rather than asserted in prose.
+
+**The line held deliberately.** The terms and the privacy notice gate access;
+the optional purposes never do. Consent under Article 4(11) GDPR must be freely
+given, and consent extracted as the price of access is not, so bundling error
+monitoring into the acceptance screen would have invalidated it. A check
+constraint and a test both enforce that.
+
+**Still to do.** The controller's postal address is a postal code only, which
+Article 13 expects to be somewhere a person can write to. Whether the
+controller is Hugo Correia personally or the university is a question for
+whoever handles data protection there, and it changes whose name belongs on
+the pages.

@@ -14,6 +14,12 @@
 
 import { DB, userFor } from "./fixtures";
 
+/**
+ * The demo user has accepted the terms, so screenshots show the application
+ * rather than the acceptance gate. Set to false to capture the gate itself.
+ */
+const DEMO_LEGAL_ACCEPTED = true;
+
 type Row = Record<string, unknown>;
 type Result = { data: unknown; error: null; count?: number };
 
@@ -109,7 +115,14 @@ const channel = {
 
 export const supabase = {
   from: (table: string) => query(table),
-  rpc: () => Promise.resolve({ data: null, error: null }),
+  // Named, because some RPCs decide whether the application renders at all.
+  // has_accepted_legal returning null would leave the demo un-gated only by
+  // the accident that the gate tests for false rather than for falsy.
+  rpc: (name: string) =>
+    Promise.resolve({
+      data: name === "has_accepted_legal" ? DEMO_LEGAL_ACCEPTED : null,
+      error: null,
+    }),
   channel: () => channel,
   removeChannel: async () => "ok",
   getChannels: () => [],
