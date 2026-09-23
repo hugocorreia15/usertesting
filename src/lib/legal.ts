@@ -45,3 +45,45 @@ export function entityIsConfigured(e: LegalEntity = LEGAL_ENTITY): boolean {
 
 /** The date the current wording took effect, shown on each page. */
 export const LEGAL_LAST_UPDATED = "2026-09-22";
+
+/**
+ * The version account holders accept, stored with each acceptance.
+ *
+ * Change this when the terms or the privacy notice change materially, and
+ * every account is asked again on its next visit: an acceptance records which
+ * wording was agreed to, so a later version is not covered by an earlier
+ * answer. Cosmetic edits should not change it, because asking again for
+ * nothing trains people to click through.
+ */
+export const LEGAL_VERSION = "2026-09-22";
+
+/** The documents that must be accepted to hold an account. */
+export const REQUIRED_DOCUMENTS = ["terms", "privacy"] as const;
+export type LegalDocument = (typeof REQUIRED_DOCUMENTS)[number];
+
+/**
+ * Whether the application must be replaced by the acceptance gate.
+ *
+ * Written here rather than inline in the root layout so the rule has one
+ * definition and can be tested. The default matters: an unknown answer must
+ * not block, or someone who has already accepted sees the gate on every load,
+ * and it must not open either, which is why it turns on `accepted === false`
+ * rather than on a falsy value.
+ */
+export function shouldBlockUntilAccepted(input: {
+  signedIn: boolean;
+  /** Login, join, or complete-profile: pages that precede having an account. */
+  onBarePage: boolean;
+  /** The documents themselves, which must stay readable while the gate is up. */
+  onLegalPage: boolean;
+  loading: boolean;
+  accepted: boolean | undefined;
+}): boolean {
+  return (
+    input.signedIn &&
+    !input.onBarePage &&
+    !input.onLegalPage &&
+    !input.loading &&
+    input.accepted === false
+  );
+}

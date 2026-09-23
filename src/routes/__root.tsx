@@ -12,6 +12,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Footer } from "@/components/layout/footer";
 import { CookieBanner } from "@/components/legal/cookie-settings";
+import { LegalGate } from "@/components/legal/legal-gate";
+import { useLegalAcceptance } from "@/hooks/use-legal-acceptance";
+import { shouldBlockUntilAccepted } from "@/lib/legal";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -59,7 +62,16 @@ function RootLayout() {
   const isJoinPage = location.pathname.startsWith("/join");
   const isLoginPage = location.pathname === "/login";
   const isCompleteProfilePage = location.pathname === "/complete-profile";
+  // The legal pages themselves stay reachable while the gate is up: requiring
+  // someone to accept documents they cannot open would be absurd.
+  const isLegalPage = location.pathname.startsWith("/legal");
   const isBarePage = isJoinPage || isLoginPage || isCompleteProfilePage;
+
+  // Participants joining by link have their own consent step in the join flow
+  // and never hold an account, so this asks only signed-in users.
+  const { data: acceptedLegal, isLoading: legalLoading } = useLegalAcceptance(
+    !!session && !isBarePage,
+  );
 
   useEffect(() => {
     if (!session && !isBarePage) {
@@ -93,6 +105,28 @@ function RootLayout() {
           </main>
           <Footer />
           <CookieBanner />
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
+    );
+  }
+
+  // Nothing of the application renders until the account has accepted: not the
+  // sidebar, not the header, not the page behind it.
+  if (
+    shouldBlockUntilAccepted({
+      signedIn: !!session,
+      onBarePage: isBarePage,
+      onLegalPage: isLegalPage,
+      loading: legalLoading,
+      accepted: acceptedLegal,
+    })
+  ) {
+    return (
+      <ThemeProvider>
+        <TooltipProvider>
+          <AnimatedBackground />
+          <LegalGate />
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
