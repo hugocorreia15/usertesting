@@ -4,7 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { COLORS, CHART_TOOLTIP_STYLE } from "@/lib/chart-constants";
 import { calculateSusScore, getSusLabel } from "@/lib/sus";
-import { computeSessionAverages } from "@/lib/metrics";
+import {
+  computeSessionAverages,
+  describeMissingMeasures,
+  sessionMeasurements,
+} from "@/lib/metrics";
 import type { TestSessionWithRelations } from "@/types";
 import {
   PieChart,
@@ -96,16 +100,24 @@ function CompletionDonut({ session }: { session: TestSessionWithRelations }) {
 
 function SessionAverages({ session }: { session: TestSessionWithRelations }) {
   const results = session.task_results;
-  if (results.length === 0) {
+  // Not results.length: a session's rows are created with the session, one per
+  // task and every measurement null, so a session that was never run has as
+  // many rows as one that was. What matters is whether anything was filled in.
+  const measured = sessionMeasurements(results);
+  if (measured.empty) {
     return (
-      <div className="flex h-[150px] items-center justify-center text-xs text-muted-foreground">
-        No task data
+      <div className="flex h-[150px] flex-col items-center justify-center gap-1 px-4 text-center text-xs text-muted-foreground">
+        <span>No task data</span>
+        <span className="text-[10px]">
+          The tasks exist but nothing was logged or answered.
+        </span>
       </div>
     );
   }
 
   const { avgTime, timeEfficiency, avgActions, avgSeq } =
     computeSessionAverages(results);
+  const missing = describeMissingMeasures(results);
 
   const effColor =
     timeEfficiency != null
@@ -122,14 +134,24 @@ function SessionAverages({ session }: { session: TestSessionWithRelations }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="text-[10px] text-muted-foreground">Avg Time</p>
-          <p className="text-lg font-bold leading-tight">
-            {avgTime != null ? `${avgTime.toFixed(1)}s` : "—"}
+          <p
+            className="text-lg font-bold leading-tight"
+            title={avgTime == null ? "No task in this session was timed" : undefined}
+          >
+            {avgTime != null ? `${avgTime.toFixed(1)}s` : "Not timed"}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-muted-foreground">Time Efficiency</p>
-          <p className={`text-lg font-bold leading-tight ${effColor}`}>
-            {timeEfficiency != null ? `${timeEfficiency}%` : "—"}
+          <p
+            className={`text-lg font-bold leading-tight ${effColor}`}
+            title={
+              timeEfficiency == null
+                ? "Needs a timed task with an expected duration set on it"
+                : undefined
+            }
+          >
+            {timeEfficiency != null ? `${timeEfficiency}%` : "Not timed"}
           </p>
         </div>
         <div>
@@ -145,6 +167,12 @@ function SessionAverages({ session }: { session: TestSessionWithRelations }) {
           </p>
         </div>
       </div>
+
+      {missing && (
+        <p className="mt-2 text-[10px] leading-snug text-muted-foreground">
+          {missing}
+        </p>
+      )}
     </div>
   );
 }

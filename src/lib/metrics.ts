@@ -81,3 +81,66 @@ export function computeSessionAverages(
 
   return { avgTime, timeEfficiency, avgActions, avgSeq };
 }
+
+/**
+ * Which measurements a session actually carries.
+ *
+ * A session's task_results rows are created when the session is created, one
+ * per task, with every measurement null. Counting rows therefore says nothing
+ * about whether anything was measured: a session that was never run has the
+ * same number of rows as one that was. Asking what is filled in is the only
+ * question worth asking, and it is what separates "nothing was recorded" from
+ * "this study did not measure time".
+ */
+export interface SessionMeasurements {
+  /** Rows exist, which they always do, but nothing has been filled in. */
+  empty: boolean;
+  hasTime: boolean;
+  hasActions: boolean;
+  hasSeq: boolean;
+  hasOutcomes: boolean;
+}
+
+export function sessionMeasurements(
+  allResults: MetricTaskResult[],
+): SessionMeasurements {
+  const results = excludePractice(allResults);
+  const hasTime = results.some(
+    (r) => r.time_seconds != null && Number(r.time_seconds) > 0,
+  );
+  const hasActions = results.some((r) => r.action_count != null);
+  const hasSeq = results.some((r) => r.seq_rating != null);
+  const hasOutcomes = results.some((r) => r.completion_status != null);
+
+  return {
+    empty: !hasTime && !hasActions && !hasSeq && !hasOutcomes,
+    hasTime,
+    hasActions,
+    hasSeq,
+    hasOutcomes,
+  };
+}
+
+/**
+ * One line explaining an absence, or null when there is nothing to explain.
+ *
+ * A dash in a results table is read as a fault. Most of the time it is not:
+ * a study whose tasks are an instruction sheet and a questionnaire has no
+ * durations to report, and never did. Saying which of the two it is costs a
+ * sentence and saves the reader guessing.
+ */
+export function describeMissingMeasures(
+  allResults: MetricTaskResult[],
+): string | null {
+  const m = sessionMeasurements(allResults);
+  if (m.empty) {
+    return "Nothing was recorded for this session.";
+  }
+  if (!m.hasTime && !m.hasActions) {
+    return "No time or actions were logged, so the averages above come only from what the participant answered.";
+  }
+  if (!m.hasTime) {
+    return "No task was timed in this session, so time and efficiency are unavailable.";
+  }
+  return null;
+}
