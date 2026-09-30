@@ -51,6 +51,10 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
             task_questions: t.task_questions
               .filter((q) => q.question_text.trim())
               .map((q, qi) => ({
+                // The key is the row's database id for a question already in
+                // the template. Dropping it here is what made the save delete
+                // and recreate the question, taking every answer with it.
+                id: q.key,
                 question_text: q.question_text,
                 question_type: q.question_type,
                 options: q.options.length > 0 ? q.options.filter((o) => o.trim()) : null,
@@ -61,10 +65,14 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
           })),
         error_types: data.error_types
           .filter((e) => e.code.trim() && e.label.trim())
-          .map((e) => ({ code: e.code, label: e.label })),
+          .map((e) => ({ id: e.key, code: e.code, label: e.label })),
         questions: data.questions
           .filter((q) => q.question_text.trim())
-          .map((q, i) => ({ question_text: q.question_text, sort_order: i })),
+          .map((q, i) => ({
+            id: q.key,
+            question_text: q.question_text,
+            sort_order: i,
+          })),
         participant_fields: data.participant_fields
           .filter((f) => f.label.trim())
           .map((f, i) => ({

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { planSync } from "@/lib/sync-plan";
 import { supabase } from "@/lib/supabase";
 import type { ParticipantFieldType } from "@/lib/participant-fields";
 import type {
@@ -102,7 +103,18 @@ interface GroupInput {
   sort_order: number;
 }
 
-type TaskQuestionInput = Omit<TaskQuestion, "id" | "task_id" | "created_at">;
+type TaskQuestionInput = Omit<TaskQuestion, "id" | "task_id" | "created_at"> & {
+  /** Present for a question already in the template; absent for a new one. */
+  id?: string;
+};
+
+type ErrorTypeInput = Omit<TemplateErrorType, "id" | "template_id" | "created_at"> & {
+  id?: string;
+};
+type InterviewQuestionInput = Omit<
+  TemplateQuestion,
+  "id" | "template_id" | "created_at"
+> & { id?: string };
 
 interface TaskInput {
   id: string;
@@ -134,8 +146,8 @@ interface CreateTemplateInput {
   is_public?: boolean;
   groups: GroupInput[];
   tasks: TaskInput[];
-  error_types: Omit<TemplateErrorType, "id" | "template_id" | "created_at">[];
-  questions: Omit<TemplateQuestion, "id" | "template_id" | "created_at">[];
+  error_types: ErrorTypeInput[];
+  questions: InterviewQuestionInput[];
   participant_fields: ParticipantFieldInput[];
   instruments?: string[];
 }
@@ -358,55 +370,120 @@ async function syncTasks(templateId: string, tasks: TaskInput[]) {
   }
 }
 
+/**
+ * Reconcile a task's questions, keeping the ones that are still there.
+ *
+ * This used to delete every question and reinsert it, with a comment calling
+ * that safe because task_question_answers cascades on question_id. The cascade
+ * is exactly why it was not: every answer any participant had ever given to
+ * that question was deleted along with it, on every save.
+ */
 async function syncTaskQuestions(taskId: string, questions: TaskQuestionInput[]) {
-  // Simple approach: delete all and reinsert for this task
-  // task_question_answers has CASCADE on question_id, so this is safe
-  const { error: delErr } = await supabase
+  const { data: existing } = await supabase
     .from("task_questions")
-    .delete()
+    .select("id")
     .eq("task_id", taskId);
-  if (delErr) throw delErr;
 
-  if (questions.length > 0) {
-    const { error } = await supabase.from("task_questions").insert(
-      questions.map((q) => ({ ...q, task_id: taskId })),
-    );
+  const plan = planSync(
+    (existing ?? []).map((q) => q.id as string),
+    questions,
+  );
+
+  for (const q of plan.toUpdate) {
+    const { id, ...fields } = q;
+    const { error } = await supabase
+      .from("task_questions")
+      .update({ ...fields, task_id: taskId })
+      .eq("id", id!);
+    if (error) throw error;
+  }
+
+  if (plan.toInsert.length > 0) {
+    const { error } = await supabase
+      .from("task_questions")
+      .insert(plan.toInsert.map(({ id, ...q }) => ({ ...q, task_id: taskId })));
+    if (error) throw error;
+  }
+
+  if (plan.toDeleteIds.length > 0) {
+    const { error } = await supabase
+      .from("task_questions")
+      .delete()
+      .in("id", plan.toDeleteIds);
     if (error) throw error;
   }
 }
 
+/** error_logs cascades on error_type_id, so a removed type takes its logs. */
 async function syncErrorTypes(
   templateId: string,
-  errorTypes: Omit<TemplateErrorType, "id" | "template_id" | "created_at">[],
+  errorTypes: ErrorTypeInput[],
 ) {
-  const { error: delErr } = await supabase
+  const { data: existing } = await supabase
     .from("template_error_types")
-    .delete()
+    .select("id")
     .eq("template_id", templateId);
-  if (delErr) throw delErr;
 
-  if (errorTypes.length > 0) {
+  const plan = planSync((existing ?? []).map((e) => e.id as string), errorTypes);
+
+  for (const e of plan.toUpdate) {
+    const { id, ...fields } = e;
     const { error } = await supabase
       .from("template_error_types")
-      .insert(errorTypes.map((e) => ({ ...e, template_id: templateId })));
+      .update({ ...fields, template_id: templateId })
+      .eq("id", id!);
+    if (error) throw error;
+  }
+
+  if (plan.toInsert.length > 0) {
+    const { error } = await supabase
+      .from("template_error_types")
+      .insert(plan.toInsert.map(({ id, ...e }) => ({ ...e, template_id: templateId })));
+    if (error) throw error;
+  }
+
+  if (plan.toDeleteIds.length > 0) {
+    const { error } = await supabase
+      .from("template_error_types")
+      .delete()
+      .in("id", plan.toDeleteIds);
     if (error) throw error;
   }
 }
 
+/** interview_answers cascades on question_id, so a removed question takes them. */
 async function syncQuestions(
   templateId: string,
-  questions: Omit<TemplateQuestion, "id" | "template_id" | "created_at">[],
+  questions: InterviewQuestionInput[],
 ) {
-  const { error: delErr } = await supabase
+  const { data: existing } = await supabase
     .from("template_questions")
-    .delete()
+    .select("id")
     .eq("template_id", templateId);
-  if (delErr) throw delErr;
 
-  if (questions.length > 0) {
+  const plan = planSync((existing ?? []).map((q) => q.id as string), questions);
+
+  for (const q of plan.toUpdate) {
+    const { id, ...fields } = q;
     const { error } = await supabase
       .from("template_questions")
-      .insert(questions.map((q) => ({ ...q, template_id: templateId })));
+      .update({ ...fields, template_id: templateId })
+      .eq("id", id!);
+    if (error) throw error;
+  }
+
+  if (plan.toInsert.length > 0) {
+    const { error } = await supabase
+      .from("template_questions")
+      .insert(plan.toInsert.map(({ id, ...q }) => ({ ...q, template_id: templateId })));
+    if (error) throw error;
+  }
+
+  if (plan.toDeleteIds.length > 0) {
+    const { error } = await supabase
+      .from("template_questions")
+      .delete()
+      .in("id", plan.toDeleteIds);
     if (error) throw error;
   }
 }
