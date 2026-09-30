@@ -16,6 +16,7 @@ export type ReviewSeverity = "warn" | "info";
 
 /** Anchors on the in-app /help page a finding can point at. */
 import type { HelpAnchor } from "@/lib/help-anchors";
+import { quoteNames } from "./quote-names";
 export type { HelpAnchor };
 
 export interface ReviewFinding {
@@ -104,12 +105,12 @@ export function leadingTerms(task: Pick<TemplateTask, "name" | "description">): 
 const wordCount = (s: string | null | undefined) =>
   (s ?? "").trim().split(/\s+/).filter(Boolean).length;
 
-const listNames = (tasks: TemplateTask[], max = 3) => {
-  const names = tasks.map((t) => t.name);
-  return names.length <= max
-    ? names.join(", ")
-    : `${names.slice(0, max).join(", ")} and ${names.length - max} more`;
-};
+// Task names are the author's words, in the author's language. Quoting them
+// keeps the boundary between the platform's sentence and the study's own
+// wording visible, and stops a name that ends in a full stop colliding with
+// the list comma.
+const listNames = (tasks: TemplateTask[], max = 3) =>
+  quoteNames(tasks.map((t) => t.name), max);
 
 export function reviewTemplate(t: TemplateWithRelations): ReviewFinding[] {
   const findings: ReviewFinding[] = [];

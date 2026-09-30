@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { quoteNames } from "@/lib/quote-names";
 import { Badge } from "@/components/ui/badge";
 import { Activity } from "lucide-react";
 import { HelpButton } from "@/components/help/help-button";
@@ -108,13 +109,13 @@ export function ModerationCard({
 
         {s.skipped.length > 0 && (
           <p className="text-xs">
-            <span className="font-medium">Skipped:</span> {s.skipped.join(", ")}.
+            <span className="font-medium">Skipped:</span> {quoteNames(s.skipped)}.
           </p>
         )}
 
         {s.silentSuccesses.length > 0 && (
           <p className="text-xs text-amber-700 dark:text-amber-400">
-            Marked successful with nothing counted: {s.silentSuccesses.join(", ")}.
+            Marked successful with nothing counted: {quoteNames(s.silentSuccesses)}.
             A task rarely takes no actions at all; check whether logging was
             running.
           </p>

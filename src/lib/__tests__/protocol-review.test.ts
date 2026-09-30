@@ -127,8 +127,26 @@ describe("reviewTemplate", () => {
     const f = reviewTemplate(t).find((x) => x.id === "leading-task");
     expect(f?.severity).toBe("warn");
     expect(f?.taskIds).toHaveLength(1);
-    expect(f?.detail).toContain("Tap the Export button");
+    // Quoted, so the author's own wording is visibly a quotation rather than
+    // part of the platform's sentence. This matters most for a protocol
+    // written in a language the interface does not speak.
+    expect(f?.detail).toContain('"Tap the Export button"');
     expect(f?.detail).toMatch(/tap|button/);
+  });
+
+  it("quotes a task named as a sentence without colliding with the list", () => {
+    const t = template({
+      template_tasks: [
+        task({ name: "Siga o tutorial e responda quando terminar.", description: null }),
+        task({ name: "Cybersickness Pós-Experiência", description: null }),
+        task(),
+      ],
+    });
+    const f = reviewTemplate(t).find((x) => x.id === "no-success-criterion");
+    // Before quoting this read "...terminar., Cybersickness...", which looks
+    // like the platform lapsing into another language mid-sentence.
+    expect(f?.detail).not.toContain(".,");
+    expect(f?.detail).toContain('"Siga o tutorial e responda quando terminar"');
   });
 
   it("downgrades noun-only mentions to a note", () => {
