@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { RemoveWithAnswers } from "./remove-with-answers";
 
 export interface QuestionItem {
   key: string;
@@ -9,11 +10,13 @@ export interface QuestionItem {
 }
 
 interface QuestionEditorProps {
+  /** How many interview answers each question already holds, by database id. */
+  answerCounts?: Map<string, number>;
   items: QuestionItem[];
   onChange: (items: QuestionItem[]) => void;
 }
 
-export function QuestionEditor({ items, onChange }: QuestionEditorProps) {
+export function QuestionEditor({ items, onChange, answerCounts }: QuestionEditorProps) {
   const add = () => {
     onChange([
       ...items,
@@ -42,9 +45,12 @@ export function QuestionEditor({ items, onChange }: QuestionEditorProps) {
             onChange={(e) => update(item.key, e.target.value)}
             className="flex-1"
           />
-          <Button tooltip="Remove this question" variant="ghost" size="icon" onClick={() => remove(item.key)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <RemoveWithAnswers
+            label={item.question_text}
+            noun="answer"
+            count={answerCounts?.get(item.key) ?? 0}
+            onRemove={() => remove(item.key)}
+          />
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={add}>

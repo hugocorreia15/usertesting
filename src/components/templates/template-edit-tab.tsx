@@ -5,6 +5,7 @@ import {
 } from "@/components/templates/template-form";
 import { useUpdateTemplate } from "@/hooks/use-templates";
 import { useMyOrgs } from "@/hooks/use-orgs";
+import { useAnswerCounts } from "@/hooks/use-answer-counts";
 import type { TemplateWithRelations } from "@/types";
 import { toast } from "sonner";
 
@@ -17,6 +18,9 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
   // An organization sets a consent text every team starts from; the builder
   // offers it rather than making each team retype it.
   const { data: orgs } = useMyOrgs();
+  // What each question and error type is holding, so removing one can say what
+  // it would destroy rather than doing it silently.
+  const { data: answerCounts } = useAnswerCounts(template.id);
   const orgDefault = orgs?.find((o) => o.id === template.org_id)?.default_consent_text;
 
   const handleSubmit = async (data: TemplateFormData) => {
@@ -103,6 +107,7 @@ export function TemplateEditTab({ template }: TemplateEditTabProps) {
       onSubmit={handleSubmit}
       submitLabel="Save Changes"
       orgDefault={orgDefault}
+      answerCounts={answerCounts}
     />
   );
 }

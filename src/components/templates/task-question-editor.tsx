@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { RemoveWithAnswers } from "./remove-with-answers";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,6 +25,8 @@ export interface TaskQuestionItem {
 interface TaskQuestionEditorProps {
   questions: TaskQuestionItem[];
   onChange: (questions: TaskQuestionItem[]) => void;
+  /** How many participant answers each question already holds, by database id. */
+  answerCounts?: Map<string, number>;
 }
 
 function makeQuestion(order: number): TaskQuestionItem {
@@ -38,7 +41,11 @@ function makeQuestion(order: number): TaskQuestionItem {
   };
 }
 
-export function TaskQuestionEditor({ questions, onChange }: TaskQuestionEditorProps) {
+export function TaskQuestionEditor({
+  questions,
+  onChange,
+  answerCounts,
+}: TaskQuestionEditorProps) {
   const add = () => onChange([...questions, makeQuestion(questions.length)]);
 
   const update = (key: string, field: keyof TaskQuestionItem, value: any) => {
@@ -105,9 +112,12 @@ export function TaskQuestionEditor({ questions, onChange }: TaskQuestionEditorPr
                 <SelectItem value="photo">Photo</SelectItem>
               </SelectContent>
             </Select>
-            <Button tooltip="Remove this question" variant="ghost" size="icon" onClick={() => remove(q.key)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <RemoveWithAnswers
+              label={q.question_text}
+              noun="answer"
+              count={answerCounts?.get(q.key) ?? 0}
+              onRemove={() => remove(q.key)}
+            />
           </div>
 
           {(q.question_type === "single_choice" || q.question_type === "multiple_choice") && (

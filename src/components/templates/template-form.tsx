@@ -41,6 +41,11 @@ interface TemplateFormProps {
   submitLabel: string;
   /** The organization's default consent text, offered in the builder. */
   orgDefault?: string | null;
+  /**
+   * How many participant records each question or error type holds. Removing
+   * one deletes them, so the editors warn before letting it happen.
+   */
+  answerCounts?: Map<string, number>;
 }
 
 export interface TemplateFormData {
@@ -72,6 +77,7 @@ export function TemplateForm({
   onSubmit,
   submitLabel,
   orgDefault,
+  answerCounts,
 }: TemplateFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -337,6 +343,7 @@ export function TemplateForm({
                 onGroupsChange={setTaskGroups}
                 tasks={tasks}
                 onChange={setTasks}
+                answerCounts={answerCounts}
               />
             </CardContent>
           </Card>
@@ -348,7 +355,11 @@ export function TemplateForm({
               <CardTitle>Error Types</CardTitle>
             </CardHeader>
             <CardContent>
-              <ErrorTypeEditor items={errorTypes} onChange={setErrorTypes} />
+              <ErrorTypeEditor
+                items={errorTypes}
+                onChange={setErrorTypes}
+                answerCounts={answerCounts}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -359,7 +370,11 @@ export function TemplateForm({
               <CardTitle>Interview Questions</CardTitle>
             </CardHeader>
             <CardContent>
-              <QuestionEditor items={questions} onChange={setQuestions} />
+              <QuestionEditor
+                items={questions}
+                onChange={setQuestions}
+                answerCounts={answerCounts}
+              />
             </CardContent>
           </Card>
         </TabsContent>

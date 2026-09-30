@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { RemoveWithAnswers } from "./remove-with-answers";
 
 export interface ErrorTypeItem {
   key: string;
@@ -9,11 +10,13 @@ export interface ErrorTypeItem {
 }
 
 interface ErrorTypeEditorProps {
+  /** How many logged errors each type already holds, by database id. */
+  answerCounts?: Map<string, number>;
   items: ErrorTypeItem[];
   onChange: (items: ErrorTypeItem[]) => void;
 }
 
-export function ErrorTypeEditor({ items, onChange }: ErrorTypeEditorProps) {
+export function ErrorTypeEditor({ items, onChange, answerCounts }: ErrorTypeEditorProps) {
   const add = () => {
     onChange([...items, { key: crypto.randomUUID(), code: "", label: "" }]);
   };
@@ -42,9 +45,12 @@ export function ErrorTypeEditor({ items, onChange }: ErrorTypeEditorProps) {
             onChange={(e) => update(item.key, "label", e.target.value)}
             className="flex-1"
           />
-          <Button tooltip="Remove this error type" variant="ghost" size="icon" onClick={() => remove(item.key)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <RemoveWithAnswers
+            label={item.label || item.code}
+            noun="logged error"
+            count={answerCounts?.get(item.key) ?? 0}
+            onRemove={() => remove(item.key)}
+          />
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={add}>

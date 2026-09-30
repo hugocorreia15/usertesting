@@ -38,6 +38,8 @@ interface TaskListEditorProps {
   onGroupsChange: (groups: TaskGroupItem[]) => void;
   tasks: TaskItem[];
   onChange: (tasks: TaskItem[]) => void;
+  /** Participant answers already held, by question id. */
+  answerCounts?: Map<string, number>;
 }
 
 function makeTask(groupKey: string, order: number): TaskItem {
@@ -64,7 +66,13 @@ function makeTask(groupKey: string, order: number): TaskItem {
   };
 }
 
-export function TaskListEditor({ groups, onGroupsChange, tasks, onChange }: TaskListEditorProps) {
+export function TaskListEditor({
+  groups,
+  onGroupsChange,
+  tasks,
+  onChange,
+  answerCounts,
+}: TaskListEditorProps) {
   const [newGroupName, setNewGroupName] = useState("");
   const [editingGroup, setEditingGroup] = useState<string | null>(null);
   const [editGroupName, setEditGroupName] = useState("");
@@ -125,6 +133,7 @@ export function TaskListEditor({ groups, onGroupsChange, tasks, onChange }: Task
         task={task}
         onUpdate={(field, value) => updateTask(task.key, field, value)}
         onRemove={() => removeTask(task.key)}
+        answerCounts={answerCounts}
       />
     ));
 
@@ -224,10 +233,12 @@ function TaskRow({
   task,
   onUpdate,
   onRemove,
+  answerCounts,
 }: {
   task: TaskItem;
   onUpdate: (field: keyof TaskItem, value: any) => void;
   onRemove: () => void;
+  answerCounts?: Map<string, number>;
 }) {
   const [open, setOpen] = useState(task.task_questions.length > 0);
   const qCount = task.task_questions.length;
@@ -295,6 +306,7 @@ function TaskRow({
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-2">
           <TaskQuestionEditor
+            answerCounts={answerCounts}
             questions={task.task_questions}
             onChange={(qs) => onUpdate("task_questions", qs)}
           />
