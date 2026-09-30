@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { activeOnly } from "@/lib/active-protocol";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { TestSessionWithRelations } from "@/types";
@@ -51,6 +52,14 @@ export function useParticipantSession(sessionId: string | undefined) {
         .eq("id", sessionId!)
         .single();
       if (error) throw error;
+      // An archived question is part of the study's record, not of the
+      // protocol being run, so it must never reach a participant.
+      const row = data as { templates?: { template_questions?: unknown[] } };
+      if (row.templates?.template_questions) {
+        row.templates.template_questions = activeOnly(
+          row.templates.template_questions as { archived_at?: string | null }[],
+        );
+      }
       return data as TestSessionWithRelations & {
         templates: TestSessionWithRelations["templates"] & {
           template_tasks: Array<{ id: string; name: string; description: string | null; sort_order: number }>;
@@ -109,6 +118,22 @@ async function fetchParticipantStatic(sessionId: string) {
     .eq("id", sessionId)
     .single();
   if (error) throw error;
+
+  const row = data as {
+    templates?: { template_questions?: { archived_at?: string | null }[] };
+    task_results?: {
+      template_tasks?: { task_questions?: { archived_at?: string | null }[] } | null;
+    }[];
+  };
+  if (row.templates?.template_questions) {
+    row.templates.template_questions = activeOnly(row.templates.template_questions);
+  }
+  for (const tr of row.task_results ?? []) {
+    if (tr.template_tasks?.task_questions) {
+      tr.template_tasks.task_questions = activeOnly(tr.template_tasks.task_questions);
+    }
+  }
+
   return data as unknown as ParticipantStaticData;
 }
 

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 /**
- * A remove button that stops when removal would destroy participant data.
+ * A remove button that says what removing something answered actually does.
  *
- * Removing a question or an error type from a protocol deletes every answer or
- * logged error recorded against it, in every session already run, through the
- * cascade on its id. Nothing about the editor shows that, and the loss is
- * silent and permanent, so the count is put in front of the person doing it.
+ * Since migration 063 this destroys nothing: a question participants have
+ * answered is archived rather than deleted, keeping its wording and every
+ * answer for reports and exports. It still leaves the protocol, so sessions
+ * from here on will not ask it, and that is worth confirming rather than doing
+ * on one click.
  *
  * With nothing recorded against it, which is the ordinary case while a
  * protocol is still being written, it removes immediately and asks nothing.
@@ -46,7 +47,7 @@ export function RemoveWithAnswers({
         }
         tooltip={
           count > 0
-            ? `${count} ${plural} recorded. Removing this deletes them.`
+            ? `${count} ${plural} recorded. Removing this keeps them and stops asking it.`
             : "Remove"
         }
         onClick={() => (count > 0 ? setConfirming(true) : onRemove())}
@@ -57,15 +58,14 @@ export function RemoveWithAnswers({
       <ConfirmDialog
         open={confirming}
         onOpenChange={(o) => !o && setConfirming(false)}
-        title={`Delete ${count} ${plural}?`}
+        title="Remove it from the protocol?"
         description={
-          `${named} already has ${count} ${plural} recorded against it across your sessions. ` +
-          `Removing it from the protocol deletes ${count === 1 ? "that record" : "those records"} ` +
-          `when you save, in every session, and they cannot be recovered. ` +
-          `To keep the data, leave it in the protocol and stop using it instead.`
+          `${named} has ${count} ${plural} recorded against it. ` +
+          `${count === 1 ? "That answer is" : "Those answers are"} kept: it is archived rather than deleted, ` +
+          `so your reports and exports still include ${count === 1 ? "it" : "them"}. ` +
+          `Sessions from now on will not ask it.`
         }
-        confirmLabel={`Remove and delete ${count} ${plural}`}
-        variant="destructive"
+        confirmLabel="Remove from the protocol"
         onConfirm={() => {
           onRemove();
           setConfirming(false);

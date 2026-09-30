@@ -172,6 +172,8 @@ export interface TemplateTask {
   created_at: string;
   /** The inspection problem this task was written to confirm. */
   from_problem_id: string | null;
+  /** Present when the query embeds them, as the template editor's does. */
+  task_questions?: TaskQuestion[];
 }
 
 export interface TemplateErrorType {
@@ -180,6 +182,10 @@ export interface TemplateErrorType {
   code: string;
   label: string;
   created_at: string;
+  /** Migration 063: set when it left the protocol. The row and its answers stay. */
+  archived_at?: string | null;
+  /** The row that replaced it when it was reworded. */
+  superseded_by?: string | null;
 }
 
 export interface TemplateQuestion {
@@ -188,6 +194,10 @@ export interface TemplateQuestion {
   sort_order: number;
   question_text: string;
   created_at: string;
+  /** Migration 063: set when it left the protocol. The row and its answers stay. */
+  archived_at?: string | null;
+  /** The row that replaced it when it was reworded. */
+  superseded_by?: string | null;
 }
 
 export interface TemplateParticipantField {
@@ -312,6 +322,10 @@ export interface TaskQuestion {
   rating_min: number | null;
   rating_max: number | null;
   created_at: string;
+  /** Migration 063: set when it left the protocol. The row and its answers stay. */
+  archived_at?: string | null;
+  /** The row that replaced it when it was reworded. */
+  superseded_by?: string | null;
 }
 
 export interface TaskQuestionAnswer {

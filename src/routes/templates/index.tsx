@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { activeProtocol } from "@/lib/active-protocol";
 import { useState } from "react";
 import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Button } from "@/components/ui/button";
@@ -279,7 +280,8 @@ function TemplatesPage() {
                         .eq("id", previewTemplate.id)
                         .single();
                       if (error) throw error;
-                      const full = data as TemplateWithRelations;
+                      // The protocol sheet shows the protocol as it stands.
+                      const full = activeProtocol(data as TemplateWithRelations);
                       full.template_tasks.sort((a, b) => a.sort_order - b.sort_order);
                       full.template_questions.sort((a, b) => a.sort_order - b.sort_order);
                       exportTemplatePdf(full);

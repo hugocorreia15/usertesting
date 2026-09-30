@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { planSync } from "@/lib/sync-plan";
+import { planArchive, type ArchivePlan } from "@/lib/archive-plan";
+import { activeProtocol } from "@/lib/active-protocol";
 import { supabase } from "@/lib/supabase";
 import type { ParticipantFieldType } from "@/lib/participant-fields";
 import type {
@@ -86,7 +88,10 @@ export function useTemplate(id: string | undefined) {
         .eq("id", id!)
         .single();
       if (error) throw error;
-      const template = data as TemplateWithRelations;
+      // Archived questions and error types belong to the study's record, not
+      // to the protocol as it stands, so the editor and the cockpit never see
+      // them. Reports read them separately.
+      const template = activeProtocol(data as TemplateWithRelations);
       template.task_groups.sort((a, b) => a.sort_order - b.sort_order);
       template.template_tasks.sort((a, b) => a.sort_order - b.sort_order);
       template.template_questions.sort((a, b) => a.sort_order - b.sort_order);
@@ -277,17 +282,22 @@ export function useUpdateTemplate() {
         .eq("id", input.id);
       if (tErr) throw tErr;
 
+      // How much participant data each question and error type holds. What is
+      // answered is versioned rather than rewritten, and archived rather than
+      // deleted, so the save has to know before it touches anything.
+      const answerCounts = await fetchAnswerCounts(input.id);
+
       // 2. Sync groups (upsert + delete removed)
       await syncGroups(input.id, input.groups);
 
-      // 3. Sync tasks (upsert + delete removed)
-      await syncTasks(input.id, input.tasks);
+      // 3. Sync tasks, and their questions
+      await syncTasks(input.id, input.tasks, answerCounts);
 
-      // 4. Sync error types (simple delete + insert — no session references)
-      await syncErrorTypes(input.id, input.error_types);
+      // 4. Error types: answered ones are archived, not deleted
+      await syncErrorTypes(input.id, input.error_types, answerCounts);
 
-      // 5. Sync interview questions (simple delete + insert)
-      await syncQuestions(input.id, input.questions);
+      // 5. Interview questions: same rule
+      await syncQuestions(input.id, input.questions, answerCounts);
 
       // 6. Sync participant fields (upsert + delete removed, to
       //    preserve participant_field_values FK references)
@@ -326,7 +336,32 @@ async function syncGroups(templateId: string, groups: GroupInput[]) {
   }
 }
 
-async function syncTasks(templateId: string, tasks: TaskInput[]) {
+/**
+ * How many participant records each question and error type holds.
+ *
+ * One call, because the save needs it for all three tables and an editor that
+ * has been open a while may be working from stale counts.
+ */
+async function fetchAnswerCounts(
+  templateId: string,
+): Promise<ReadonlyMap<string, number>> {
+  const { data, error } = await supabase.rpc("template_answer_counts", {
+    tid: templateId,
+  });
+  if (error) throw error;
+  return new Map(
+    ((data ?? []) as { ref_id: string; n: number }[]).map((r) => [
+      r.ref_id,
+      Number(r.n),
+    ]),
+  );
+}
+
+async function syncTasks(
+  templateId: string,
+  tasks: TaskInput[],
+  answerCounts: ReadonlyMap<string, number>,
+) {
   // Get existing task IDs
   const { data: existing } = await supabase
     .from("template_tasks")
@@ -366,7 +401,7 @@ async function syncTasks(templateId: string, tasks: TaskInput[]) {
 
   // Sync task questions for all tasks
   for (const task of tasks) {
-    await syncTaskQuestions(task.id, task.task_questions ?? []);
+    await syncTaskQuestions(task.id, task.task_questions ?? [], answerCounts);
   }
 }
 
@@ -378,114 +413,151 @@ async function syncTasks(templateId: string, tasks: TaskInput[]) {
  * is exactly why it was not: every answer any participant had ever given to
  * that question was deleted along with it, on every save.
  */
-async function syncTaskQuestions(taskId: string, questions: TaskQuestionInput[]) {
-  const { data: existing } = await supabase
-    .from("task_questions")
-    .select("id")
-    .eq("task_id", taskId);
 
-  const plan = planSync(
-    (existing ?? []).map((q) => q.id as string),
-    questions,
-  );
-
-  for (const q of plan.toUpdate) {
-    const { id, ...fields } = q;
+/**
+ * Apply an archive plan to one child table.
+ *
+ * Shared by the three tables whose rows participants answer, so the rule that
+ * an answered row is never rewritten or deleted lives in one place rather than
+ * three times over.
+ */
+async function applyArchivePlan<T extends { id?: string | null }>(
+  table: "task_questions" | "template_questions" | "template_error_types",
+  plan: ArchivePlan<T>,
+  parent: Record<string, string>,
+) {
+  for (const row of plan.toUpdate) {
+    const { id, ...fields } = row;
     const { error } = await supabase
-      .from("task_questions")
-      .update({ ...fields, task_id: taskId })
+      .from(table)
+      .update({ ...fields, ...parent })
       .eq("id", id!);
     if (error) throw error;
   }
 
   if (plan.toInsert.length > 0) {
     const { error } = await supabase
-      .from("task_questions")
-      .insert(plan.toInsert.map(({ id, ...q }) => ({ ...q, task_id: taskId })));
+      .from(table)
+      .insert(plan.toInsert.map(({ id, ...r }) => ({ ...r, ...parent })));
     if (error) throw error;
   }
 
-  if (plan.toDeleteIds.length > 0) {
+  // The successor is written first so the archived row can point at it.
+  for (const { id, replacement } of plan.toSupersede) {
+    const { id: _drop, ...fields } = replacement;
+    const { data, error } = await supabase
+      .from(table)
+      .insert({ ...fields, ...parent })
+      .select("id")
+      .single();
+    if (error) throw error;
+
+    const { error: archErr } = await supabase
+      .from(table)
+      .update({ archived_at: new Date().toISOString(), superseded_by: data.id })
+      .eq("id", id);
+    if (archErr) throw archErr;
+  }
+
+  if (plan.toArchiveIds.length > 0) {
     const { error } = await supabase
-      .from("task_questions")
-      .delete()
-      .in("id", plan.toDeleteIds);
+      .from(table)
+      .update({ archived_at: new Date().toISOString() })
+      .in("id", plan.toArchiveIds);
+    if (error) throw error;
+  }
+
+  // Only rows holding nothing are actually removed.
+  if (plan.toDeleteIds.length > 0) {
+    const { error } = await supabase.from(table).delete().in("id", plan.toDeleteIds);
     if (error) throw error;
   }
 }
 
-/** error_logs cascades on error_type_id, so a removed type takes its logs. */
+async function syncTaskQuestions(
+  taskId: string,
+  questions: TaskQuestionInput[],
+  answerCounts: ReadonlyMap<string, number>,
+) {
+  const { data: existing } = await supabase
+    .from("task_questions")
+    .select("id, question_text, question_type, options, rating_min, rating_max")
+    .eq("task_id", taskId)
+    .is("archived_at", null);
+
+  const stored = new Map((existing ?? []).map((q) => [q.id as string, q]));
+
+  const plan = planArchive(
+    [...stored.keys()],
+    questions,
+    answerCounts,
+    // Only the wording and the shape matter. Reordering a question is not a
+    // change to what was asked, so it must not version an answered one.
+    (row, id) => {
+      const before = stored.get(id);
+      if (!before) return false;
+      return (
+        before.question_text !== row.question_text ||
+        before.question_type !== row.question_type ||
+        JSON.stringify(before.options ?? null) !== JSON.stringify(row.options ?? null) ||
+        (before.rating_min ?? null) !== (row.rating_min ?? null) ||
+        (before.rating_max ?? null) !== (row.rating_max ?? null)
+      );
+    },
+  );
+
+  await applyArchivePlan("task_questions", plan, { task_id: taskId });
+}
+
+/** error_logs cascades on error_type_id, so a removed type would take its logs. */
 async function syncErrorTypes(
   templateId: string,
   errorTypes: ErrorTypeInput[],
+  answerCounts: ReadonlyMap<string, number>,
 ) {
   const { data: existing } = await supabase
     .from("template_error_types")
-    .select("id")
-    .eq("template_id", templateId);
+    .select("id, code, label")
+    .eq("template_id", templateId)
+    .is("archived_at", null);
 
-  const plan = planSync((existing ?? []).map((e) => e.id as string), errorTypes);
+  const stored = new Map((existing ?? []).map((e) => [e.id as string, e]));
 
-  for (const e of plan.toUpdate) {
-    const { id, ...fields } = e;
-    const { error } = await supabase
-      .from("template_error_types")
-      .update({ ...fields, template_id: templateId })
-      .eq("id", id!);
-    if (error) throw error;
-  }
+  const plan = planArchive(
+    [...stored.keys()],
+    errorTypes,
+    answerCounts,
+    (row, id) => {
+      const before = stored.get(id);
+      return !!before && (before.code !== row.code || before.label !== row.label);
+    },
+  );
 
-  if (plan.toInsert.length > 0) {
-    const { error } = await supabase
-      .from("template_error_types")
-      .insert(plan.toInsert.map(({ id, ...e }) => ({ ...e, template_id: templateId })));
-    if (error) throw error;
-  }
-
-  if (plan.toDeleteIds.length > 0) {
-    const { error } = await supabase
-      .from("template_error_types")
-      .delete()
-      .in("id", plan.toDeleteIds);
-    if (error) throw error;
-  }
+  await applyArchivePlan("template_error_types", plan, { template_id: templateId });
 }
 
-/** interview_answers cascades on question_id, so a removed question takes them. */
+/** interview_answers cascades on question_id, so a removal would take them. */
 async function syncQuestions(
   templateId: string,
   questions: InterviewQuestionInput[],
+  answerCounts: ReadonlyMap<string, number>,
 ) {
   const { data: existing } = await supabase
     .from("template_questions")
-    .select("id")
-    .eq("template_id", templateId);
+    .select("id, question_text")
+    .eq("template_id", templateId)
+    .is("archived_at", null);
 
-  const plan = planSync((existing ?? []).map((q) => q.id as string), questions);
+  const stored = new Map((existing ?? []).map((q) => [q.id as string, q]));
 
-  for (const q of plan.toUpdate) {
-    const { id, ...fields } = q;
-    const { error } = await supabase
-      .from("template_questions")
-      .update({ ...fields, template_id: templateId })
-      .eq("id", id!);
-    if (error) throw error;
-  }
+  const plan = planArchive(
+    [...stored.keys()],
+    questions,
+    answerCounts,
+    (row, id) => stored.get(id)?.question_text !== row.question_text,
+  );
 
-  if (plan.toInsert.length > 0) {
-    const { error } = await supabase
-      .from("template_questions")
-      .insert(plan.toInsert.map(({ id, ...q }) => ({ ...q, template_id: templateId })));
-    if (error) throw error;
-  }
-
-  if (plan.toDeleteIds.length > 0) {
-    const { error } = await supabase
-      .from("template_questions")
-      .delete()
-      .in("id", plan.toDeleteIds);
-    if (error) throw error;
-  }
+  await applyArchivePlan("template_questions", plan, { template_id: templateId });
 }
 
 async function syncParticipantFields(
