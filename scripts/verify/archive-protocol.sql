@@ -25,7 +25,7 @@ BEGIN
   INSERT INTO template_tasks (template_id, name, sort_order)
     VALUES (v_tpl, 'ZZ task', 0) RETURNING id INTO v_task;
   INSERT INTO task_questions (task_id, question_text, question_type, sort_order)
-    VALUES (v_task, 'ZZ original wording', 'text', 0) RETURNING id INTO v_q;
+    VALUES (v_task, 'ZZ original wording', 'open', 0) RETURNING id INTO v_q;
 
   INSERT INTO participants (name) VALUES ('ZZ archive participant') RETURNING id INTO v_p;
   INSERT INTO test_sessions (template_id, participant_id, evaluator_name)
@@ -52,7 +52,7 @@ BEGIN
 
   -- ── rewording: the original keeps its wording and its answer ──
   INSERT INTO task_questions (task_id, question_text, question_type, sort_order)
-    VALUES (v_task, 'ZZ reworded', 'text', 0) RETURNING id INTO v_new;
+    VALUES (v_task, 'ZZ reworded', 'open', 0) RETURNING id INTO v_new;
   UPDATE task_questions
      SET archived_at = now(), superseded_by = v_new
    WHERE id = v_q;
