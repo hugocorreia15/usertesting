@@ -35,11 +35,11 @@ BEGIN
   INSERT INTO task_question_answers (task_result_id, question_id, answer_text)
     VALUES (v_tr, v_q, 'ZZ the participant answer');
 
-  INSERT INTO _fx VALUES ('tpl', v_tpl), ('task', v_task), ('q', v_q), ('p', v_p);
+  INSERT INTO _fx VALUES ('tpl', v_tpl), ('task', v_task), ('q', v_q), ('p', v_p), ('owner', v_a);
 END $fx$;
 
 DO $checks$
-DECLARE v_tpl uuid; v_task uuid; v_q uuid; v_new uuid; n int; txt text; arch timestamptz;
+DECLARE v_tpl uuid; v_task uuid; v_q uuid; v_new uuid; v_n int; txt text; arch timestamptz;
 BEGIN
   SELECT v INTO v_tpl FROM _fx WHERE k = 'tpl';
   SELECT v INTO v_task FROM _fx WHERE k = 'task';
@@ -61,44 +61,51 @@ BEGIN
   INSERT INTO _result VALUES (2, 'the answered question keeps the wording it was asked with',
     CASE WHEN txt = 'ZZ original wording' THEN 'PASS' ELSE 'FAIL' END, txt);
 
-  SELECT count(*) INTO n FROM task_question_answers WHERE question_id = v_q;
+  SELECT count(*) INTO v_n FROM task_question_answers WHERE question_id = v_q;
   INSERT INTO _result VALUES (3, 'and keeps its answer',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'answers=' || n);
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'answers=' || v_n);
 
-  SELECT count(*) INTO n FROM task_questions
+  SELECT count(*) INTO v_n FROM task_questions
    WHERE task_id = v_task AND archived_at IS NULL;
   INSERT INTO _result VALUES (4, 'the protocol now holds only the new wording',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'active=' || n);
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'active=' || v_n);
 
-  SELECT count(*) INTO n FROM task_questions
+  SELECT count(*) INTO v_n FROM task_questions
    WHERE id = v_q AND superseded_by = v_new;
   INSERT INTO _result VALUES (5, 'the old version points at what replaced it',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, '');
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, '');
 
   -- ── removal: archiving leaves the answer alone ────────────
   UPDATE task_questions SET archived_at = now() WHERE id = v_new;
-  SELECT count(*) INTO n FROM task_question_answers WHERE question_id = v_q;
+  SELECT count(*) INTO v_n FROM task_question_answers WHERE question_id = v_q;
   INSERT INTO _result VALUES (6, 'archiving never touches an answer',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'answers=' || n);
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'answers=' || v_n);
 
-  SELECT count(*) INTO n FROM task_questions
+  SELECT count(*) INTO v_n FROM task_questions
    WHERE task_id = v_task AND archived_at IS NULL;
   INSERT INTO _result VALUES (7, 'and the protocol is left with nothing to ask',
-    CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END, 'active=' || n);
+    CASE WHEN v_n = 0 THEN 'PASS' ELSE 'FAIL' END, 'active=' || v_n);
 
   -- ── the counts still see archived rows ────────────────────
   -- The editor uses them to decide whether an edit must version rather than
   -- overwrite, so an archived question holding answers has to keep reporting.
-  SELECT n INTO n FROM template_answer_counts(v_tpl) WHERE ref_id = v_q;
+  -- template_answer_counts is guarded by can_use_template, which reads
+  -- auth.uid(), so the caller has to be someone even though this block runs as
+  -- the superuser: with no claims set it is nobody and the function is empty.
+  PERFORM set_config(
+    'request.jwt.claims',
+    json_build_object('sub', (SELECT v::text FROM _fx WHERE k = 'owner'))::text,
+    true);
+  SELECT n INTO v_n FROM template_answer_counts(v_tpl) WHERE ref_id = v_q;
   INSERT INTO _result VALUES (8, 'an archived question still reports what it holds',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(n::text, 'null'));
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(v_n::text, 'null'));
 
   -- ── deleting is still what destroys ───────────────────────
   -- Stated rather than assumed: this is why the client archives.
   DELETE FROM task_questions WHERE id = v_q;
-  SELECT count(*) INTO n FROM task_question_answers WHERE question_id = v_q;
+  SELECT count(*) INTO v_n FROM task_question_answers WHERE question_id = v_q;
   INSERT INTO _result VALUES (9, 'deleting a question still takes its answers, which is why nothing deletes one',
-    CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END, 'answers left=' || n);
+    CASE WHEN v_n = 0 THEN 'PASS' ELSE 'FAIL' END, 'answers left=' || v_n);
 END $checks$;
 
 DO $clean$

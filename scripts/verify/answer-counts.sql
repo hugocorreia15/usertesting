@@ -61,7 +61,7 @@ END $fx$;
 SET LOCAL ROLE authenticated;
 
 DO $rls$
-DECLARE v_a uuid; v_c uuid; v_tpl uuid; v_q uuid; v_iq uuid; v_et uuid; n bigint; rows int;
+DECLARE v_a uuid; v_c uuid; v_tpl uuid; v_q uuid; v_iq uuid; v_et uuid; v_n bigint; v_rows int;
 BEGIN
   SELECT v INTO v_c FROM _fx WHERE k = 'C';
   IF v_c IS NULL THEN RETURN; END IF;
@@ -73,27 +73,27 @@ BEGIN
 
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_a::text)::text, true);
 
-  SELECT n INTO n FROM template_answer_counts(v_tpl) WHERE ref_id = v_q;
+  SELECT n INTO v_n FROM template_answer_counts(v_tpl) WHERE ref_id = v_q;
   INSERT INTO _result VALUES (1, 'counts answers to a task question',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(n::text, 'null'));
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(v_n::text, 'null'));
 
-  SELECT n INTO n FROM template_answer_counts(v_tpl) WHERE ref_id = v_iq;
+  SELECT n INTO v_n FROM template_answer_counts(v_tpl) WHERE ref_id = v_iq;
   INSERT INTO _result VALUES (2, 'counts answers to an interview question',
-    CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(n::text, 'null'));
+    CASE WHEN v_n = 1 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(v_n::text, 'null'));
 
-  SELECT n INTO n FROM template_answer_counts(v_tpl) WHERE ref_id = v_et;
+  SELECT n INTO v_n FROM template_answer_counts(v_tpl) WHERE ref_id = v_et;
   INSERT INTO _result VALUES (3, 'counts errors logged against a type',
-    CASE WHEN n = 3 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(n::text, 'null'));
+    CASE WHEN v_n = 3 THEN 'PASS' ELSE 'FAIL' END, 'n=' || COALESCE(v_n::text, 'null'));
 
-  SELECT count(*) INTO rows FROM template_answer_counts(v_tpl);
+  SELECT count(*) INTO v_rows FROM template_answer_counts(v_tpl);
   INSERT INTO _result VALUES (4, 'reports only what actually holds data',
-    CASE WHEN rows = 3 THEN 'PASS' ELSE 'FAIL' END, 'rows=' || rows);
+    CASE WHEN v_rows = 3 THEN 'PASS' ELSE 'FAIL' END, 'rows=' || v_rows);
 
   -- ── from outside the template ─────────────────────────────
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_c::text)::text, true);
-  SELECT count(*) INTO rows FROM template_answer_counts(v_tpl);
+  SELECT count(*) INTO v_rows FROM template_answer_counts(v_tpl);
   INSERT INTO _result VALUES (5, 'tells someone else nothing, not even a count',
-    CASE WHEN rows = 0 THEN 'PASS' ELSE 'FAIL' END, 'rows=' || rows);
+    CASE WHEN v_rows = 0 THEN 'PASS' ELSE 'FAIL' END, 'rows=' || v_rows);
 END $rls$;
 
 RESET ROLE;
