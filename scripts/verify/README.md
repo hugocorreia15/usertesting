@@ -19,6 +19,7 @@ flow.
 | `legal-acceptance.sql` | Migration 061: acceptance is recorded per user, document and version; one document is not enough; a later version asks again; an acceptance cannot be rewritten, deleted, or made on someone else's behalf; optional cookie consent is not stored here. | SQL editor |
 | `answer-counts.sql` | Migration 062: the editor can find out how many answers, interview responses and logged errors a question or error type holds, and someone outside the template learns nothing, not even a count. | SQL editor |
 | `archive-protocol.sql` | Migration 063: an answered question can be reworded and removed without losing anything. The original keeps its wording and its answers, points at its successor, and still reports what it holds; only an actual delete destroys, which is why nothing deletes one. | SQL editor |
+| `participant-join-fields.sql` | Migration 064: an anonymous participant holding an invitation code can record the study's custom field answers, still cannot read the participants table, and is refused without a code or with a wrong one. Fails on check 1 against a database without 064, which is the reported bug. | SQL editor |
 | `ai-provider.mts` | That a model provider works before anything is deployed: the key is accepted, whether the model is free or billed, that the request the edge function sends comes back usable, and what it cost. | `npx tsx scripts/verify/ai-provider.mts` |
 
 `anon-rls.mjs` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from
