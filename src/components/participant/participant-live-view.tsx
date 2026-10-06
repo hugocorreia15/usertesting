@@ -29,7 +29,6 @@ import {
 import type { TaskQuestion } from "@/types";
 import { useLang, format, type Dict } from "@/lib/i18n";
 import { toast } from "sonner";
-import { LangToggle } from "@/components/participant/lang-toggle";
 
 import { hasUnansweredQuestions } from "@/lib/session-gating";
 interface ParticipantLiveViewProps {
@@ -299,7 +298,6 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
                     total: totalTasks,
                   })}
                 </Badge>
-                <LangToggle />
               </div>
             </div>
             <Card className="mx-auto bg-transparent backdrop-blur-md">
@@ -368,7 +366,6 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
               total: totalTasks,
             })}
           </Badge>
-          <LangToggle />
         </div>
       </div>
 

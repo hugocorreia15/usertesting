@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,26 +115,20 @@ function ConsentForm({
 }
 
 /** Opens the settings from anywhere: the footer, or the cookie policy. */
-export function CookieSettingsButton({
-  variant = "outline",
-  label = "Cookie settings",
-  onSaved,
+/**
+ * The settings dialog, controlled from outside. A menu item cannot be a dialog
+ * trigger without the menu closing out from under it, so the legal menu opens
+ * this by state instead.
+ */
+export function CookieSettingsDialog({
+  open,
+  onOpenChange,
 }: {
-  variant?: "outline" | "link" | "ghost";
-  label?: string;
-  /** So a banner containing this can close once a choice is made in it. */
-  onSaved?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant={variant} className="cursor-pointer">
-          <Cookie className="mr-1.5 h-3.5 w-3.5" />
-          {label}
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Cookie settings</DialogTitle>
@@ -144,14 +137,35 @@ export function CookieSettingsButton({
             and you can change this at any time.
           </DialogDescription>
         </DialogHeader>
-        <ConsentForm
-          onDone={() => {
-            setOpen(false);
-            onSaved?.();
-          }}
-        />
+        <ConsentForm onDone={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Opens the settings from a button: the cookie policy page and the banner. */
+export function CookieSettingsButton({
+  variant = "outline",
+  label = "Cookie settings",
+}: {
+  variant?: "outline" | "link" | "ghost";
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button
+        size="sm"
+        variant={variant}
+        className="cursor-pointer"
+        onClick={() => setOpen(true)}
+      >
+        <Cookie className="mr-1.5 h-3.5 w-3.5" />
+        {label}
+      </Button>
+      <CookieSettingsDialog open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 
@@ -169,7 +183,7 @@ export function CookieBanner() {
 
   return (
     <div
-      role="dialog"
+      role="region"
       aria-label="Cookie choices"
       className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 p-4 shadow-lg backdrop-blur"
     >

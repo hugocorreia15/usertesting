@@ -10,7 +10,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Footer } from "@/components/layout/footer";
+import { LegalMenu } from "@/components/layout/legal-menu";
 import { CookieBanner } from "@/components/legal/cookie-settings";
 import { LegalGate } from "@/components/legal/legal-gate";
 import { useLegalAcceptance } from "@/hooks/use-legal-acceptance";
@@ -98,12 +98,17 @@ function RootLayout() {
       <ThemeProvider>
         <TooltipProvider>
           <AnimatedBackground />
+          {/* Sign-in and the participant's session have no header, and they
+              are exactly where someone agrees to something, so the legal menu
+              sits in the same top right corner it occupies in the app. */}
+          <div className="fixed right-3 top-3 z-40">
+            <LegalMenu />
+          </div>
           <main className="min-h-screen p-4 md:p-6">
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>
           </main>
-          <Footer />
           <CookieBanner />
           <Toaster />
         </TooltipProvider>
@@ -155,7 +160,6 @@ function RootLayout() {
                 <ErrorBoundary>
                   <Outlet />
                 </ErrorBoundary>
-                <Footer />
               </main>
             </div>
           </div>

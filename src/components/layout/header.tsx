@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { LampToggle } from "@/components/layout/lamp-toggle";
+import { LegalMenu } from "@/components/layout/legal-menu";
 
 export function Header() {
   const { collapsed, toggleCollapsed } = useSidebar();
@@ -27,6 +28,7 @@ export function Header() {
         <Breadcrumbs />
       </div>
 
+      <LegalMenu />
       <LampToggle />
     </header>
   );

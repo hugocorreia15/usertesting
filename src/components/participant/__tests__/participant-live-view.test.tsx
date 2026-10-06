@@ -112,3 +112,47 @@ describe("the last task's questions on a template without SUS", () => {
     expect(screen.queryByText("Calibrate the room")).toBeNull();
   });
 });
+
+describe("the language switch", () => {
+  // The join page draws one above the title in every state. This view used to
+  // draw a second beside its progress badge, so a desktop showed two.
+  const languageToggles = () =>
+    screen.queryAllByRole("group", { name: /language/i });
+
+  it("is not drawn again while the participant is waiting between tasks", () => {
+    session = {
+      ...noClosingSteps,
+      status: "in_progress",
+      current_task_index: 0,
+      task_results: [
+        task({
+          id: "tr1",
+          completion_status: null,
+          template_tasks: { id: "t1", name: "First task", description: null, task_questions: [] },
+        }),
+      ],
+    };
+    render(<ParticipantLiveView sessionId="s" />);
+    expect(languageToggles()).toHaveLength(0);
+  });
+
+  it("is not drawn again while the participant is answering a task", () => {
+    session = {
+      ...noClosingSteps,
+      status: "in_progress",
+      task_results: [
+        task({
+          id: "tr1",
+          task_question_answers: [],
+          template_tasks: {
+            id: "t1", name: "First task", description: null,
+            task_questions: [{ id: "q1", question_text: "How was it?", question_type: "open", sort_order: 0 }],
+          },
+        }),
+      ],
+    };
+    render(<ParticipantLiveView sessionId="s" />);
+    expect(screen.getByText("How was it?")).toBeTruthy();
+    expect(languageToggles()).toHaveLength(0);
+  });
+});
