@@ -33,9 +33,13 @@ export function LegalMenu() {
             size="icon"
             aria-label="Legal"
             tooltip="Terms, privacy and cookies"
-            className="shrink-0 cursor-pointer"
+            // Sized to sit beside the lamp, which is 36 by 44, rather than as a
+            // standard 16px icon that read as an afterthought next to it.
+            className="h-10 w-10 shrink-0 cursor-pointer"
           >
-            <Scale className="h-4 w-4" />
+            {/* size-, not h- and w-: the Button forces size-4 on any icon whose
+                class does not mention a size, which silently undid h-6 w-6. */}
+            <Scale className="size-6" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52">
