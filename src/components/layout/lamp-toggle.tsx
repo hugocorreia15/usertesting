@@ -33,6 +33,8 @@ export function LampToggle() {
     }
   }, [isOn]);
 
+  const suppressNextClick = useRef(false);
+
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,6 +81,13 @@ export function LampToggle() {
       }
 
       if (pulled) {
+        // The browser still fires a click once this pointer is released, and
+        // the click handler toggles too. Without this a pull switched the theme
+        // twice in the same frame: the second view transition skipped the
+        // first, whose rejected promise reached Sentry as an unhandled
+        // AbortError, and the theme only ended up right because both calls
+        // read the same stale value.
+        suppressNextClick.current = true;
         // Create a synthetic mouse event at the cord position for the wave effect
         const rect = svgRef.current?.getBoundingClientRect();
         if (rect) {
@@ -95,6 +104,11 @@ export function LampToggle() {
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
+      // The click that follows a pull has already been handled by the pull.
+      if (suppressNextClick.current) {
+        suppressNextClick.current = false;
+        return;
+      }
       // Simple click toggle (no drag needed)
       toggleTheme(e);
     },

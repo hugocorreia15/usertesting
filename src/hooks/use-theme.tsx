@@ -34,7 +34,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       document.documentElement.style.setProperty("--reveal-x", `${x}px`);
       document.documentElement.style.setProperty("--reveal-y", `${y}px`);
 
-      document.startViewTransition(() => {
+      const transition = document.startViewTransition(() => {
         setTheme(newTheme);
         // Apply immediately so the new "snapshot" has the right theme
         const root = document.documentElement;
@@ -42,6 +42,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         root.classList.add(newTheme);
         localStorage.setItem("theme", newTheme);
       });
+      // A transition started while another is running skips the earlier one,
+      // whose `ready` then rejects with AbortError. The theme change itself
+      // still applies, so this is not a failure, and leaving the promise
+      // unhandled is what turned it into a Sentry report.
+      transition.ready.catch(() => {});
+      transition.finished.catch(() => {});
     } else {
       setTheme(newTheme);
     }

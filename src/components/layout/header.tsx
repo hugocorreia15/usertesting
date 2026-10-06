@@ -28,7 +28,9 @@ export function Header() {
         <Breadcrumbs />
       </div>
 
-      <LegalMenu />
+      <div className="mr-1 flex items-center">
+        <LegalMenu />
+      </div>
       <LampToggle />
     </header>
   );
