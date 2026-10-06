@@ -140,6 +140,7 @@ function LiveSessionPage() {
   // the participant was never shown, while the participant was already being
   // thanked. It now uses the participant's own rule, so the two cannot disagree.
   const susCompleted = closingStepsComplete({
+    hasPendingTask: participantStillAnswering(session),
     instruments: template?.instruments,
     interviewQuestions: template?.template_questions ?? [],
     interviewAnswers: session?.interview_answers ?? [],

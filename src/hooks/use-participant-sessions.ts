@@ -209,6 +209,21 @@ export function useParticipantLiveSession(sessionId: string | null) {
     queryKey,
     enabled: !!sessionId,
     queryFn: () => fetchParticipantLive(sessionId!),
+    // The realtime subscription above does not reach an anonymous participant.
+    // Their access is granted by the join code, which arrives as a request
+    // header (migration 048), and a realtime websocket carries no request
+    // headers, so the policy sees no code and no change is ever delivered.
+    // The participant only found out the evaluator had closed a task by
+    // reloading the page.
+    //
+    // So the live half is polled until the session is completed. After that
+    // every remaining step (the last task's questions, the interview, the
+    // questionnaires) is driven by the participant's own submissions, and each
+    // of those refetches this query itself.
+    refetchInterval: (query) =>
+      (query.state.data as { status?: string } | undefined)?.status === "completed"
+        ? false
+        : 2500,
   });
 
   const merged = useMemo(() => {

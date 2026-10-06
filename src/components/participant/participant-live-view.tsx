@@ -31,6 +31,7 @@ import { useLang, format, type Dict } from "@/lib/i18n";
 import { toast } from "sonner";
 import { LangToggle } from "@/components/participant/lang-toggle";
 
+import { hasUnansweredQuestions } from "@/lib/session-gating";
 interface ParticipantLiveViewProps {
   sessionId: string;
 }
@@ -71,24 +72,14 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     );
   }
 
-  // Session completed — only show "done" if participant already filled SUS
-  const susAlreadyDone =
-    !administersSus(session.templates?.instruments) ||
-    (session.sus_answers?.length ?? 0) > 0 ||
-    susSubmitted;
-  if (session.status === "completed" && susAlreadyDone) {
-    return (
-      <Card className="mx-auto max-w-md bg-transparent backdrop-blur-md">
-        <CardContent className="flex flex-col items-center gap-4 pt-6">
-          <CheckCircle2 className="h-12 w-12 text-green-500" />
-          <p className="text-lg font-medium">{dict.live.sessionComplete}</p>
-          <p className="text-center text-sm text-muted-foreground">
-            {dict.live.thankYouClose}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // There used to be an early return here that showed "session complete" as
+  // soon as the session was completed and SUS was satisfied. On a template
+  // that does not administer SUS that was the moment the evaluator finished
+  // the last task, because the cockpit marks the session completed straight
+  // after the last SEQ rating, so the participant was sent away before
+  // answering that task's questions, the interview, or any other instrument.
+  // participantStep below already orders every step, pending task first, and
+  // owns the thank-you screen; nothing may end the session ahead of it.
 
   const taskResults = [...(session.task_results ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order,
@@ -119,12 +110,12 @@ export function ParticipantLiveView({ sessionId }: ParticipantLiveViewProps) {
     if (!tr.completion_status) return false;
     // Skip if already answered in this session
     if (answeredTaskIds.has(tr.id)) return false;
-    // Must have questions
-    const questions = tr.template_tasks?.task_questions ?? [];
-    if (questions.length === 0) return false;
-    // Check if any questions are unanswered
-    const answers = tr.task_question_answers ?? [];
-    return answers.length < questions.length;
+    // Same rule the evaluator's gate uses, so the two cannot disagree about
+    // whether a task is still waiting on this participant.
+    return hasUnansweredQuestions(
+      tr.template_tasks?.task_questions,
+      tr.task_question_answers,
+    );
   });
 
   const completedByObserver = taskResults.filter(

@@ -8,6 +8,7 @@ import { closingStepsComplete, participantStep } from "../participant-live";
  * participant was thanked while the evaluator waited forever.
  */
 const base = {
+  hasPendingTask: false,
   instruments: [] as string[],
   interviewQuestions: [] as { id: string }[],
   interviewAnswers: [] as { question_id: string; answer_text: string | null }[],
@@ -72,18 +73,34 @@ describe("closingStepsComplete", () => {
   });
 });
 
+describe("the last task's questions", () => {
+  it("keeps the evaluator waiting while the participant still owes them", () => {
+    // The reported case: no SUS, and the cockpit marks the session completed
+    // straight after the last SEQ rating. Without this the evaluator left for
+    // the session page while the participant was still being asked the last
+    // task's questions.
+    expect(closingStepsComplete({ ...base, hasPendingTask: true })).toBe(false);
+  });
+
+  it("releases the evaluator once they are answered", () => {
+    expect(closingStepsComplete({ ...base, hasPendingTask: false })).toBe(true);
+  });
+});
+
 describe("the evaluator and the participant agree", () => {
   // Every combination of the closing steps, judged both ways.
   const cases = [];
-  for (const sus of [false, true])
-    for (const susDone of [false, true])
-      for (const interview of [false, true])
-        for (const interviewDone of [false, true])
-          cases.push({ sus, susDone, interview, interviewDone });
+  for (const pending of [false, true])
+    for (const sus of [false, true])
+      for (const susDone of [false, true])
+        for (const interview of [false, true])
+          for (const interviewDone of [false, true])
+            cases.push({ pending, sus, susDone, interview, interviewDone });
 
-  it.each(cases)("%o", ({ sus, susDone, interview, interviewDone }) => {
+  it.each(cases)("%o", ({ pending, sus, susDone, interview, interviewDone }) => {
     const evaluatorDone = closingStepsComplete({
       ...base,
+      hasPendingTask: pending,
       instruments: sus ? ["sus"] : [],
       susAnswerCount: susDone ? 10 : 0,
       interviewQuestions: interview ? [{ id: "q" }] : [],
@@ -92,7 +109,7 @@ describe("the evaluator and the participant agree", () => {
 
     const participantThanked =
       participantStep({
-        hasPendingTask: false,
+        hasPendingTask: pending,
         sessionCompleted: true,
         hasInterviewQuestions: interview,
         interviewAnswered: interview && interviewDone,

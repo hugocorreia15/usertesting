@@ -171,6 +171,13 @@ export function participantStep(s: {
  * reaches the thank-you screen. A test pins that equivalence.
  */
 export function closingStepsComplete(s: {
+  /**
+   * The participant still owes answers to a task the evaluator has closed.
+   * Matters most for the last task: the cockpit marks the session completed
+   * straight after its SEQ rating, so without this the evaluator would leave
+   * while the participant was still being asked that task's questions.
+   */
+  hasPendingTask: boolean;
   instruments: readonly string[] | null | undefined;
   interviewQuestions: readonly { id: string }[];
   interviewAnswers: readonly { question_id: string; answer_text: string | null }[];
@@ -187,7 +194,7 @@ export function closingStepsComplete(s: {
 
   return (
     participantStep({
-      hasPendingTask: false,
+      hasPendingTask: s.hasPendingTask,
       sessionCompleted: true,
       hasInterviewQuestions,
       interviewAnswered,
