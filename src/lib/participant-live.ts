@@ -10,6 +10,11 @@
 
 import type { TaskQuestion } from "@/types";
 
+import {
+  administersSus,
+  instrumentsComplete,
+  type InstrumentAnswerRow,
+} from "./instruments";
 export interface ParticipantLiveTaskResult {
   id: string;
   sort_order: number;
@@ -148,4 +153,54 @@ export function participantStep(s: {
   if (s.susEnabled && !s.susAnswered) return "sus";
   if (s.hasNextInstrument) return "instrument";
   return "thank-you";
+}
+
+/**
+ * Whether the participant has finished every closing step, judged from what is
+ * stored rather than from anything one client happens to remember.
+ *
+ * The evaluator's cockpit used to decide this on its own: it waited for ten
+ * SUS answers on every template, and ignored the interview. When SUS became
+ * opt-in (migration 049) the participant side was fixed and the evaluator side
+ * was not, so on a template that does not administer SUS the participant was
+ * correctly told the session was over while the evaluator waited, indefinitely,
+ * for a questionnaire nobody would ever be shown.
+ *
+ * It is defined through participantStep so the two sides share one ordering and
+ * one set of rules: the evaluator stops waiting exactly when the participant
+ * reaches the thank-you screen. A test pins that equivalence.
+ */
+export function closingStepsComplete(s: {
+  instruments: readonly string[] | null | undefined;
+  interviewQuestions: readonly { id: string }[];
+  interviewAnswers: readonly { question_id: string; answer_text: string | null }[];
+  susAnswerCount: number;
+  instrumentAnswers: readonly InstrumentAnswerRow[];
+}): boolean {
+  const hasInterviewQuestions = s.interviewQuestions.length > 0;
+  const interviewAnswered =
+    hasInterviewQuestions &&
+    s.interviewQuestions.every((q) => {
+      const a = s.interviewAnswers.find((x) => x.question_id === q.id);
+      return !!a?.answer_text;
+    });
+
+  return (
+    participantStep({
+      hasPendingTask: false,
+      sessionCompleted: true,
+      hasInterviewQuestions,
+      interviewAnswered,
+      susEnabled: administersSus(s.instruments as string[] | null | undefined),
+      // The participant treats SUS as done once any answer is stored, because
+      // all ten are written together. Matching that is the point.
+      susAnswered: s.susAnswerCount > 0,
+      // instrumentsComplete passes over keys it does not know, SUS included,
+      // so this asks only about the extra questionnaires.
+      hasNextInstrument: !instrumentsComplete(
+        [...(s.instruments ?? [])],
+        [...s.instrumentAnswers],
+      ),
+    }) === "thank-you"
+  );
 }

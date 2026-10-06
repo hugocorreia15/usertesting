@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSession, useUpdateTaskResult, useCreateErrorLog, useCreateHesitationLog, useDeleteErrorLog, useDeleteHesitationLog, useUpdateSession, useUpsertTaskQuestionAnswer, useResetTaskResult } from "@/hooks/use-sessions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { participantStillAnswering } from "@/lib/session-gating";
-import { instrumentsComplete } from "@/lib/instruments";
 import { setSessionContext } from "@/lib/monitoring";
 import { useTemplate } from "@/hooks/use-templates";
 import { useTimer } from "@/hooks/use-timer";
@@ -23,6 +22,7 @@ import { useModerationLog, useModerationLoggingStarted } from "@/hooks/use-moder
 import { toast } from "sonner";
 import type { CompletionStatus } from "@/lib/constants";
 
+import { closingStepsComplete } from "@/lib/participant-live";
 export const Route = createFileRoute("/sessions/$sessionId/live")({
   component: LiveSessionPage,
 });
@@ -133,15 +133,19 @@ function LiveSessionPage() {
     prevBlocked.current = blockedForParticipant;
   }, [blockedForParticipant]);
 
-  // Poll for SUS completion when waiting
-  // The session finishes when SUS AND every extra instrument the
-  // template administers (NASA-TLX, UEQ-S) are fully answered.
-  const susCompleted =
-    (session?.sus_answers?.length ?? 0) >= 10 &&
-    instrumentsComplete(
-      template?.instruments ?? [],
-      session?.instrument_answers ?? [],
-    );
+  // The participant has finished every closing step: the interview if the
+  // template has one, SUS only if the template administers it, then the extra
+  // instruments. This used to demand ten SUS answers on every template, so a
+  // study without SUS left the evaluator waiting forever for a questionnaire
+  // the participant was never shown, while the participant was already being
+  // thanked. It now uses the participant's own rule, so the two cannot disagree.
+  const susCompleted = closingStepsComplete({
+    instruments: template?.instruments,
+    interviewQuestions: template?.template_questions ?? [],
+    interviewAnswers: session?.interview_answers ?? [],
+    susAnswerCount: session?.sus_answers?.length ?? 0,
+    instrumentAnswers: session?.instrument_answers ?? [],
+  });
 
   useEffect(() => {
     if (!waitingForSus || susCompleted) return;
